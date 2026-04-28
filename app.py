@@ -1,6 +1,7 @@
 import streamlit as st
 from pathlib import Path
 import pandas as pd
+import re
 
 
 # =========================
@@ -387,6 +388,64 @@ st.markdown(
 CAREPACK_DIR = Path("carepack_bulletins")
 
 
+def extract_pdf_info(pdf_path: Path):
+    """
+    Extract Date and Bulletin Code from the first page of the PDF.
+    If extraction fails, return "-".
+    """
+    date_value = "-"
+    bulletin_code = "-"
+
+    try:
+        import fitz  # PyMuPDF
+
+        doc = fitz.open(pdf_path)
+
+        if len(doc) == 0:
+            return date_value, bulletin_code
+
+        text = doc.load_page(0).get_text()
+        text_one_line = " ".join(text.split())
+
+        # Example:
+        # Date: Dec. 23rd, 2025 Title: Carepack Code: AS23122025-1
+        date_match = re.search(
+            r"Date:\s*(.*?)(?:\s+Title:|\s+Ref No\.:|\s+Model:|\n)",
+            text_one_line,
+            re.IGNORECASE,
+        )
+
+        if date_match:
+            date_value = date_match.group(1).strip()
+
+        # Example:
+        # Title: Carepack Code: AS23122025-1
+        bulletin_match = re.search(
+            r"Title:\s*Carepack\s*Code:\s*([A-Z0-9-]+)",
+            text_one_line,
+            re.IGNORECASE,
+        )
+
+        if bulletin_match:
+            bulletin_code = bulletin_match.group(1).strip()
+
+        # Fallback:
+        # Code: AS23122025-1
+        if bulletin_code == "-":
+            fallback_match = re.search(
+                r"Code:\s*([A-Z]{1,4}[0-9]{6,8}-[0-9]+)",
+                text_one_line,
+                re.IGNORECASE,
+            )
+            if fallback_match:
+                bulletin_code = fallback_match.group(1).strip()
+
+    except Exception:
+        pass
+
+    return date_value, bulletin_code
+
+
 def build_carepack_data():
     """
     Automatically read all PDF files in the carepack_bulletins folder.
@@ -410,15 +469,15 @@ def build_carepack_data():
 
         machine = model.replace("-CRP", "")
 
+        date_value, bulletin_code = extract_pdf_info(pdf_file)
+
         data.append(
             {
                 "model": model,
                 "machine": machine,
-                "code": "-",
-                "bulletin_code": "-",
+                "bulletin_code": bulletin_code,
+                "date": date_value,
                 "file": file_name,
-                "order_start_date": "-",
-                "release_date": "-",
             }
         )
 
@@ -468,11 +527,9 @@ def search_carepack(keyword: str, show_all: bool):
             [
                 item["model"],
                 item["machine"],
-                item["code"],
                 item["bulletin_code"],
+                item["date"],
                 item["file"],
-                item["release_date"],
-                item["order_start_date"],
             ]
         ).lower()
 
@@ -667,7 +724,7 @@ elif view == "📦 Carepack Bulletin":
             <div class="carepack-hero-title">📦 Carepack Bulletin</div>
             <div class="carepack-hero-subtitle">
                 Search, preview, and download Carepack Information Bulletins.
-                You can search by model name, file name, or keyword.
+                You can search by model name, file name, Bulletin Code, or Date.
                 New PDFs will be displayed automatically after being uploaded to the carepack_bulletins folder.
             </div>
         </div>
@@ -688,7 +745,7 @@ elif view == "📦 Carepack Bulletin":
         with col1:
             keyword = st.text_input(
                 "Search Carepack Bulletin",
-                placeholder="Example: BQ300, CF400, VAC1, AF406F, CRF362...",
+                placeholder="Example: BQ300, CF400, VAC1, AF406F, AS23122025-1, Dec. 23rd...",
             )
 
         with col2:
@@ -715,6 +772,8 @@ elif view == "📦 Carepack Bulletin":
                 {
                     "Carepack Model": item["model"],
                     "Machine": item["machine"],
+                    "Bulletin Code": item["bulletin_code"],
+                    "Date": item["date"],
                     "File Name": item["file"],
                 }
                 for item in CAREPACK_DATA
@@ -757,10 +816,10 @@ elif view == "📦 Carepack Bulletin":
                     st.metric("Machine", item["machine"])
 
                 with info_col2:
-                    st.metric("Carepack Code", item["code"])
+                    st.metric("Bulletin Code", item["bulletin_code"])
 
                 with info_col3:
-                    st.metric("Bulletin Code", item["bulletin_code"])
+                    st.metric("Date", item["date"])
 
                 st.write("")
 
