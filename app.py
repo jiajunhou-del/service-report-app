@@ -330,20 +330,20 @@ st.markdown(
         box-shadow: 0 18px 45px rgba(37,99,235,0.24);
         margin-bottom: 24px;
         display: grid;
-        grid-template-columns: minmax(0, 1fr) 260px;
+        grid-template-columns: minmax(0, 1fr) 390px;
         align-items: center;
-        gap: 32px;
-        min-height: 190px;
+        gap: 34px;
+        min-height: 260px;
     }
 
     .carepack-hero-text {
-        max-width: 980px;
+        max-width: 1050px;
     }
 
     .carepack-hero-title {
-        font-size: 38px;
+        font-size: 40px;
         font-weight: 900;
-        margin-bottom: 14px;
+        margin-bottom: 16px;
         letter-spacing: -0.03em;
     }
 
@@ -355,9 +355,9 @@ st.markdown(
     }
 
     .carepack-hero-image-wrap {
-        width: 240px;
-        height: 155px;
-        border-radius: 28px;
+        width: 360px;
+        height: 230px;
+        border-radius: 30px;
         background: rgba(255,255,255,0.18);
         border: 1px solid rgba(255,255,255,0.28);
         display: flex;
@@ -367,19 +367,19 @@ st.markdown(
         box-shadow:
             inset 0 1px 0 rgba(255,255,255,0.22),
             0 18px 35px rgba(0,0,0,0.18);
-        padding: 14px;
+        padding: 16px;
     }
 
     .carepack-hero-image {
         width: 100%;
         height: 100%;
-        object-fit: cover;
-        border-radius: 18px;
+        object-fit: contain;
+        border-radius: 20px;
         filter: drop-shadow(0 8px 14px rgba(0,0,0,0.18));
     }
 
     .carepack-hero-fallback {
-        font-size: 72px;
+        font-size: 82px;
         filter: drop-shadow(0 12px 20px rgba(0,0,0,0.22));
     }
 
@@ -454,11 +454,12 @@ st.markdown(
         .carepack-hero {
             grid-template-columns: 1fr;
             padding: 28px 26px;
+            min-height: auto;
         }
 
         .carepack-hero-image-wrap {
             width: 100%;
-            height: 170px;
+            height: 240px;
         }
     }
     </style>
