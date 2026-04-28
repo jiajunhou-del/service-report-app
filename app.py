@@ -376,6 +376,38 @@ st.markdown(
         font-weight: 900;
         font-size: 18px;
     }
+
+    .progress-card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 22px;
+        padding: 22px 24px;
+        margin-top: 18px;
+        margin-bottom: 18px;
+        box-shadow: 0 10px 28px rgba(15,23,42,0.06);
+    }
+
+    .progress-title {
+        font-size: 20px;
+        font-weight: 900;
+        color: #1f2a44;
+        margin-bottom: 10px;
+    }
+
+    .progress-text {
+        font-size: 22px;
+        font-weight: 900;
+        color: #1f2a44;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+        line-height: 1.5;
+    }
+
+    .progress-target {
+        font-size: 14px;
+        color: #667085;
+        line-height: 1.6;
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -386,6 +418,7 @@ st.markdown(
 # Data Settings
 # =========================
 CAREPACK_DIR = Path("carepack_bulletins")
+TARGET_MODELS = 60
 
 
 def extract_pdf_info(pdf_path: Path):
@@ -407,8 +440,6 @@ def extract_pdf_info(pdf_path: Path):
         text = doc.load_page(0).get_text()
         text_one_line = " ".join(text.split())
 
-        # Example:
-        # Date: Dec. 23rd, 2025 Title: Carepack Code: AS23122025-1
         date_match = re.search(
             r"Date:\s*(.*?)(?:\s+Title:|\s+Ref No\.:|\s+Model:|\n)",
             text_one_line,
@@ -418,8 +449,6 @@ def extract_pdf_info(pdf_path: Path):
         if date_match:
             date_value = date_match.group(1).strip()
 
-        # Example:
-        # Title: Carepack Code: AS23122025-1
         bulletin_match = re.search(
             r"Title:\s*Carepack\s*Code:\s*([A-Z0-9-]+)",
             text_one_line,
@@ -429,8 +458,6 @@ def extract_pdf_info(pdf_path: Path):
         if bulletin_match:
             bulletin_code = bulletin_match.group(1).strip()
 
-        # Fallback:
-        # Code: AS23122025-1
         if bulletin_code == "-":
             fallback_match = re.search(
                 r"Code:\s*([A-Z]{1,4}[0-9]{6,8}-[0-9]+)",
@@ -449,9 +476,6 @@ def extract_pdf_info(pdf_path: Path):
 def build_carepack_data():
     """
     Automatically read all PDF files in the carepack_bulletins folder.
-    Example:
-        IB_BQ300-CRP.pdf -> model: BQ300-CRP, machine: BQ300
-        IB_CF400-CRP.pdf -> model: CF400-CRP, machine: CF400
     """
     data = []
 
@@ -490,6 +514,44 @@ CAREPACK_DATA = build_carepack_data()
 # =========================
 # Helper Functions
 # =========================
+def render_carepack_progress():
+    current_count = len(CAREPACK_DATA)
+
+    if TARGET_MODELS <= 0:
+        percent = 0
+        progress_ratio = 0
+    else:
+        percent = round((current_count / TARGET_MODELS) * 100)
+        progress_ratio = min(current_count / TARGET_MODELS, 1.0)
+
+    total_blocks = 20
+    if TARGET_MODELS <= 0:
+        filled_blocks = 0
+    else:
+        filled_blocks = round((current_count / TARGET_MODELS) * total_blocks)
+
+    filled_blocks = max(0, min(filled_blocks, total_blocks))
+
+    bar_text = "■" * filled_blocks + "□" * (total_blocks - filled_blocks)
+
+    st.markdown(
+        f"""
+        <div class="progress-card">
+            <div class="progress-title">Carepack Bulletin Progress</div>
+            <div class="progress-text">
+                {bar_text} {current_count}/{TARGET_MODELS} models ({percent}%)
+            </div>
+            <div class="progress-target">
+                (Target: All {TARGET_MODELS} models to be ready by the end of this fiscal year)
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.progress(progress_ratio)
+
+
 def show_pdf_preview(pdf_path: Path):
     try:
         import fitz  # PyMuPDF
@@ -782,6 +844,8 @@ elif view == "📦 Carepack Bulletin":
 
         st.dataframe(overview_df, use_container_width=True, hide_index=True)
 
+        render_carepack_progress()
+
     else:
         st.markdown(f"### Search results: {len(results)}")
 
@@ -849,3 +913,5 @@ elif view == "📦 Carepack Bulletin":
                     )
 
             st.write("")
+
+        render_carepack_progress()
