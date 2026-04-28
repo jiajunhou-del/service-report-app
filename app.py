@@ -212,10 +212,10 @@ def login_page():
                             and HAI Search support information.
                         </div>
                         <div class="portal-mini-grid">
-                            <div class="portal-mini-card">📘 iCE LiNK Report</div>
+                            <div class="portal-mini-card">📊 iCE LiNK Report</div>
                             <div class="portal-mini-card">📦 Care Pack</div>
                             <div class="portal-mini-card">🤖 HAI Search</div>
-                            <div class="portal-mini-card">📊 Service Data</div>
+                            <div class="portal-mini-card">📘 Service Data</div>
                         </div>
                     </div>
                     <div class="login-right">
@@ -227,7 +227,7 @@ def login_page():
                         <div class="feature-list">
                             <div class="feature-title">Available views</div>
                             <div class="feature-item">
-                                📘 iCE LiNK Report<br>
+                                📊 iCE LiNK Report<br>
                                 📦 Care Pack<br>
                                 🤖 HAI Search
                             </div>
@@ -278,11 +278,71 @@ st.markdown(
 
     section[data-testid="stSidebar"] {
         background:
-            linear-gradient(180deg, #1f2a44 0%, #111827 100%);
+            radial-gradient(circle at top left, rgba(37,99,235,0.28), transparent 34%),
+            linear-gradient(180deg, #17233d 0%, #111827 100%);
+        padding-top: 26px;
     }
 
     section[data-testid="stSidebar"] * {
         color: white !important;
+    }
+
+    section[data-testid="stSidebar"] h2 {
+        font-size: 22px !important;
+        font-weight: 900 !important;
+        letter-spacing: 0.08em;
+        margin-bottom: 24px !important;
+        color: #ffffff !important;
+    }
+
+    section[data-testid="stSidebar"] div[role="radiogroup"] {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    section[data-testid="stSidebar"] label[data-baseweb="radio"] {
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.13);
+        border-radius: 18px;
+        padding: 16px 18px !important;
+        margin: 0 !important;
+        transition: all 0.18s ease;
+        box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+    }
+
+    section[data-testid="stSidebar"] label[data-baseweb="radio"]:hover {
+        background: rgba(255,255,255,0.16);
+        transform: translateX(4px);
+        border-color: rgba(255,255,255,0.24);
+    }
+
+    section[data-testid="stSidebar"] label[data-baseweb="radio"] > div:first-child {
+        margin-right: 13px;
+    }
+
+    section[data-testid="stSidebar"] label[data-baseweb="radio"] p {
+        font-size: 17px !important;
+        font-weight: 800 !important;
+        line-height: 1.3 !important;
+    }
+
+    section[data-testid="stSidebar"] hr {
+        margin-top: 44px !important;
+        margin-bottom: 28px !important;
+        border-color: rgba(255,255,255,0.12) !important;
+    }
+
+    section[data-testid="stSidebar"] button {
+        border-radius: 16px !important;
+        min-height: 46px !important;
+        font-weight: 800 !important;
+        background: rgba(255,255,255,0.12) !important;
+        border: 1px solid rgba(255,255,255,0.18) !important;
+    }
+
+    section[data-testid="stSidebar"] button:hover {
+        background: rgba(255,255,255,0.22) !important;
     }
 
     .main-title {
@@ -511,7 +571,7 @@ def extract_pdf_info(pdf_path: Path):
         text_one_line = " ".join(text.split())
 
         date_match = re.search(
-            r"Date:\s*(.*?)(?:\s+Title:|\s+Ref No\.:|\s+Model:|\n)",
+            r"Date:\\s*(.*?)(?:\\s+Title:|\\s+Ref No\\.:|\\s+Model:|\\n)",
             text_one_line,
             re.IGNORECASE,
         )
@@ -520,7 +580,7 @@ def extract_pdf_info(pdf_path: Path):
             date_value = date_match.group(1).strip()
 
         bulletin_match = re.search(
-            r"Title:\s*Carepack\s*Code:\s*([A-Z0-9-]+)",
+            r"Title:\\s*Carepack\\s*Code:\\s*([A-Z0-9-]+)",
             text_one_line,
             re.IGNORECASE,
         )
@@ -530,7 +590,7 @@ def extract_pdf_info(pdf_path: Path):
 
         if bulletin_code == "-":
             fallback_match = re.search(
-                r"Code:\s*([A-Z]{1,4}[0-9]{6,8}-[0-9]+)",
+                r"Code:\\s*([A-Z]{1,4}[0-9]{6,8}-[0-9]+)",
                 text_one_line,
                 re.IGNORECASE,
             )
@@ -632,7 +692,6 @@ def render_carepack_progress():
         filled_blocks = round((current_count / TARGET_MODELS) * total_blocks)
 
     filled_blocks = max(0, min(filled_blocks, total_blocks))
-
     bar_text = "■" * filled_blocks + "□" * (total_blocks - filled_blocks)
 
     st.markdown(
@@ -715,9 +774,9 @@ st.sidebar.markdown("## VIEWS")
 view = st.sidebar.radio(
     "",
     [
-        "📘 iCE LiNK Report",
-        "📦 Care Pack",
-        "🤖 HAI Search",
+        "📊  iCE LiNK Report",
+        "📦  Care Pack",
+        "🤖  HAI Search",
     ],
 )
 
@@ -733,9 +792,9 @@ if st.sidebar.button("Logout", use_container_width=True):
 # =========================
 # Page: iCE LiNK Report
 # =========================
-if view == "📘 iCE LiNK Report":
+if view == "📊  iCE LiNK Report":
     page_header(
-        "📘 iCE LiNK Report",
+        "📊 iCE LiNK Report",
         "Review iCE LiNK report data, production trends, and machine performance.",
     )
 
@@ -758,7 +817,7 @@ if view == "📘 iCE LiNK Report":
 # =========================
 # Page: Care Pack
 # =========================
-elif view == "📦 Care Pack":
+elif view == "📦  Care Pack":
     render_carepack_hero()
 
     if not CAREPACK_DIR.exists():
@@ -887,7 +946,7 @@ elif view == "📦 Care Pack":
 # =========================
 # Page: HAI Search
 # =========================
-elif view == "🤖 HAI Search":
+elif view == "🤖  HAI Search":
     page_header(
         "🤖 HAI Search",
         "Overview of HAI Search usage, search trends, and knowledge access support.",
