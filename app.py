@@ -1,6 +1,5 @@
 import streamlit as st
 from pathlib import Path
-import base64
 import pandas as pd
 
 
@@ -8,7 +7,7 @@ import pandas as pd
 # Basic Page Settings
 # =========================
 st.set_page_config(
-    page_title="Service Report App",
+    page_title="Service Report Portal",
     page_icon="📘",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -18,50 +17,160 @@ st.set_page_config(
 # =========================
 # Login Settings
 # =========================
-APP_PASSWORD = "dealer123"
+APP_PASSWORD = "ts123"
 
 
 def login_page():
     st.markdown(
         """
         <style>
-        .login-box {
-            max-width: 520px;
-            margin: 80px auto;
-            padding: 36px 40px;
-            border-radius: 22px;
-            background: linear-gradient(145deg, #ffffff, #f4f7fb);
-            box-shadow: 0 18px 45px rgba(0,0,0,0.12);
-            text-align: center;
+        .stApp {
+            background: linear-gradient(135deg, #eef2f7 0%, #f8fafc 100%);
         }
+
+        .login-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 35px;
+            margin-bottom: 15px;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 760px;
+            border-radius: 28px;
+            padding: 38px 42px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+            box-shadow: 0 18px 45px rgba(31, 42, 68, 0.12);
+            border: 1px solid #e7edf5;
+        }
+
+        .login-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 999px;
+            background: #e9f2ff;
+            color: #2457a7;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
         .login-title {
-            font-size: 34px;
+            font-size: 42px;
             font-weight: 800;
             color: #1f2a44;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
+            line-height: 1.15;
         }
+
         .login-subtitle {
-            font-size: 15px;
+            font-size: 16px;
             color: #667085;
-            margin-bottom: 25px;
+            margin-bottom: 22px;
+        }
+
+        .login-feature-box {
+            margin-top: 20px;
+            padding: 18px 20px;
+            border-radius: 18px;
+            background: #f7faff;
+            border: 1px solid #e6eef8;
+        }
+
+        .login-feature-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1f2a44;
+            margin-bottom: 10px;
+        }
+
+        .login-feature-list {
+            color: #475467;
+            font-size: 14px;
+            line-height: 1.9;
+        }
+
+        .login-note {
+            margin-top: 14px;
+            color: #98a2b3;
+            font-size: 13px;
+        }
+
+        div[data-testid="stTextInput"] input {
+            border-radius: 12px !important;
+            border: 1px solid #d0d5dd !important;
+            min-height: 48px !important;
+            background-color: #ffffff !important;
+        }
+
+        div[data-testid="stButton"] button {
+            border-radius: 12px !important;
+            min-height: 46px !important;
+            font-weight: 700 !important;
+            background: linear-gradient(135deg, #2457a7 0%, #1f6feb 100%) !important;
+            color: white !important;
+            border: none !important;
+        }
+
+        div[data-testid="stButton"] button:hover {
+            filter: brightness(1.03);
         }
         </style>
-        <div class="login-box">
-            <div class="login-title">Service Report Portal</div>
-            <div class="login-subtitle">Please enter the access password to continue.</div>
-        </div>
         """,
         unsafe_allow_html=True,
     )
 
-    password = st.text_input("Password", type="password", placeholder="Enter password")
+    left, center, right = st.columns([1, 1.9, 1])
 
-    if st.button("Login", use_container_width=True):
-        if password == APP_PASSWORD:
-            st.session_state["logged_in"] = True
-            st.rerun()
-        else:
-            st.error("Password is incorrect.")
+    with center:
+        st.markdown(
+            """
+            <div class="login-wrapper">
+                <div class="login-card">
+                    <div class="login-badge">Horizon International</div>
+                    <div class="login-title">Service Report Portal</div>
+                    <div class="login-subtitle">
+                        Centralized access for service analysis, report management, and Carepack bulletin search.
+                    </div>
+
+                    <div class="login-feature-box">
+                        <div class="login-feature-title">Available features</div>
+                        <div class="login-feature-list">
+                            📊 Dealer overview<br>
+                            🌏 Country view<br>
+                            🛠️ Machine view<br>
+                            ⚠️ Error analysis<br>
+                            📈 Summary charts<br>
+                            📥 Import data<br>
+                            📦 Carepack Bulletin
+                        </div>
+                    </div>
+
+                    <div class="login-note">
+                        Please enter your access password to continue.
+                    </div>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        st.write("")
+        password = st.text_input(
+            "Password",
+            type="password",
+            placeholder="Enter password",
+            key="login_password",
+        )
+
+        if st.button("Login", use_container_width=True):
+            if password.strip() == APP_PASSWORD:
+                st.session_state["logged_in"] = True
+                st.rerun()
+            else:
+                st.error("Password is incorrect.")
 
 
 if "logged_in" not in st.session_state:
@@ -200,18 +309,20 @@ CAREPACK_DATA = [
 # =========================
 def show_pdf_preview(pdf_path: Path):
     try:
-        with open(pdf_path, "rb") as f:
-            base64_pdf = base64.b64encode(f.read()).decode("utf-8")
+        import fitz  # PyMuPDF
 
-        pdf_display = f"""
-        <iframe 
-            src="data:application/pdf;base64,{base64_pdf}" 
-            width="100%" 
-            height="720px" 
-            type="application/pdf">
-        </iframe>
-        """
-        st.markdown(pdf_display, unsafe_allow_html=True)
+        doc = fitz.open(pdf_path)
+
+        for page_number in range(len(doc)):
+            page = doc.load_page(page_number)
+            pix = page.get_pixmap(matrix=fitz.Matrix(1.5, 1.5))
+            image_bytes = pix.tobytes("png")
+
+            st.image(
+                image_bytes,
+                caption=f"Page {page_number + 1}",
+                use_container_width=True,
+            )
 
     except Exception as e:
         st.error(f"PDF preview failed: {e}")
@@ -270,8 +381,12 @@ view = st.sidebar.radio(
 )
 
 st.sidebar.markdown("---")
-st.sidebar.caption("Service Report App")
+st.sidebar.caption("Service Report Portal")
 st.sidebar.caption("Horizon International")
+
+if st.sidebar.button("Logout", use_container_width=True):
+    st.session_state["logged_in"] = False
+    st.rerun()
 
 
 # =========================
