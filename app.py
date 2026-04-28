@@ -321,58 +321,65 @@ st.markdown(
     }
 
     .carepack-hero {
-        padding: 28px 34px;
-        border-radius: 28px;
+        padding: 34px 42px;
+        border-radius: 30px;
         background:
+            radial-gradient(circle at right center, rgba(255,255,255,0.18), transparent 28%),
             linear-gradient(135deg, #1e3a8a 0%, #2563eb 58%, #0ea5e9 100%);
         color: white;
         box-shadow: 0 18px 45px rgba(37,99,235,0.24);
         margin-bottom: 24px;
-        display: flex;
-        justify-content: space-between;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 260px;
         align-items: center;
-        gap: 28px;
+        gap: 32px;
+        min-height: 190px;
     }
 
     .carepack-hero-text {
-        flex: 1;
+        max-width: 980px;
     }
 
     .carepack-hero-title {
-        font-size: 34px;
+        font-size: 38px;
         font-weight: 900;
-        margin-bottom: 8px;
+        margin-bottom: 14px;
         letter-spacing: -0.03em;
     }
 
     .carepack-hero-subtitle {
-        font-size: 15px;
-        color: #dbeafe;
-        line-height: 1.7;
+        font-size: 16px;
+        color: #e0f2fe;
+        line-height: 1.8;
+        max-width: 1050px;
     }
 
     .carepack-hero-image-wrap {
-        width: 170px;
-        height: 150px;
-        border-radius: 26px;
-        background: rgba(255,255,255,0.16);
-        border: 1px solid rgba(255,255,255,0.24);
+        width: 240px;
+        height: 155px;
+        border-radius: 28px;
+        background: rgba(255,255,255,0.18);
+        border: 1px solid rgba(255,255,255,0.28);
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.18);
+        box-shadow:
+            inset 0 1px 0 rgba(255,255,255,0.22),
+            0 18px 35px rgba(0,0,0,0.18);
+        padding: 14px;
     }
 
     .carepack-hero-image {
-        max-width: 145px;
-        max-height: 125px;
-        object-fit: contain;
-        filter: drop-shadow(0 12px 20px rgba(0,0,0,0.22));
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 18px;
+        filter: drop-shadow(0 8px 14px rgba(0,0,0,0.18));
     }
 
     .carepack-hero-fallback {
-        font-size: 62px;
+        font-size: 72px;
         filter: drop-shadow(0 12px 20px rgba(0,0,0,0.22));
     }
 
@@ -445,13 +452,13 @@ st.markdown(
 
     @media (max-width: 900px) {
         .carepack-hero {
-            flex-direction: column;
-            align-items: flex-start;
+            grid-template-columns: 1fr;
+            padding: 28px 26px;
         }
 
         .carepack-hero-image-wrap {
             width: 100%;
-            height: 130px;
+            height: 170px;
         }
     }
     </style>
@@ -489,15 +496,11 @@ def image_to_base64(image_path: Path):
 
 
 def extract_pdf_info(pdf_path: Path):
-    """
-    Extract Date and Bulletin Code from the first page of the PDF.
-    If extraction fails, return "-".
-    """
     date_value = "-"
     bulletin_code = "-"
 
     try:
-        import fitz  # PyMuPDF
+        import fitz
 
         doc = fitz.open(pdf_path)
 
@@ -541,9 +544,6 @@ def extract_pdf_info(pdf_path: Path):
 
 
 def build_carepack_data():
-    """
-    Automatically read all PDF files in the carepack_bulletins folder.
-    """
     data = []
 
     if not CAREPACK_DIR.exists():
@@ -655,7 +655,7 @@ def render_carepack_progress():
 
 def show_pdf_preview(pdf_path: Path):
     try:
-        import fitz  # PyMuPDF
+        import fitz
 
         doc = fitz.open(pdf_path)
 
