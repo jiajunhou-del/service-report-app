@@ -2,6 +2,7 @@ import streamlit as st
 from pathlib import Path
 import pandas as pd
 import re
+import base64
 
 
 # =========================
@@ -320,13 +321,21 @@ st.markdown(
     }
 
     .carepack-hero {
-        padding: 28px 30px;
+        padding: 28px 34px;
         border-radius: 28px;
         background:
             linear-gradient(135deg, #1e3a8a 0%, #2563eb 58%, #0ea5e9 100%);
         color: white;
         box-shadow: 0 18px 45px rgba(37,99,235,0.24);
         margin-bottom: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 28px;
+    }
+
+    .carepack-hero-text {
+        flex: 1;
     }
 
     .carepack-hero-title {
@@ -340,6 +349,31 @@ st.markdown(
         font-size: 15px;
         color: #dbeafe;
         line-height: 1.7;
+    }
+
+    .carepack-hero-image-wrap {
+        width: 170px;
+        height: 150px;
+        border-radius: 26px;
+        background: rgba(255,255,255,0.16);
+        border: 1px solid rgba(255,255,255,0.24);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.18);
+    }
+
+    .carepack-hero-image {
+        max-width: 145px;
+        max-height: 125px;
+        object-fit: contain;
+        filter: drop-shadow(0 12px 20px rgba(0,0,0,0.22));
+    }
+
+    .carepack-hero-fallback {
+        font-size: 62px;
+        filter: drop-shadow(0 12px 20px rgba(0,0,0,0.22));
     }
 
     .small-note {
@@ -408,6 +442,18 @@ st.markdown(
         color: #667085;
         line-height: 1.6;
     }
+
+    @media (max-width: 900px) {
+        .carepack-hero {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .carepack-hero-image-wrap {
+            width: 100%;
+            height: 130px;
+        }
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -418,7 +464,28 @@ st.markdown(
 # Data Settings
 # =========================
 CAREPACK_DIR = Path("carepack_bulletins")
+ASSET_DIR = Path("assets")
+CAREPACK_IMAGE = ASSET_DIR / "carepack.png"
 TARGET_MODELS = 60
+
+
+def image_to_base64(image_path: Path):
+    if not image_path.exists():
+        return ""
+
+    suffix = image_path.suffix.lower()
+
+    if suffix in [".jpg", ".jpeg"]:
+        mime = "image/jpeg"
+    elif suffix == ".webp":
+        mime = "image/webp"
+    else:
+        mime = "image/png"
+
+    with open(image_path, "rb") as image_file:
+        encoded = base64.b64encode(image_file.read()).decode("utf-8")
+
+    return f"data:{mime};base64,{encoded}"
 
 
 def extract_pdf_info(pdf_path: Path):
@@ -514,6 +581,40 @@ CAREPACK_DATA = build_carepack_data()
 # =========================
 # Helper Functions
 # =========================
+def render_carepack_hero():
+    image_src = image_to_base64(CAREPACK_IMAGE)
+
+    if image_src:
+        image_html = f"""
+        <div class="carepack-hero-image-wrap">
+            <img class="carepack-hero-image" src="{image_src}" alt="Carepack image">
+        </div>
+        """
+    else:
+        image_html = """
+        <div class="carepack-hero-image-wrap">
+            <div class="carepack-hero-fallback">📦</div>
+        </div>
+        """
+
+    st.markdown(
+        f"""
+        <div class="carepack-hero">
+            <div class="carepack-hero-text">
+                <div class="carepack-hero-title">📦 Carepack Bulletin</div>
+                <div class="carepack-hero-subtitle">
+                    Search, preview, and download Carepack Information Bulletins.
+                    You can search by model name, file name, Bulletin Code, or Date.
+                    New PDFs will be displayed automatically after being uploaded to the carepack_bulletins folder.
+                </div>
+            </div>
+            {image_html}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def render_carepack_progress():
     current_count = len(CAREPACK_DATA)
 
@@ -780,19 +881,7 @@ elif view == "📥 Import data":
 # Page: Carepack Bulletin
 # =========================
 elif view == "📦 Carepack Bulletin":
-    st.markdown(
-        """
-        <div class="carepack-hero">
-            <div class="carepack-hero-title">📦 Carepack Bulletin</div>
-            <div class="carepack-hero-subtitle">
-                Search, preview, and download Carepack Information Bulletins.
-                You can search by model name, file name, Bulletin Code, or Date.
-                New PDFs will be displayed automatically after being uploaded to the carepack_bulletins folder.
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    render_carepack_hero()
 
     if not CAREPACK_DIR.exists():
         st.error(
