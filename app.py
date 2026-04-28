@@ -1,148 +1,257 @@
-﻿import os
-from io import BytesIO
-
+import streamlit as st
 import pandas as pd
 import plotly.express as px
-import streamlit as st
+from pathlib import Path
 
 
 # =========================
-# Basic settings
+# Page settings
 # =========================
 st.set_page_config(
-    page_title="Service Report Dashboard",
-    page_icon="🛠",
+    page_title="Service Report Portal",
+    page_icon="🛠️",
     layout="wide"
 )
 
-DATA_DIR = r"C:\service_report_streamlit\data"
-EXCEL_PATH = os.path.join(DATA_DIR, "service_report.xlsx")
 
-REQUIRED_COLUMNS = [
-    "Month",
-    "Dealer",
-    "Country",
-    "Machine",
-    "Error Code",
-    "Problem",
-    "Cause",
-    "Action",
-    "Downtime",
-    "Status"
-]
+# =========================
+# Login users
+# ここでパスワードを変更できます
+# =========================
+USERS = {
+    "TS Admin": "admin123",
+    "Service Viewer": "viewer123"
+}
 
 
 # =========================
-# CSS
+# Login page design
+# =========================
+def login_page():
+    st.markdown(
+        """
+        <style>
+        .stApp {
+            background: linear-gradient(135deg, #eef3f8 0%, #f8fafc 45%, #e7eff7 100%);
+        }
+
+        .login-wrapper {
+            max-width: 980px;
+            margin: 80px auto 0 auto;
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 0;
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: 0 24px 70px rgba(15, 40, 70, 0.16);
+            background: white;
+        }
+
+        .login-left {
+            background: linear-gradient(145deg, #0f2742 0%, #153c63 55%, #0e5f75 100%);
+            color: white;
+            padding: 48px;
+            position: relative;
+        }
+
+        .login-left::after {
+            content: "";
+            position: absolute;
+            right: -80px;
+            bottom: -80px;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.08);
+        }
+
+        .portal-badge {
+            display: inline-block;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.14);
+            font-size: 13px;
+            letter-spacing: 0.08em;
+            margin-bottom: 28px;
+        }
+
+        .portal-title {
+            font-size: 38px;
+            font-weight: 800;
+            line-height: 1.15;
+            margin-bottom: 18px;
+        }
+
+        .portal-subtitle {
+            font-size: 15px;
+            line-height: 1.8;
+            color: rgba(255,255,255,0.78);
+            margin-bottom: 34px;
+        }
+
+        .data-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .data-tag {
+            padding: 9px 12px;
+            border: 1px solid rgba(255,255,255,0.22);
+            border-radius: 12px;
+            color: rgba(255,255,255,0.86);
+            font-size: 13px;
+            background: rgba(255,255,255,0.08);
+        }
+
+        .login-right {
+            padding: 48px 44px;
+            background: rgba(255,255,255,0.96);
+        }
+
+        .login-heading {
+            font-size: 26px;
+            font-weight: 800;
+            color: #142033;
+            margin-bottom: 8px;
+        }
+
+        .login-caption {
+            font-size: 14px;
+            color: #718096;
+            margin-bottom: 28px;
+        }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 22px;
+            color: #9aa7b5;
+            font-size: 12px;
+        }
+
+        div.stButton > button {
+            width: 100%;
+            height: 48px;
+            border-radius: 14px;
+            background: linear-gradient(90deg, #153c63 0%, #0e7490 100%);
+            color: white;
+            border: none;
+            font-weight: 700;
+        }
+
+        div.stButton > button:hover {
+            background: linear-gradient(90deg, #0f2742 0%, #155e75 100%);
+            color: white;
+            border: none;
+        }
+        </style>
+
+        <div class="login-wrapper">
+            <div class="login-left">
+                <div class="portal-badge">SERVICE INTELLIGENCE</div>
+                <div class="portal-title">
+                    Service Report<br>
+                    Portal
+                </div>
+                <div class="portal-subtitle">
+                    A technical support dashboard for reviewing service reports,
+                    machine status, field issues, and operation insights.
+                </div>
+                <div class="data-tags">
+                    <div class="data-tag">Machine Data</div>
+                    <div class="data-tag">Service Reports</div>
+                    <div class="data-tag">Error Trends</div>
+                    <div class="data-tag">Support Activity</div>
+                </div>
+            </div>
+
+            <div class="login-right">
+                <div class="login-heading">Welcome back</div>
+                <div class="login-caption">
+                    Please sign in to access the Service Report Dashboard.
+                </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    role = st.selectbox("Access Role", list(USERS.keys()))
+    password = st.text_input("Password", type="password", placeholder="Enter your password")
+
+    login_button = st.button("Enter Dashboard →")
+
+    st.markdown(
+        """
+            </div>
+        </div>
+        <div class="footer-note">
+            Horizon International Technical Support / Service Report System
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    if login_button:
+        if password == USERS[role]:
+            st.session_state["logged_in"] = True
+            st.session_state["role"] = role
+            st.rerun()
+        else:
+            st.error("Password is incorrect. Please try again.")
+
+
+# =========================
+# Login check
+# =========================
+if "logged_in" not in st.session_state:
+    st.session_state["logged_in"] = False
+
+if "role" not in st.session_state:
+    st.session_state["role"] = None
+
+if not st.session_state["logged_in"]:
+    login_page()
+    st.stop()
+
+
+# =========================
+# Dashboard style
 # =========================
 st.markdown(
     """
     <style>
-    .main {
-        background-color: #f5f7fb;
+    .main-header {
+        padding: 18px 0 8px 0;
     }
 
-    .block-container {
-        padding-top: 2rem;
-        padding-bottom: 2rem;
-    }
-
-    section[data-testid="stSidebar"] {
-        background-color: #1f2740;
-    }
-
-    section[data-testid="stSidebar"] * {
-        color: white;
-    }
-
-    .small-label {
-        font-size: 13px;
-        color: #6b7280;
+    .main-title {
+        font-size: 34px;
+        font-weight: 800;
+        color: #142033;
         margin-bottom: 4px;
     }
 
-    .big-number {
-        font-size: 34px;
+    .main-subtitle {
+        font-size: 15px;
+        color: #718096;
+        margin-bottom: 24px;
+    }
+
+    .role-badge {
+        display: inline-block;
+        padding: 7px 12px;
+        border-radius: 999px;
+        background: #e6f3f7;
+        color: #0e7490;
         font-weight: 700;
-        color: #111827;
+        font-size: 13px;
     }
 
-    .metric-card {
-        background: white;
-        padding: 20px 22px;
-        border-radius: 14px;
-        border: 1px solid #e5e7eb;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-        min-height: 105px;
-    }
-
-    .dealer-card {
-        background: white;
+    div[data-testid="metric-container"] {
+        background: #ffffff;
+        border: 1px solid #e5eaf0;
         padding: 18px;
-        border-radius: 14px;
-        border: 1px solid #d9dee8;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-        margin-bottom: 18px;
-    }
-
-    .dealer-title {
-        font-weight: 700;
-        font-size: 16px;
-        color: #111827;
-    }
-
-    .badge-complete {
-        background: #dcfce7;
-        color: #166534;
-        padding: 5px 12px;
-        border-radius: 999px;
-        font-size: 12px;
-        font-weight: 700;
-        display: inline-block;
-    }
-
-    .badge-pending {
-        background: #eef2f7;
-        color: #64748b;
-        padding: 5px 12px;
-        border-radius: 999px;
-        font-size: 12px;
-        font-weight: 700;
-        display: inline-block;
-    }
-
-    .card-label {
-        color: #94a3b8;
-        font-size: 11px;
-        font-weight: 700;
-        margin-top: 12px;
-    }
-
-    .card-value {
-        color: #111827;
-        font-size: 22px;
-        font-weight: 700;
-    }
-
-    .progress-bg {
-        width: 100%;
-        height: 7px;
-        background: #e5e7eb;
-        border-radius: 999px;
-        margin-top: 14px;
-        overflow: hidden;
-    }
-
-    .progress-green {
-        height: 7px;
-        background: #22c55e;
-        border-radius: 999px;
-    }
-
-    .progress-gray {
-        height: 7px;
-        background: #cbd5e1;
-        border-radius: 999px;
+        border-radius: 18px;
+        box-shadow: 0 8px 22px rgba(15, 40, 70, 0.06);
     }
     </style>
     """,
@@ -151,480 +260,176 @@ st.markdown(
 
 
 # =========================
-# Helper functions
-# =========================
-def ensure_data_dir():
-    os.makedirs(DATA_DIR, exist_ok=True)
-
-
-def create_sample_excel():
-    ensure_data_dir()
-
-    sample_data = [
-        {
-            "Month": "2026-04",
-            "Dealer": "Advanced Finishing Systems (HK) Ltd",
-            "Country": "Hong Kong",
-            "Machine": "BQ-500",
-            "Error Code": "802",
-            "Problem": "Jam occurred during production",
-            "Cause": "Sensor dirty",
-            "Action": "Cleaned sensor and checked timing",
-            "Downtime": 2.5,
-            "Status": "Complete"
-        },
-        {
-            "Month": "2026-04",
-            "Dealer": "Advanced Printing Technology",
-            "Country": "Thailand",
-            "Machine": "SPF-200A",
-            "Error Code": "1007",
-            "Problem": "Start mark was not detected",
-            "Cause": "Sensor position shifted",
-            "Action": "Adjusted sensor position",
-            "Downtime": 1.0,
-            "Status": "Complete"
-        },
-        {
-            "Month": "2026-04",
-            "Dealer": "Copylandia",
-            "Country": "Philippines",
-            "Machine": "HT-300",
-            "Error Code": "137",
-            "Problem": "Start mark not detected",
-            "Cause": "Unknown",
-            "Action": "Under checking",
-            "Downtime": 0,
-            "Status": "Pending"
-        },
-        {
-            "Month": "2026-04",
-            "Dealer": "Currie Group",
-            "Country": "Australia",
-            "Machine": "BQ-500",
-            "Error Code": "802",
-            "Problem": "Repeated jam",
-            "Cause": "Paper dust",
-            "Action": "Recommended cleaning procedure",
-            "Downtime": 3.0,
-            "Status": "Pending"
-        },
-        {
-            "Month": "2026-05",
-            "Dealer": "Dainippon Screen Korea",
-            "Country": "Korea",
-            "Machine": "VAC-1000",
-            "Error Code": "E-12",
-            "Problem": "Feeder stop",
-            "Cause": "Air pressure unstable",
-            "Action": "Checked air supply",
-            "Downtime": 4.0,
-            "Status": "Complete"
-        }
-    ]
-
-    df = pd.DataFrame(sample_data)
-    df.to_excel(EXCEL_PATH, index=False)
-
-
-def load_excel_data():
-    if not os.path.exists(EXCEL_PATH):
-        create_sample_excel()
-
-    df = pd.read_excel(EXCEL_PATH)
-
-    missing = [col for col in REQUIRED_COLUMNS if col not in df.columns]
-    if missing:
-        st.error("Missing columns in Excel: " + ", ".join(missing))
-        st.stop()
-
-    df = df.fillna("")
-    df["Month"] = df["Month"].astype(str)
-    df["Dealer"] = df["Dealer"].astype(str)
-    df["Country"] = df["Country"].astype(str)
-    df["Machine"] = df["Machine"].astype(str)
-    df["Error Code"] = df["Error Code"].astype(str)
-    df["Problem"] = df["Problem"].astype(str)
-    df["Cause"] = df["Cause"].astype(str)
-    df["Action"] = df["Action"].astype(str)
-    df["Status"] = df["Status"].astype(str)
-
-    df["Downtime"] = pd.to_numeric(df["Downtime"], errors="coerce").fillna(0)
-
-    return df
-
-
-def save_uploaded_file(uploaded_file):
-    ensure_data_dir()
-
-    with open(EXCEL_PATH, "wb") as f:
-        f.write(uploaded_file.getbuffer())
-
-
-def top_value(series):
-    cleaned = series.replace("", pd.NA).dropna()
-    if cleaned.empty:
-        return "-"
-    return str(cleaned.value_counts().idxmax())
-
-
-def to_excel_bytes(df):
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine="openpyxl") as writer:
-        df.to_excel(writer, index=False, sheet_name="Service Report")
-    return output.getvalue()
-
-
-def render_metric_card(label, value):
-    st.markdown(
-        f"""
-        <div class="metric-card">
-            <div class="small-label">{label}</div>
-            <div class="big-number">{value}</div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-
-def render_dealer_card(dealer_name, group):
-    total_cases = len(group)
-    top_machine = top_value(group["Machine"])
-    top_error = top_value(group["Error Code"])
-
-    complete_count = (group["Status"].str.lower() == "complete").sum()
-    progress = int((complete_count / total_cases) * 100) if total_cases > 0 else 0
-
-    status = "Complete" if progress == 100 else "Pending"
-    badge_class = "badge-complete" if status == "Complete" else "badge-pending"
-    progress_class = "progress-green" if status == "Complete" else "progress-gray"
-
-    st.markdown(
-        f"""
-        <div class="dealer-card">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div class="dealer-title">{dealer_name}</div>
-                <div class="{badge_class}">{status}</div>
-            </div>
-
-            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 18px;">
-                <div>
-                    <div class="card-label">TOTAL CASES</div>
-                    <div class="card-value">{total_cases}</div>
-                </div>
-                <div>
-                    <div class="card-label">TOP MACHINE</div>
-                    <div class="card-value">{top_machine}</div>
-                </div>
-                <div>
-                    <div class="card-label">TOP ERROR</div>
-                    <div class="card-value">{top_error}</div>
-                </div>
-            </div>
-
-            <div class="progress-bg">
-                <div class="{progress_class}" style="width:{progress}%;"></div>
-            </div>
-            <div style="text-align:right; color:#64748b; font-size:12px; margin-top:4px;">{progress}%</div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    with st.expander("▼ View details"):
-        st.dataframe(
-            group[["Month", "Country", "Machine", "Error Code", "Problem", "Cause", "Action", "Downtime", "Status"]],
-            use_container_width=True,
-            hide_index=True
-        )
-
-
-# =========================
 # Sidebar
 # =========================
-st.sidebar.markdown("## 🛠 Service Report")
-st.sidebar.markdown("Admin Console")
+with st.sidebar:
+    st.title("🛠️ Service Portal")
+    st.caption("Technical Support Dashboard")
+    st.markdown("---")
 
-view = st.sidebar.radio(
-    "VIEWS",
-    [
-        "📊 Dealer overview",
-        "🌏 Country view",
-        "🛠 Machine view",
-        "⚠ Error analysis",
-        "📈 Summary charts",
-        "📥 Import data"
-    ]
+    st.write("Login role:")
+    st.success(st.session_state["role"])
+
+    if st.button("Logout"):
+        st.session_state["logged_in"] = False
+        st.session_state["role"] = None
+        st.rerun()
+
+    st.markdown("---")
+    st.caption("Data source")
+    st.code("service_report.xlsx")
+
+
+# =========================
+# Main header
+# =========================
+st.markdown(
+    f"""
+    <div class="main-header">
+        <div class="main-title">Service Report Dashboard</div>
+        <div class="main-subtitle">
+            Review service report data, machine trends, and support activity.
+        </div>
+        <div class="role-badge">Access Role: {st.session_state["role"]}</div>
+    </div>
+    """,
+    unsafe_allow_html=True
 )
 
-st.sidebar.markdown("---")
-st.sidebar.markdown("### TOOLS")
-generate_master = st.sidebar.button("↓ Generate Master Excel")
-st.sidebar.markdown("---")
-st.sidebar.caption("Prototype version")
+
+# =========================
+# Load Excel data
+# =========================
+excel_path = Path("service_report.xlsx")
+
+if not excel_path.exists():
+    st.error("service_report.xlsx が見つかりません。GitHub に service_report.xlsx がアップロードされているか確認してください。")
+    st.stop()
+
+try:
+    df = pd.read_excel(excel_path)
+except Exception as e:
+    st.error("Excel ファイルの読み込みに失敗しました。")
+    st.exception(e)
+    st.stop()
 
 
 # =========================
-# Load data
+# Basic data cleaning
 # =========================
-df = load_excel_data()
-
-
-# =========================
-# Header filters
-# =========================
-st.title("Service Report Dashboard")
-
-months = ["All"] + sorted(df["Month"].unique().tolist())
-countries = ["All"] + sorted(df["Country"].unique().tolist())
-dealers = ["All"] + sorted(df["Dealer"].unique().tolist())
-statuses = ["All", "Complete", "Pending"]
-
-col_f1, col_f2, col_f3, col_f4 = st.columns(4)
-
-with col_f1:
-    selected_month = st.selectbox("Month", months)
-
-with col_f2:
-    selected_country = st.selectbox("Country", countries)
-
-with col_f3:
-    selected_dealer = st.selectbox("Dealer", dealers)
-
-with col_f4:
-    selected_status = st.selectbox("Status", statuses)
-
-
-filtered = df.copy()
-
-if selected_month != "All":
-    filtered = filtered[filtered["Month"] == selected_month]
-
-if selected_country != "All":
-    filtered = filtered[filtered["Country"] == selected_country]
-
-if selected_dealer != "All":
-    filtered = filtered[filtered["Dealer"] == selected_dealer]
-
-if selected_status != "All":
-    filtered = filtered[filtered["Status"] == selected_status]
+df.columns = [str(col).strip() for col in df.columns]
 
 
 # =========================
-# Summary metrics
+# Data Overview
 # =========================
-total_cases = len(filtered)
-total_dealers = df["Dealer"].nunique()
-dealers_submitted = filtered[filtered["Status"].str.lower() == "complete"]["Dealer"].nunique()
-total_countries = filtered["Country"].nunique() if len(filtered) > 0 else 0
-top_machine = top_value(filtered["Machine"]) if len(filtered) > 0 else "-"
-top_error = top_value(filtered["Error Code"]) if len(filtered) > 0 else "-"
+st.markdown("### Data Overview")
 
-m1, m2, m3, m4, m5 = st.columns(5)
+col1, col2, col3, col4 = st.columns(4)
 
-with m1:
-    render_metric_card("Total service cases", total_cases)
+with col1:
+    st.metric("Total Records", len(df))
 
-with m2:
-    render_metric_card("Dealers submitted", f"{dealers_submitted}/{total_dealers}")
+with col2:
+    st.metric("Columns", len(df.columns))
 
-with m3:
-    render_metric_card("Countries submitted", total_countries)
+with col3:
+    st.metric("Login Role", st.session_state["role"])
 
-with m4:
-    render_metric_card("Top machine", top_machine)
-
-with m5:
-    render_metric_card("Top error", top_error)
-
-st.divider()
+with col4:
+    st.metric("Data File", "Loaded")
 
 
 # =========================
-# Master Excel download
+# Filters
 # =========================
-if generate_master:
-    st.download_button(
-        label="Download Master Excel",
-        data=to_excel_bytes(filtered),
-        file_name="service_report_master.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+st.markdown("### Filters")
+
+filtered_df = df.copy()
+
+categorical_columns = []
+for col in df.columns:
+    if df[col].nunique() <= 30 and df[col].dtype == "object":
+        categorical_columns.append(col)
+
+if len(categorical_columns) > 0:
+    filter_cols = st.columns(min(3, len(categorical_columns)))
+
+    for i, col in enumerate(categorical_columns[:3]):
+        with filter_cols[i]:
+            options = ["All"] + sorted(df[col].dropna().astype(str).unique().tolist())
+            selected = st.selectbox(f"Filter by {col}", options)
+
+            if selected != "All":
+                filtered_df = filtered_df[filtered_df[col].astype(str) == selected]
+else:
+    st.info("フィルターに使用できるカテゴリ列が見つかりませんでした。")
 
 
 # =========================
-# Views
+# Charts
 # =========================
-if view == "📊 Dealer overview":
-    st.subheader("Dealer overview")
+st.markdown("### Visual Analysis")
 
-    if filtered.empty:
-        st.info("No data found.")
-    else:
-        dealer_groups = list(filtered.groupby("Dealer"))
+numeric_columns = filtered_df.select_dtypes(include=["number"]).columns.tolist()
+text_columns = filtered_df.select_dtypes(include=["object"]).columns.tolist()
 
-        for i in range(0, len(dealer_groups), 2):
-            cols = st.columns(2)
+chart_col1, chart_col2 = st.columns(2)
 
-            for j, col in enumerate(cols):
-                if i + j < len(dealer_groups):
-                    dealer_name, group = dealer_groups[i + j]
-                    with col:
-                        render_dealer_card(dealer_name, group)
-
-
-elif view == "🌏 Country view":
-    st.subheader("Country view")
-
-    if filtered.empty:
-        st.info("No data found.")
-    else:
-        country_summary = (
-            filtered.groupby("Country")
-            .agg(
-                Total_Cases=("Country", "count"),
-                Dealers=("Dealer", "nunique"),
-                Top_Machine=("Machine", lambda x: top_value(x)),
-                Top_Error=("Error Code", lambda x: top_value(x)),
-                Total_Downtime=("Downtime", "sum")
-            )
-            .reset_index()
-        )
-
-        st.dataframe(country_summary, use_container_width=True, hide_index=True)
+with chart_col1:
+    if text_columns:
+        x_col = st.selectbox("Category column", text_columns, key="category_chart")
+        count_df = filtered_df[x_col].astype(str).value_counts().reset_index()
+        count_df.columns = [x_col, "Count"]
 
         fig = px.bar(
-            country_summary,
-            x="Country",
-            y="Total_Cases",
-            title="Service cases by country"
+            count_df.head(15),
+            x=x_col,
+            y="Count",
+            title=f"Top categories by {x_col}"
         )
         st.plotly_chart(fig, use_container_width=True)
-
-
-elif view == "🛠 Machine view":
-    st.subheader("Machine view")
-
-    if filtered.empty:
-        st.info("No data found.")
     else:
-        machine_summary = (
-            filtered.groupby("Machine")
-            .agg(
-                Total_Cases=("Machine", "count"),
-                Top_Error=("Error Code", lambda x: top_value(x)),
-                Total_Downtime=("Downtime", "sum")
-            )
-            .reset_index()
-            .sort_values("Total_Cases", ascending=False)
-        )
+        st.info("カテゴリ列が見つかりませんでした。")
 
-        st.dataframe(machine_summary, use_container_width=True, hide_index=True)
-
-        fig = px.bar(
-            machine_summary,
-            x="Machine",
-            y="Total_Cases",
-            title="Service cases by machine"
+with chart_col2:
+    if numeric_columns:
+        y_col = st.selectbox("Numeric column", numeric_columns, key="numeric_chart")
+        fig = px.histogram(
+            filtered_df,
+            x=y_col,
+            title=f"Distribution of {y_col}"
         )
         st.plotly_chart(fig, use_container_width=True)
-
-
-elif view == "⚠ Error analysis":
-    st.subheader("Error analysis")
-
-    if filtered.empty:
-        st.info("No data found.")
     else:
-        error_summary = (
-            filtered.groupby("Error Code")
-            .agg(
-                Total_Cases=("Error Code", "count"),
-                Top_Machine=("Machine", lambda x: top_value(x)),
-                Total_Downtime=("Downtime", "sum")
-            )
-            .reset_index()
-            .sort_values("Total_Cases", ascending=False)
-        )
-
-        st.dataframe(error_summary, use_container_width=True, hide_index=True)
-
-        fig = px.bar(
-            error_summary.head(10),
-            x="Error Code",
-            y="Total_Cases",
-            title="Top 10 error codes"
-        )
-        st.plotly_chart(fig, use_container_width=True)
+        st.info("数値列が見つかりませんでした。")
 
 
-elif view == "📈 Summary charts":
-    st.subheader("Summary charts")
+# =========================
+# Role based display
+# =========================
+st.markdown("### Report Data")
 
-    if filtered.empty:
-        st.info("No data found.")
-    else:
-        monthly = (
-            filtered.groupby("Month")
-            .size()
-            .reset_index(name="Total_Cases")
-            .sort_values("Month")
-        )
+if st.session_state["role"] == "Service Viewer":
+    st.info("Service Viewer mode: 通常閲覧モードです。")
+    st.dataframe(filtered_df, use_container_width=True)
 
-        fig_month = px.line(
-            monthly,
-            x="Month",
-            y="Total_Cases",
-            markers=True,
-            title="Monthly service cases trend"
-        )
-        st.plotly_chart(fig_month, use_container_width=True)
+elif st.session_state["role"] == "TS Admin":
+    st.info("TS Admin mode: 管理者向けに全データを表示しています。")
+    st.dataframe(filtered_df, use_container_width=True)
 
-        col1, col2 = st.columns(2)
-
-        with col1:
-            machine_count = filtered["Machine"].value_counts().reset_index()
-            machine_count.columns = ["Machine", "Total_Cases"]
-            fig_machine = px.bar(
-                machine_count.head(10),
-                x="Machine",
-                y="Total_Cases",
-                title="Top machines"
-            )
-            st.plotly_chart(fig_machine, use_container_width=True)
-
-        with col2:
-            status_count = filtered["Status"].value_counts().reset_index()
-            status_count.columns = ["Status", "Count"]
-            fig_status = px.pie(
-                status_count,
-                names="Status",
-                values="Count",
-                title="Complete vs Pending"
-            )
-            st.plotly_chart(fig_status, use_container_width=True)
-
-
-elif view == "📥 Import data":
-    st.subheader("Import data")
-
-    st.info(
-        "Upload an Excel file with these columns: "
-        + ", ".join(REQUIRED_COLUMNS)
-    )
-
-    uploaded_file = st.file_uploader("Upload service_report.xlsx", type=["xlsx"])
-
-    if uploaded_file is not None:
-        save_uploaded_file(uploaded_file)
-        st.success("Excel file uploaded successfully. Please refresh the page or switch view.")
-
-    st.markdown("### Current data preview")
-    st.dataframe(df, use_container_width=True, hide_index=True)
+    csv = filtered_df.to_csv(index=False).encode("utf-8-sig")
 
     st.download_button(
-        label="Download current Excel",
-        data=to_excel_bytes(df),
-        file_name="service_report_current.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        label="Download filtered data as CSV",
+        data=csv,
+        file_name="filtered_service_report.csv",
+        mime="text/csv"
     )
+
+
+# =========================
+# Footer
+# =========================
+st.markdown("---")
+st.caption("Horizon International Technical Support / Service Report Portal")
