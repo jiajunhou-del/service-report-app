@@ -341,92 +341,39 @@ st.markdown(
         line-height: 1.7;
     }
 
-    .search-panel {
-        padding: 22px;
-        border-radius: 24px;
-        background: #ffffff;
-        border: 1px solid #e5e7eb;
-        box-shadow: 0 10px 30px rgba(15,23,42,0.06);
-        margin-bottom: 24px;
-    }
-
-    .carepack-card {
-        padding: 24px;
-        border-radius: 24px;
-        background: #ffffff;
-        border: 1px solid #e5e7eb;
-        box-shadow: 0 12px 34px rgba(15,23,42,0.07);
-        margin-bottom: 18px;
-    }
-
-    .carepack-title-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 16px;
-        margin-bottom: 18px;
-    }
-
-    .carepack-title {
-        font-size: 24px;
-        font-weight: 900;
-        color: #1f2a44;
-        margin-bottom: 6px;
-    }
-
-    .carepack-machine {
-        font-size: 14px;
-        color: #667085;
-    }
-
-    .carepack-tag {
-        display: inline-block;
-        padding: 6px 12px;
-        border-radius: 999px;
-        background: #e0f2fe;
-        color: #0369a1;
-        font-size: 13px;
-        font-weight: 800;
-        white-space: nowrap;
-    }
-
-    .info-grid {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 12px;
-        margin-top: 12px;
-    }
-
-    .info-box {
-        padding: 14px 15px;
-        border-radius: 16px;
-        background: #f8fafc;
-        border: 1px solid #e5e7eb;
-    }
-
-    .info-label {
-        font-size: 12px;
-        color: #667085;
-        font-weight: 700;
-        margin-bottom: 4px;
-    }
-
-    .info-value {
-        font-size: 14px;
-        color: #1f2a44;
-        font-weight: 800;
-        word-break: break-word;
-    }
-
     .small-note {
         color: #667085;
         font-size: 13px;
     }
 
-    @media (max-width: 900px) {
-        .info-grid {
-            grid-template-columns: 1fr 1fr;
-        }
+    .carepack-pill {
+        display: inline-block;
+        padding: 7px 14px;
+        border-radius: 999px;
+        background: #e0f2fe;
+        color: #0369a1;
+        font-size: 13px;
+        font-weight: 800;
+        text-align: center;
+        margin-top: 6px;
+    }
+
+    div[data-testid="stMetric"] {
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+        padding: 14px 16px;
+        border-radius: 16px;
+    }
+
+    div[data-testid="stMetricLabel"] {
+        color: #667085;
+        font-weight: 700;
+    }
+
+    div[data-testid="stMetricValue"] {
+        color: #1f2a44;
+        font-weight: 900;
+        font-size: 18px;
     }
     </style>
     """,
@@ -725,27 +672,24 @@ elif view == "📦 Carepack Bulletin":
         unsafe_allow_html=True,
     )
 
-    st.markdown('<div class="search-panel">', unsafe_allow_html=True)
+    with st.container(border=True):
+        col1, col2, col3 = st.columns([5, 1.25, 1.25])
 
-    col1, col2, col3 = st.columns([5, 1.25, 1.25])
+        with col1:
+            keyword = st.text_input(
+                "Search Carepack Bulletin",
+                placeholder="Example: BQ300, CF-400, AP00019-00, VAC1, SLMK5...",
+            )
 
-    with col1:
-        keyword = st.text_input(
-            "Search Carepack Bulletin",
-            placeholder="Example: BQ300, CF-400, AP00019-00, VAC1, SLMK5...",
-        )
+        with col2:
+            st.write("")
+            st.write("")
+            show_all = st.button("Show All", use_container_width=True)
 
-    with col2:
-        st.write("")
-        st.write("")
-        show_all = st.button("Show All", use_container_width=True)
-
-    with col3:
-        st.write("")
-        st.write("")
-        clear_search = st.button("Clear", use_container_width=True)
-
-    st.markdown("</div>", unsafe_allow_html=True)
+        with col3:
+            st.write("")
+            st.write("")
+            clear_search = st.button("Clear", use_container_width=True)
 
     if clear_search:
         keyword = ""
@@ -780,63 +724,64 @@ elif view == "📦 Carepack Bulletin":
         for item in results:
             pdf_path = CAREPACK_DIR / item["file"]
 
-            st.markdown(
-                f"""
-                <div class="carepack-card">
-                    <div class="carepack-title-row">
-                        <div>
-                            <div class="carepack-title">{item["model"]}</div>
-                            <div class="carepack-machine">For {item["machine"]}</div>
+            with st.container(border=True):
+                top_col1, top_col2 = st.columns([5, 1])
+
+                with top_col1:
+                    st.markdown(f"### {item['model']}")
+                    st.caption(f"For {item['machine']}")
+
+                with top_col2:
+                    st.markdown(
+                        """
+                        <div class="carepack-pill">
+                            Carepack
                         </div>
-                        <div class="carepack-tag">Carepack</div>
-                    </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
 
-                    <div class="info-grid">
-                        <div class="info-box">
-                            <div class="info-label">Carepack Code</div>
-                            <div class="info-value">{item["code"]}</div>
-                        </div>
-                        <div class="info-box">
-                            <div class="info-label">Bulletin Code</div>
-                            <div class="info-value">{item["bulletin_code"]}</div>
-                        </div>
-                        <div class="info-box">
-                            <div class="info-label">Order Start Date</div>
-                            <div class="info-value">{item["order_start_date"]}</div>
-                        </div>
-                        <div class="info-box">
-                            <div class="info-label">Release Date</div>
-                            <div class="info-value">{item["release_date"]}</div>
-                        </div>
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+                st.write("")
 
-            if pdf_path.exists():
-                col_a, col_b = st.columns([1.2, 5])
+                info_col1, info_col2, info_col3, info_col4 = st.columns(4)
 
-                with col_a:
-                    with open(pdf_path, "rb") as f:
-                        st.download_button(
-                            label="📥 Download PDF",
-                            data=f,
-                            file_name=item["file"],
-                            mime="application/pdf",
-                            use_container_width=True,
-                        )
+                with info_col1:
+                    st.metric("Carepack Code", item["code"])
 
-                with col_b:
-                    st.caption(f"PDF file found: {pdf_path}")
+                with info_col2:
+                    st.metric("Bulletin Code", item["bulletin_code"])
 
-                with st.expander("📄 Preview PDF", expanded=False):
-                    show_pdf_preview(pdf_path)
+                with info_col3:
+                    st.metric("Order Start Date", item["order_start_date"])
 
-            else:
-                st.error(
-                    f"PDF file not found: {pdf_path}. "
-                    "Please check whether the PDF is saved in the carepack_bulletins folder."
-                )
+                with info_col4:
+                    st.metric("Release Date", item["release_date"])
 
-            st.divider()
+                st.write("")
+
+                if pdf_path.exists():
+                    col_a, col_b = st.columns([1.2, 5])
+
+                    with col_a:
+                        with open(pdf_path, "rb") as f:
+                            st.download_button(
+                                label="📥 Download PDF",
+                                data=f,
+                                file_name=item["file"],
+                                mime="application/pdf",
+                                use_container_width=True,
+                            )
+
+                    with col_b:
+                        st.caption("PDF is available.")
+
+                    with st.expander("📄 Preview PDF", expanded=False):
+                        show_pdf_preview(pdf_path)
+
+                else:
+                    st.error(
+                        f"PDF file not found: {pdf_path}. "
+                        "Please check whether the PDF is saved in the carepack_bulletins folder."
+                    )
+
+            st.write("")
