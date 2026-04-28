@@ -7,7 +7,7 @@ import pandas as pd
 # Basic Page Settings
 # =========================
 st.set_page_config(
-    page_title="Service Report Portal",
+    page_title="Horizon Service Portal",
     page_icon="📘",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -201,7 +201,7 @@ def login_page():
                 <div class="login-grid">
                     <div class="login-left">
                         <div class="portal-badge">Horizon International</div>
-                        <div class="portal-title">Service Report<br>Portal</div>
+                        <div class="portal-title">Horizon Service<br>Portal</div>
                         <div class="portal-subtitle">
                             A centralized dashboard for service report analysis, machine trends,
                             error review, and Carepack Bulletin management.
@@ -504,7 +504,7 @@ view = st.sidebar.radio(
 )
 
 st.sidebar.markdown("---")
-st.sidebar.caption("Service Report Portal")
+st.sidebar.caption("Horizon Service Portal")
 st.sidebar.caption("Horizon International")
 
 if st.sidebar.button("Logout", use_container_width=True):
