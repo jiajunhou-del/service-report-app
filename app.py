@@ -181,12 +181,15 @@ def login_page():
             .login-grid {
                 grid-template-columns: 1fr;
             }
+
             .login-left {
                 padding: 34px 30px;
             }
+
             .login-right {
                 padding: 34px 30px;
             }
+
             .portal-title {
                 font-size: 34px;
             }
@@ -205,14 +208,14 @@ def login_page():
                         <div class="portal-badge">Horizon International</div>
                         <div class="portal-title">Service Data<br>Portal</div>
                         <div class="portal-subtitle">
-                            A centralized dashboard for service report analysis, machine trends,
-                            error review, and Carepack Bulletin management.
+                            A centralized portal for iCE LiNK reports, Care Pack bulletins,
+                            and HAI Search support information.
                         </div>
                         <div class="portal-mini-grid">
-                            <div class="portal-mini-card">📊 Dealer analysis</div>
-                            <div class="portal-mini-card">🌏 Country view</div>
-                            <div class="portal-mini-card">🛠️ Machine trends</div>
-                            <div class="portal-mini-card">📦 Carepack Bulletin</div>
+                            <div class="portal-mini-card">📘 iCE LiNK Report</div>
+                            <div class="portal-mini-card">📦 Care Pack</div>
+                            <div class="portal-mini-card">🤖 HAI Search</div>
+                            <div class="portal-mini-card">📊 Service Data</div>
                         </div>
                     </div>
                     <div class="login-right">
@@ -224,13 +227,9 @@ def login_page():
                         <div class="feature-list">
                             <div class="feature-title">Available views</div>
                             <div class="feature-item">
-                                📊 Dealer overview<br>
-                                🌏 Country view<br>
-                                🛠️ Machine view<br>
-                                ⚠️ Error analysis<br>
-                                📈 Summary charts<br>
-                                📥 Import data<br>
-                                📦 Carepack Bulletin
+                                📘 iCE LiNK Report<br>
+                                📦 Care Pack<br>
+                                🤖 HAI Search
                             </div>
                         </div>
                     </div>
@@ -602,9 +601,9 @@ def render_carepack_hero():
         f"""
         <div class="carepack-hero">
             <div class="carepack-hero-text">
-                <div class="carepack-hero-title">📦 Carepack Bulletin</div>
+                <div class="carepack-hero-title">📦 Care Pack</div>
                 <div class="carepack-hero-subtitle">
-                    Search, preview, and download Carepack Information Bulletins.
+                    Search, preview, and download Care Pack Information Bulletins.
                     You can search by model name, file name, Bulletin Code, or Date.
                     New PDFs will be displayed automatically after being uploaded to the carepack_bulletins folder.
                 </div>
@@ -639,7 +638,7 @@ def render_carepack_progress():
     st.markdown(
         f"""
         <div class="progress-card">
-            <div class="progress-title">Carepack Bulletin Progress</div>
+            <div class="progress-title">Care Pack Progress</div>
             <div class="progress-text">
                 {bar_text} {current_count}/{TARGET_MODELS} models ({percent}%)
             </div>
@@ -716,13 +715,9 @@ st.sidebar.markdown("## VIEWS")
 view = st.sidebar.radio(
     "",
     [
-        "📊 Dealer overview",
-        "🌏 Country view",
-        "🛠️ Machine view",
-        "⚠️ Error analysis",
-        "📈 Summary charts",
-        "📥 Import data",
-        "📦 Carepack Bulletin",
+        "📘 iCE LiNK Report",
+        "📦 Care Pack",
+        "🤖 HAI Search",
     ],
 )
 
@@ -736,152 +731,34 @@ if st.sidebar.button("Logout", use_container_width=True):
 
 
 # =========================
-# Page: Dealer Overview
+# Page: iCE LiNK Report
 # =========================
-if view == "📊 Dealer overview":
+if view == "📘 iCE LiNK Report":
     page_header(
-        "📊 Dealer overview",
-        "Overview of dealer service activity and key performance indicators.",
+        "📘 iCE LiNK Report",
+        "Review iCE LiNK report data, production trends, and machine performance.",
     )
 
-    col1, col2, col3, col4 = st.columns(4)
-
-    with col1:
-        st.markdown(
-            """
-            <div class="metric-card">
-                <div class="metric-label">Total Dealers</div>
-                <div class="metric-value">--</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-    with col2:
-        st.markdown(
-            """
-            <div class="metric-card">
-                <div class="metric-label">Total Reports</div>
-                <div class="metric-value">--</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-    with col3:
-        st.markdown(
-            """
-            <div class="metric-card">
-                <div class="metric-label">Active Countries</div>
-                <div class="metric-value">--</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-    with col4:
-        st.markdown(
-            """
-            <div class="metric-card">
-                <div class="metric-label">Open Issues</div>
-                <div class="metric-value">--</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-    st.info("ここに Dealer overview のグラフや集計を追加できます。")
-
-
-# =========================
-# Page: Country View
-# =========================
-elif view == "🌏 Country view":
-    page_header(
-        "🌏 Country view",
-        "Analyze service report status by country or region.",
-    )
-
-    st.info("ここに国別の集計、ランキング、比較グラフを追加できます。")
-
-
-# =========================
-# Page: Machine View
-# =========================
-elif view == "🛠️ Machine view":
-    page_header(
-        "🛠️ Machine view",
-        "Analyze service report trends by machine model.",
-    )
-
-    st.info("ここに機種別の件数、エラー傾向、稼働状況などを追加できます。")
-
-
-# =========================
-# Page: Error Analysis
-# =========================
-elif view == "⚠️ Error analysis":
-    page_header(
-        "⚠️ Error analysis",
-        "Analyze frequent errors and machine trouble trends.",
-    )
-
-    st.info("ここにエラーコード別の分析、Top 10 エラー、発生推移などを追加できます。")
-
-
-# =========================
-# Page: Summary Charts
-# =========================
-elif view == "📈 Summary charts":
-    page_header(
-        "📈 Summary charts",
-        "Summary charts for service reports and machine activity.",
-    )
+    st.info("ここに iCE LiNK Report のデータ、グラフ、PDF 出力などを追加できます。")
 
     sample_df = pd.DataFrame(
         {
-            "Month": ["Jan", "Feb", "Mar", "Apr"],
-            "Reports": [12, 18, 15, 22],
+            "Date": ["2026-04-01", "2026-04-02", "2026-04-03", "2026-04-04"],
+            "Production": [1200, 1350, 1280, 1420],
+            "Run Hours": [8.1, 8.4, 7.9, 8.6],
+            "Hourly Productivity": [148.1, 160.7, 162.0, 165.1],
         }
     )
 
-    st.bar_chart(sample_df.set_index("Month"))
+    st.dataframe(sample_df, use_container_width=True, hide_index=True)
+
+    st.line_chart(sample_df.set_index("Date")[["Production", "Run Hours", "Hourly Productivity"]])
 
 
 # =========================
-# Page: Import Data
+# Page: Care Pack
 # =========================
-elif view == "📥 Import data":
-    page_header(
-        "📥 Import data",
-        "Upload CSV or Excel files for service report analysis.",
-    )
-
-    uploaded_file = st.file_uploader(
-        "Upload CSV or Excel file",
-        type=["csv", "xlsx"],
-    )
-
-    if uploaded_file is not None:
-        try:
-            if uploaded_file.name.endswith(".csv"):
-                df = pd.read_csv(uploaded_file)
-            else:
-                df = pd.read_excel(uploaded_file)
-
-            st.success("File uploaded successfully.")
-            st.dataframe(df, use_container_width=True)
-
-        except Exception as e:
-            st.error(f"Failed to read file: {e}")
-    else:
-        st.info("Please upload a CSV or Excel file.")
-
-
-# =========================
-# Page: Carepack Bulletin
-# =========================
-elif view == "📦 Carepack Bulletin":
+elif view == "📦 Care Pack":
     render_carepack_hero()
 
     if not CAREPACK_DIR.exists():
@@ -896,7 +773,7 @@ elif view == "📦 Carepack Bulletin":
 
         with col1:
             keyword = st.text_input(
-                "Search Carepack Bulletin",
+                "Search Care Pack",
                 placeholder="Example: BQ300, CF400, VAC1, AF406F, AS23122025-1, Dec. 23rd...",
             )
 
@@ -917,12 +794,12 @@ elif view == "📦 Carepack Bulletin":
     results = search_carepack(keyword, show_all)
 
     if not keyword and not show_all:
-        st.info("Enter a keyword or click **Show All** to display Carepack Bulletins.")
+        st.info("Enter a keyword or click **Show All** to display Care Pack bulletins.")
 
         overview_df = pd.DataFrame(
             [
                 {
-                    "Carepack Model": item["model"],
+                    "Care Pack Model": item["model"],
                     "Machine": item["machine"],
                     "Bulletin Code": item["bulletin_code"],
                     "Date": item["date"],
@@ -940,7 +817,7 @@ elif view == "📦 Carepack Bulletin":
         st.markdown(f"### Search results: {len(results)}")
 
         if not results:
-            st.warning("No Carepack Bulletin found.")
+            st.warning("No Care Pack bulletin found.")
 
         for item in results:
             pdf_path = CAREPACK_DIR / item["file"]
@@ -956,7 +833,7 @@ elif view == "📦 Carepack Bulletin":
                     st.markdown(
                         """
                         <div class="carepack-pill">
-                            Carepack
+                            Care Pack
                         </div>
                         """,
                         unsafe_allow_html=True,
@@ -1005,3 +882,44 @@ elif view == "📦 Carepack Bulletin":
             st.write("")
 
         render_carepack_progress()
+
+
+# =========================
+# Page: HAI Search
+# =========================
+elif view == "🤖 HAI Search":
+    page_header(
+        "🤖 HAI Search",
+        "Overview of HAI Search usage, search trends, and knowledge access support.",
+    )
+
+    st.info("ここに HAI Search の利用状況、検索件数、改善内容、FAQ などを追加できます。")
+
+    hai_df = pd.DataFrame(
+        {
+            "Item": [
+                "Total Users",
+                "Total Queries",
+                "Successful Answers",
+                "Documents Indexed",
+            ],
+            "Value": [
+                200,
+                1580,
+                1425,
+                len(CAREPACK_DATA),
+            ],
+        }
+    )
+
+    st.dataframe(hai_df, use_container_width=True, hide_index=True)
+
+    st.markdown("### HAI Search Notes")
+    st.markdown(
+        """
+        - `/new` is used for asking questions.
+        - `/docs` is used for searching documents.
+        - Search quality depends on document naming, PDF text quality, and metadata.
+        - Future improvement items can be added here.
+        """
+    )
