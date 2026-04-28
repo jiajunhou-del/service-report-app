@@ -7,7 +7,7 @@ import pandas as pd
 # Basic Page Settings
 # =========================
 st.set_page_config(
-    page_title="Horizon Service Portal",
+    page_title="Service Data Portal",
     page_icon="📘",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -201,7 +201,7 @@ def login_page():
                 <div class="login-grid">
                     <div class="login-left">
                         <div class="portal-badge">Horizon International</div>
-                        <div class="portal-title">Horizon Service<br>Portal</div>
+                        <div class="portal-title">Service Data<br>Portal</div>
                         <div class="portal-subtitle">
                             A centralized dashboard for service report analysis, machine trends,
                             error review, and Carepack Bulletin management.
@@ -386,44 +386,46 @@ st.markdown(
 # =========================
 CAREPACK_DIR = Path("carepack_bulletins")
 
-CAREPACK_DATA = [
-    {
-        "model": "SLMK5-CRP",
-        "machine": "iCE Stitch Liner MarkV",
-        "code": "AP00010-00",
-        "bulletin_code": "AS23122025-1",
-        "file": "IB_SLMK5-CRP.pdf",
-        "order_start_date": "Dec. 23rd, 2025",
-        "release_date": "Dec. 23rd, 2025",
-    },
-    {
-        "model": "BQ300-CRP",
-        "machine": "BQ-300",
-        "code": "AP00031-00",
-        "bulletin_code": "AS16042025-1",
-        "file": "IB_BQ300-CRP.pdf",
-        "order_start_date": "Apr. 16th, 2025",
-        "release_date": "Apr. 16th, 2025",
-    },
-    {
-        "model": "VAC1-CRP",
-        "machine": "VAC-1000",
-        "code": "AP00025-00",
-        "bulletin_code": "TH26112024-1",
-        "file": "IB_VAC1-CRP.pdf",
-        "order_start_date": "Nov. 26th, 2024",
-        "release_date": "Nov. 26th, 2024",
-    },
-    {
-        "model": "CF400-CRP",
-        "machine": "CF-400",
-        "code": "AP00019-00",
-        "bulletin_code": "AS23122025-5",
-        "file": "IB_CF400-CRP.pdf",
-        "order_start_date": "Dec. 23rd, 2025",
-        "release_date": "Dec. 23rd, 2025",
-    },
-]
+
+def build_carepack_data():
+    """
+    Automatically read all PDF files in the carepack_bulletins folder.
+    Example:
+        IB_BQ300-CRP.pdf -> model: BQ300-CRP, machine: BQ300
+        IB_CF400-CRP.pdf -> model: CF400-CRP, machine: CF400
+    """
+    data = []
+
+    if not CAREPACK_DIR.exists():
+        return data
+
+    pdf_files = sorted(CAREPACK_DIR.glob("*.pdf"))
+
+    for pdf_file in pdf_files:
+        file_name = pdf_file.name
+
+        model = pdf_file.stem
+        if model.startswith("IB_"):
+            model = model[3:]
+
+        machine = model.replace("-CRP", "")
+
+        data.append(
+            {
+                "model": model,
+                "machine": machine,
+                "code": "-",
+                "bulletin_code": "-",
+                "file": file_name,
+                "order_start_date": "-",
+                "release_date": "-",
+            }
+        )
+
+    return data
+
+
+CAREPACK_DATA = build_carepack_data()
 
 
 # =========================
@@ -504,7 +506,7 @@ view = st.sidebar.radio(
 )
 
 st.sidebar.markdown("---")
-st.sidebar.caption("Horizon Service Portal")
+st.sidebar.caption("Service Data Portal")
 st.sidebar.caption("Horizon International")
 
 if st.sidebar.button("Logout", use_container_width=True):
@@ -665,12 +667,20 @@ elif view == "📦 Carepack Bulletin":
             <div class="carepack-hero-title">📦 Carepack Bulletin</div>
             <div class="carepack-hero-subtitle">
                 Search, preview, and download Carepack Information Bulletins.
-                You can search by model name, machine name, Carepack code, Bulletin code, file name, or release date.
+                You can search by model name, file name, or keyword.
+                New PDFs will be displayed automatically after being uploaded to the carepack_bulletins folder.
             </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
+
+    if not CAREPACK_DIR.exists():
+        st.error(
+            "The carepack_bulletins folder was not found. "
+            "Please create the folder and upload PDF files."
+        )
+        st.stop()
 
     with st.container(border=True):
         col1, col2, col3 = st.columns([5, 1.25, 1.25])
@@ -678,7 +688,7 @@ elif view == "📦 Carepack Bulletin":
         with col1:
             keyword = st.text_input(
                 "Search Carepack Bulletin",
-                placeholder="Example: BQ300, CF-400, AP00019-00, VAC1, SLMK5...",
+                placeholder="Example: BQ300, CF400, VAC1, AF406F, CRF362...",
             )
 
         with col2:
@@ -705,9 +715,7 @@ elif view == "📦 Carepack Bulletin":
                 {
                     "Carepack Model": item["model"],
                     "Machine": item["machine"],
-                    "Carepack Code": item["code"],
-                    "Bulletin Code": item["bulletin_code"],
-                    "Release Date": item["release_date"],
+                    "File Name": item["file"],
                 }
                 for item in CAREPACK_DATA
             ]
@@ -729,7 +737,7 @@ elif view == "📦 Carepack Bulletin":
 
                 with top_col1:
                     st.markdown(f"### {item['model']}")
-                    st.caption(f"For {item['machine']}")
+                    st.caption(f"File: {item['file']}")
 
                 with top_col2:
                     st.markdown(
@@ -743,19 +751,16 @@ elif view == "📦 Carepack Bulletin":
 
                 st.write("")
 
-                info_col1, info_col2, info_col3, info_col4 = st.columns(4)
+                info_col1, info_col2, info_col3 = st.columns(3)
 
                 with info_col1:
-                    st.metric("Carepack Code", item["code"])
+                    st.metric("Machine", item["machine"])
 
                 with info_col2:
-                    st.metric("Bulletin Code", item["bulletin_code"])
+                    st.metric("Carepack Code", item["code"])
 
                 with info_col3:
-                    st.metric("Order Start Date", item["order_start_date"])
-
-                with info_col4:
-                    st.metric("Release Date", item["release_date"])
+                    st.metric("Bulletin Code", item["bulletin_code"])
 
                 st.write("")
 
