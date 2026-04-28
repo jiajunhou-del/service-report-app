@@ -1,709 +1,524 @@
 import streamlit as st
-import pandas as pd
-import plotly.express as px
 from pathlib import Path
+import base64
+import pandas as pd
 
 
-# =========================================================
-# Page Settings
-# =========================================================
+# =========================
+# Basic Page Settings
+# =========================
 st.set_page_config(
-    page_title="Service Report Admin Console",
-    page_icon="🛠️",
+    page_title="Service Report App",
+    page_icon="📘",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
 
-# =========================================================
+# =========================
 # Login Settings
-# =========================================================
-USERS = {
-    "TS Admin": "admin123",
-    "Service Viewer": "viewer123"
-}
+# =========================
+APP_PASSWORD = "dealer123"
 
 
-# =========================================================
-# Login Page
-# =========================================================
 def login_page():
     st.markdown(
         """
         <style>
-        .stApp {
-            background: linear-gradient(135deg, #111827 0%, #1f2a44 45%, #eef3f8 45%, #f8fafc 100%);
+        .login-box {
+            max-width: 520px;
+            margin: 80px auto;
+            padding: 36px 40px;
+            border-radius: 22px;
+            background: linear-gradient(145deg, #ffffff, #f4f7fb);
+            box-shadow: 0 18px 45px rgba(0,0,0,0.12);
+            text-align: center;
         }
-
-        [data-testid="stSidebar"] {
-            display: none;
-        }
-
-        .login-card {
-            max-width: 980px;
-            margin: 110px auto 0 auto;
-            display: grid;
-            grid-template-columns: 1.05fr 0.95fr;
-            background: white;
-            border-radius: 28px;
-            overflow: hidden;
-            box-shadow: 0 30px 90px rgba(0,0,0,0.25);
-        }
-
-        .login-left {
-            background: linear-gradient(150deg, #1f2a44 0%, #24314f 55%, #0f766e 120%);
-            color: white;
-            padding: 52px 48px;
-            position: relative;
-        }
-
-        .login-left::after {
-            content: "";
-            position: absolute;
-            width: 220px;
-            height: 220px;
-            right: -80px;
-            bottom: -80px;
-            border-radius: 999px;
-            background: rgba(255,255,255,0.08);
-        }
-
-        .login-badge {
-            display: inline-block;
-            background: rgba(255,255,255,0.12);
-            border: 1px solid rgba(255,255,255,0.18);
-            padding: 8px 14px;
-            border-radius: 999px;
-            font-size: 12px;
-            letter-spacing: 0.08em;
-            margin-bottom: 30px;
-        }
-
         .login-title {
-            font-size: 40px;
-            font-weight: 850;
-            line-height: 1.15;
-            margin-bottom: 20px;
-        }
-
-        .login-text {
-            color: rgba(255,255,255,0.74);
-            font-size: 15px;
-            line-height: 1.8;
-            margin-bottom: 34px;
-            max-width: 430px;
-        }
-
-        .login-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .login-tag {
-            padding: 9px 12px;
-            border-radius: 13px;
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.18);
-            font-size: 13px;
-            color: rgba(255,255,255,0.92);
-        }
-
-        .login-right {
-            padding: 52px 46px;
-            background: #ffffff;
-        }
-
-        .login-heading {
-            font-size: 28px;
-            font-weight: 850;
+            font-size: 34px;
+            font-weight: 800;
             color: #1f2a44;
             margin-bottom: 8px;
         }
-
-        .login-caption {
-            color: #718096;
-            font-size: 14px;
-            margin-bottom: 28px;
-            line-height: 1.7;
-        }
-
-        div.stButton > button {
-            width: 100%;
-            height: 48px;
-            border-radius: 14px;
-            background: #1f2a44;
-            color: white;
-            border: none;
-            font-weight: 700;
-            margin-top: 10px;
-        }
-
-        div.stButton > button:hover {
-            background: #263552;
-            color: white;
-            border: none;
-        }
-
-        .footer-note {
-            text-align: center;
-            color: #8a95a8;
-            font-size: 12px;
-            margin-top: 22px;
+        .login-subtitle {
+            font-size: 15px;
+            color: #667085;
+            margin-bottom: 25px;
         }
         </style>
-
-        <div class="login-card">
-            <div class="login-left">
-                <div class="login-badge">SERVICE REPORT SYSTEM</div>
-                <div class="login-title">
-                    Service Report<br>
-                    Admin Console
-                </div>
-                <div class="login-text">
-                    Access dealer overview, country view, machine analysis,
-                    error trends, and service summary charts from one portal.
-                </div>
-                <div class="login-tags">
-                    <div class="login-tag">📊 Dealer overview</div>
-                    <div class="login-tag">🌏 Country view</div>
-                    <div class="login-tag">🛠 Machine view</div>
-                    <div class="login-tag">⚠️ Error analysis</div>
-                    <div class="login-tag">📈 Summary charts</div>
-                </div>
-            </div>
-
-            <div class="login-right">
-                <div class="login-heading">Welcome back</div>
-                <div class="login-caption">
-                    Please sign in to continue to the Service Report Console.
-                </div>
+        <div class="login-box">
+            <div class="login-title">Service Report Portal</div>
+            <div class="login-subtitle">Please enter the access password to continue.</div>
+        </div>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
-    role = st.selectbox("Access Role", list(USERS.keys()))
-    password = st.text_input("Password", type="password", placeholder="Enter your password")
+    password = st.text_input("Password", type="password", placeholder="Enter password")
 
-    if st.button("Enter Console →"):
-        if password == USERS[role]:
+    if st.button("Login", use_container_width=True):
+        if password == APP_PASSWORD:
             st.session_state["logged_in"] = True
-            st.session_state["role"] = role
             st.rerun()
         else:
-            st.error("Password is incorrect. Please try again.")
-
-    st.markdown(
-        """
-            </div>
-        </div>
-        <div class="footer-note">
-            Horizon International Technical Support / Service Report Portal
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+            st.error("Password is incorrect.")
 
 
-# =========================================================
-# Login Check
-# =========================================================
 if "logged_in" not in st.session_state:
     st.session_state["logged_in"] = False
-
-if "role" not in st.session_state:
-    st.session_state["role"] = None
 
 if not st.session_state["logged_in"]:
     login_page()
     st.stop()
 
 
-# =========================================================
-# Main App Style
-# =========================================================
+# =========================
+# Custom CSS
+# =========================
 st.markdown(
     """
     <style>
-    .stApp {
-        background: #f4f6fa;
+    section[data-testid="stSidebar"] {
+        background-color: #1f2a44;
     }
 
-    [data-testid="stSidebar"] {
-        background: #1f2a44;
-    }
-
-    [data-testid="stSidebar"] * {
-        color: white;
-    }
-
-    [data-testid="stSidebar"] .stRadio label {
+    section[data-testid="stSidebar"] * {
         color: white !important;
-        font-size: 18px;
-        font-weight: 600;
-    }
-
-    [data-testid="stSidebar"] .stButton button {
-        background: rgba(255,255,255,0.08);
-        color: white;
-        border: 1px solid rgba(255,255,255,0.18);
-        border-radius: 12px;
-        width: 100%;
-    }
-
-    [data-testid="stSidebar"] .stButton button:hover {
-        background: rgba(255,255,255,0.16);
-        color: white;
-        border: 1px solid rgba(255,255,255,0.28);
     }
 
     .main-title {
-        font-size: 34px;
-        font-weight: 850;
+        font-size: 36px;
+        font-weight: 800;
         color: #1f2a44;
-        margin-bottom: 4px;
+        margin-bottom: 5px;
     }
 
-    .main-subtitle {
-        color: #6b7280;
-        font-size: 15px;
-        margin-bottom: 24px;
+    .sub-title {
+        font-size: 16px;
+        color: #667085;
+        margin-bottom: 25px;
     }
 
-    .section-card {
-        background: white;
-        padding: 24px;
-        border-radius: 22px;
-        border: 1px solid #e5e7eb;
-        box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
-        margin-bottom: 20px;
+    .metric-card {
+        padding: 22px;
+        border-radius: 20px;
+        background: #ffffff;
+        box-shadow: 0 10px 28px rgba(0,0,0,0.08);
+        border: 1px solid #eef2f7;
     }
 
-    div[data-testid="metric-container"] {
+    .metric-label {
+        color: #667085;
+        font-size: 14px;
+    }
+
+    .metric-value {
+        color: #1f2a44;
+        font-size: 30px;
+        font-weight: 800;
+    }
+
+    .carepack-card {
+        padding: 22px;
+        border-radius: 18px;
         background: #ffffff;
         border: 1px solid #e5e7eb;
-        padding: 18px;
-        border-radius: 18px;
-        box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+        margin-bottom: 18px;
     }
 
-    .role-badge {
-        display: inline-block;
-        background: #e6f3f7;
-        color: #0e7490;
-        padding: 7px 12px;
-        border-radius: 999px;
+    .carepack-title {
+        font-size: 22px;
+        font-weight: 800;
+        color: #1f2a44;
+        margin-bottom: 8px;
+    }
+
+    .carepack-info {
+        font-size: 14px;
+        color: #475467;
+        line-height: 1.8;
+    }
+
+    .small-note {
+        color: #667085;
         font-size: 13px;
-        font-weight: 700;
-        margin-bottom: 18px;
     }
     </style>
     """,
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 
 
-# =========================================================
-# Data Loading
-# =========================================================
-DATA_FILE = Path("service_report.xlsx")
+# =========================
+# Data Settings
+# =========================
+CAREPACK_DIR = Path("carepack_bulletins")
+
+CAREPACK_DATA = [
+    {
+        "model": "SLMK5-CRP",
+        "machine": "iCE Stitch Liner MarkV",
+        "code": "AP00010-00",
+        "bulletin_code": "AS23122025-1",
+        "file": "IB_SLMK5-CRP.pdf",
+        "order_start_date": "Dec. 23rd, 2025",
+        "release_date": "Dec. 23rd, 2025",
+    },
+    {
+        "model": "BQ300-CRP",
+        "machine": "BQ-300",
+        "code": "AP00031-00",
+        "bulletin_code": "AS16042025-1",
+        "file": "IB_BQ300-CRP.pdf",
+        "order_start_date": "Apr. 16th, 2025",
+        "release_date": "Apr. 16th, 2025",
+    },
+    {
+        "model": "VAC1-CRP",
+        "machine": "VAC-1000",
+        "code": "AP00025-00",
+        "bulletin_code": "TH26112024-1",
+        "file": "IB_VAC1-CRP.pdf",
+        "order_start_date": "Nov. 26th, 2024",
+        "release_date": "Nov. 26th, 2024",
+    },
+    {
+        "model": "CF400-CRP",
+        "machine": "CF-400",
+        "code": "AP00019-00",
+        "bulletin_code": "AS23122025-5",
+        "file": "IB_CF400-CRP.pdf",
+        "order_start_date": "Dec. 23rd, 2025",
+        "release_date": "Dec. 23rd, 2025",
+    },
+]
 
 
-@st.cache_data
-def load_data():
-    if DATA_FILE.exists():
-        df = pd.read_excel(DATA_FILE)
-        df.columns = [str(c).strip() for c in df.columns]
-        return df
-    else:
-        return pd.DataFrame()
-
-
-df = load_data()
-
-
-# =========================================================
-# Sidebar
-# =========================================================
-with st.sidebar:
-    st.markdown("## 🛠 Service Report")
-    st.markdown("### Admin Console")
-    st.markdown("---")
-
-    st.markdown("#### VIEWS")
-
-    view = st.radio(
-        label="",
-        options=[
-            "📊 Dealer overview",
-            "🌏 Country view",
-            "🛠 Machine view",
-            "⚠️ Error analysis",
-            "📈 Summary charts",
-            "📥 Import data"
-        ],
-        index=0
-    )
-
-    st.markdown("---")
-    st.markdown("#### LOGIN")
-    st.success(st.session_state["role"])
-
-    if st.button("Logout"):
-        st.session_state["logged_in"] = False
-        st.session_state["role"] = None
-        st.rerun()
-
-    st.markdown("---")
-    st.markdown("#### TOOLS")
-
-    if st.button("↓ Generate Master Excel"):
-        st.info("This function can be connected later.")
-
-
-# =========================================================
-# Common Header
-# =========================================================
-st.markdown('<div class="main-title">Service Report Admin Console</div>', unsafe_allow_html=True)
-st.markdown(
-    '<div class="main-subtitle">Technical support data dashboard for service reports, machines, countries, and error trends.</div>',
-    unsafe_allow_html=True
-)
-st.markdown(
-    f'<div class="role-badge">Access Role: {st.session_state["role"]}</div>',
-    unsafe_allow_html=True
-)
-
-
-# =========================================================
-# No Data Warning
-# =========================================================
-if df.empty and view != "📥 Import data":
-    st.warning(
-        "service_report.xlsx が見つからない、またはデータを読み込めませんでした。"
-        " GitHub に service_report.xlsx があるか確認してください。"
-    )
-
-
-# =========================================================
+# =========================
 # Helper Functions
-# =========================================================
-def get_text_columns(data):
-    return data.select_dtypes(include=["object"]).columns.tolist()
+# =========================
+def show_pdf_preview(pdf_path: Path):
+    try:
+        with open(pdf_path, "rb") as f:
+            base64_pdf = base64.b64encode(f.read()).decode("utf-8")
+
+        pdf_display = f"""
+        <iframe 
+            src="data:application/pdf;base64,{base64_pdf}" 
+            width="100%" 
+            height="720px" 
+            type="application/pdf">
+        </iframe>
+        """
+        st.markdown(pdf_display, unsafe_allow_html=True)
+
+    except Exception as e:
+        st.error(f"PDF preview failed: {e}")
 
 
-def get_numeric_columns(data):
-    return data.select_dtypes(include=["number"]).columns.tolist()
+def search_carepack(keyword: str, show_all: bool):
+    if show_all:
+        return CAREPACK_DATA
+
+    keyword = keyword.lower().strip()
+
+    if not keyword:
+        return []
+
+    results = []
+
+    for item in CAREPACK_DATA:
+        search_target = " ".join(
+            [
+                item["model"],
+                item["machine"],
+                item["code"],
+                item["bulletin_code"],
+                item["file"],
+                item["release_date"],
+            ]
+        ).lower()
+
+        if keyword in search_target:
+            results.append(item)
+
+    return results
 
 
-def show_basic_kpis(data):
+def page_header(title, subtitle):
+    st.markdown(f"<div class='main-title'>{title}</div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='sub-title'>{subtitle}</div>", unsafe_allow_html=True)
+
+
+# =========================
+# Sidebar
+# =========================
+st.sidebar.markdown("## VIEWS")
+
+view = st.sidebar.radio(
+    "",
+    [
+        "📊 Dealer overview",
+        "🌏 Country view",
+        "🛠️ Machine view",
+        "⚠️ Error analysis",
+        "📈 Summary charts",
+        "📥 Import data",
+        "📦 Carepack Bulletin",
+    ],
+)
+
+st.sidebar.markdown("---")
+st.sidebar.caption("Service Report App")
+st.sidebar.caption("Horizon International")
+
+
+# =========================
+# Page: Dealer Overview
+# =========================
+if view == "📊 Dealer overview":
+    page_header(
+        "📊 Dealer overview",
+        "Overview of dealer service activity and key performance indicators.",
+    )
+
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        st.metric("Total Records", len(data))
+        st.markdown(
+            """
+            <div class="metric-card">
+                <div class="metric-label">Total Dealers</div>
+                <div class="metric-value">--</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
     with col2:
-        st.metric("Columns", len(data.columns))
+        st.markdown(
+            """
+            <div class="metric-card">
+                <div class="metric-label">Total Reports</div>
+                <div class="metric-value">--</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
     with col3:
-        st.metric("Text Columns", len(get_text_columns(data)))
+        st.markdown(
+            """
+            <div class="metric-card">
+                <div class="metric-label">Active Countries</div>
+                <div class="metric-value">--</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
     with col4:
-        st.metric("Numeric Columns", len(get_numeric_columns(data)))
+        st.markdown(
+            """
+            <div class="metric-card">
+                <div class="metric-label">Open Issues</div>
+                <div class="metric-value">--</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    st.info("ここに Dealer overview のグラフや集計を追加できます。")
 
 
-def show_dataframe(data):
-    st.dataframe(data, use_container_width=True)
-
-
-# =========================================================
-# View: Dealer overview
-# =========================================================
-if view == "📊 Dealer overview":
-    st.markdown("### 📊 Dealer overview")
-
-    if not df.empty:
-        show_basic_kpis(df)
-
-        st.markdown("#### Dealer / Category Summary")
-
-        text_cols = get_text_columns(df)
-
-        if text_cols:
-            selected_col = st.selectbox("Select dealer or category column", text_cols)
-
-            summary = (
-                df[selected_col]
-                .astype(str)
-                .value_counts()
-                .reset_index()
-            )
-            summary.columns = [selected_col, "Count"]
-
-            fig = px.bar(
-                summary.head(20),
-                x=selected_col,
-                y="Count",
-                title=f"Top 20 by {selected_col}"
-            )
-            st.plotly_chart(fig, use_container_width=True)
-
-            show_dataframe(summary)
-        else:
-            st.info("カテゴリ列が見つかりませんでした。")
-
-    else:
-        st.info("データがありません。")
-
-
-# =========================================================
-# View: Country view
-# =========================================================
+# =========================
+# Page: Country View
+# =========================
 elif view == "🌏 Country view":
-    st.markdown("### 🌏 Country view")
+    page_header(
+        "🌏 Country view",
+        "Analyze service report status by country or region.",
+    )
 
-    if not df.empty:
-        text_cols = get_text_columns(df)
-
-        country_candidates = [
-            c for c in text_cols
-            if "country" in c.lower()
-            or "region" in c.lower()
-            or "area" in c.lower()
-        ]
-
-        if country_candidates:
-            country_col = st.selectbox("Country column", country_candidates)
-        elif text_cols:
-            country_col = st.selectbox("Country column", text_cols)
-        else:
-            country_col = None
-
-        if country_col:
-            country_summary = (
-                df[country_col]
-                .astype(str)
-                .value_counts()
-                .reset_index()
-            )
-            country_summary.columns = [country_col, "Count"]
-
-            col1, col2 = st.columns([1.2, 1])
-
-            with col1:
-                fig = px.bar(
-                    country_summary.head(20),
-                    x=country_col,
-                    y="Count",
-                    title=f"Service Report Count by {country_col}"
-                )
-                st.plotly_chart(fig, use_container_width=True)
-
-            with col2:
-                st.markdown("#### Country Summary")
-                show_dataframe(country_summary)
-
-        else:
-            st.info("Country view に使用できる列が見つかりませんでした。")
-
-    else:
-        st.info("データがありません。")
+    st.info("ここに国別の集計、ランキング、比較グラフを追加できます。")
 
 
-# =========================================================
-# View: Machine view
-# =========================================================
-elif view == "🛠 Machine view":
-    st.markdown("### 🛠 Machine view")
+# =========================
+# Page: Machine View
+# =========================
+elif view == "🛠️ Machine view":
+    page_header(
+        "🛠️ Machine view",
+        "Analyze service report trends by machine model.",
+    )
 
-    if not df.empty:
-        text_cols = get_text_columns(df)
-
-        machine_candidates = [
-            c for c in text_cols
-            if "machine" in c.lower()
-            or "model" in c.lower()
-            or "product" in c.lower()
-            or "機種" in c
-            or "製品" in c
-        ]
-
-        if machine_candidates:
-            machine_col = st.selectbox("Machine / Model column", machine_candidates)
-        elif text_cols:
-            machine_col = st.selectbox("Machine / Model column", text_cols)
-        else:
-            machine_col = None
-
-        if machine_col:
-            machine_summary = (
-                df[machine_col]
-                .astype(str)
-                .value_counts()
-                .reset_index()
-            )
-            machine_summary.columns = [machine_col, "Count"]
-
-            fig = px.bar(
-                machine_summary.head(20),
-                x=machine_col,
-                y="Count",
-                title=f"Top Machines by {machine_col}"
-            )
-            st.plotly_chart(fig, use_container_width=True)
-
-            show_dataframe(machine_summary)
-        else:
-            st.info("Machine view に使用できる列が見つかりませんでした。")
-
-    else:
-        st.info("データがありません。")
+    st.info("ここに機種別の件数、エラー傾向、稼働状況などを追加できます。")
 
 
-# =========================================================
-# View: Error analysis
-# =========================================================
+# =========================
+# Page: Error Analysis
+# =========================
 elif view == "⚠️ Error analysis":
-    st.markdown("### ⚠️ Error analysis")
+    page_header(
+        "⚠️ Error analysis",
+        "Analyze frequent errors and machine trouble trends.",
+    )
 
-    if not df.empty:
-        text_cols = get_text_columns(df)
-        numeric_cols = get_numeric_columns(df)
-
-        error_candidates = [
-            c for c in df.columns
-            if "error" in c.lower()
-            or "fault" in c.lower()
-            or "alarm" in c.lower()
-            or "エラー" in c
-        ]
-
-        if error_candidates:
-            error_col = st.selectbox("Error column", error_candidates)
-        elif text_cols:
-            error_col = st.selectbox("Error column", text_cols)
-        elif numeric_cols:
-            error_col = st.selectbox("Error column", numeric_cols)
-        else:
-            error_col = None
-
-        if error_col:
-            error_summary = (
-                df[error_col]
-                .astype(str)
-                .value_counts()
-                .reset_index()
-            )
-            error_summary.columns = [error_col, "Count"]
-
-            fig = px.bar(
-                error_summary.head(20),
-                x=error_col,
-                y="Count",
-                title=f"Top Error / Issue Trends by {error_col}"
-            )
-            st.plotly_chart(fig, use_container_width=True)
-
-            show_dataframe(error_summary)
-        else:
-            st.info("Error analysis に使用できる列が見つかりませんでした。")
-
-    else:
-        st.info("データがありません。")
+    st.info("ここにエラーコード別の分析、Top 10 エラー、発生推移などを追加できます。")
 
 
-# =========================================================
-# View: Summary charts
-# =========================================================
+# =========================
+# Page: Summary Charts
+# =========================
 elif view == "📈 Summary charts":
-    st.markdown("### 📈 Summary charts")
+    page_header(
+        "📈 Summary charts",
+        "Summary charts for service reports and machine activity.",
+    )
 
-    if not df.empty:
-        show_basic_kpis(df)
+    sample_df = pd.DataFrame(
+        {
+            "Month": ["Jan", "Feb", "Mar", "Apr"],
+            "Reports": [12, 18, 15, 22],
+        }
+    )
 
-        text_cols = get_text_columns(df)
-        numeric_cols = get_numeric_columns(df)
-
-        col1, col2 = st.columns(2)
-
-        with col1:
-            st.markdown("#### Category Chart")
-            if text_cols:
-                category_col = st.selectbox("Category column", text_cols, key="summary_category")
-                category_summary = df[category_col].astype(str).value_counts().reset_index()
-                category_summary.columns = [category_col, "Count"]
-
-                fig = px.pie(
-                    category_summary.head(10),
-                    names=category_col,
-                    values="Count",
-                    title=f"Share by {category_col}"
-                )
-                st.plotly_chart(fig, use_container_width=True)
-            else:
-                st.info("カテゴリ列がありません。")
-
-        with col2:
-            st.markdown("#### Numeric Distribution")
-            if numeric_cols:
-                numeric_col = st.selectbox("Numeric column", numeric_cols, key="summary_numeric")
-                fig = px.histogram(
-                    df,
-                    x=numeric_col,
-                    title=f"Distribution of {numeric_col}"
-                )
-                st.plotly_chart(fig, use_container_width=True)
-            else:
-                st.info("数値列がありません。")
-
-        st.markdown("#### Raw Data")
-        show_dataframe(df)
-
-    else:
-        st.info("データがありません。")
+    st.bar_chart(sample_df.set_index("Month"))
 
 
-# =========================================================
-# View: Import data
-# =========================================================
+# =========================
+# Page: Import Data
+# =========================
 elif view == "📥 Import data":
-    st.markdown("### 📥 Import data")
-
-    st.info(
-        "ここでは、Excelファイルをアップロードして一時的に内容を確認できます。"
-        "正式にアプリへ反映する場合は、GitHub の service_report.xlsx を更新してください。"
+    page_header(
+        "📥 Import data",
+        "Upload CSV or Excel files for service report analysis.",
     )
 
     uploaded_file = st.file_uploader(
-        "Upload Excel file",
-        type=["xlsx", "xls"]
+        "Upload CSV or Excel file",
+        type=["csv", "xlsx"],
     )
 
     if uploaded_file is not None:
         try:
-            uploaded_df = pd.read_excel(uploaded_file)
-            uploaded_df.columns = [str(c).strip() for c in uploaded_df.columns]
+            if uploaded_file.name.endswith(".csv"):
+                df = pd.read_csv(uploaded_file)
+            else:
+                df = pd.read_excel(uploaded_file)
 
-            st.success("Excel file loaded successfully.")
-            show_basic_kpis(uploaded_df)
-            show_dataframe(uploaded_df)
+            st.success("File uploaded successfully.")
+            st.dataframe(df, use_container_width=True)
 
         except Exception as e:
-            st.error("Excel ファイルの読み込みに失敗しました。")
-            st.exception(e)
-
-    st.markdown("---")
-    st.markdown("#### Current data file")
-    st.code("service_report.xlsx")
-
-    if DATA_FILE.exists():
-        st.success("service_report.xlsx is available.")
+            st.error(f"Failed to read file: {e}")
     else:
-        st.warning("service_report.xlsx is not found.")
+        st.info("Please upload a CSV or Excel file.")
 
 
-# =========================================================
-# Footer
-# =========================================================
-st.markdown("---")
-st.caption("Horizon International Technical Support / Service Report Admin Console")
+# =========================
+# Page: Carepack Bulletin
+# =========================
+elif view == "📦 Carepack Bulletin":
+    page_header(
+        "📦 Carepack Bulletin",
+        "Search, preview, and download Carepack Information Bulletins.",
+    )
+
+    st.markdown(
+        """
+        <div class="small-note">
+        You can search by Carepack model, machine name, code, bulletin code, file name, or release date.
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.write("")
+
+    col1, col2 = st.columns([5, 1.2])
+
+    with col1:
+        keyword = st.text_input(
+            "Search Carepack Bulletin",
+            placeholder="Example: BQ300, CF-400, AP00019-00, VAC1, SLMK5...",
+        )
+
+    with col2:
+        st.write("")
+        st.write("")
+        show_all = st.button("Show All", use_container_width=True)
+
+    results = search_carepack(keyword, show_all)
+
+    if not keyword and not show_all:
+        st.info("Enter a keyword or click **Show All** to display Carepack Bulletins.")
+
+        st.markdown("### Available Carepack Bulletins")
+
+        overview_df = pd.DataFrame(
+            [
+                {
+                    "Carepack Model": item["model"],
+                    "Machine": item["machine"],
+                    "Code": item["code"],
+                    "Release Date": item["release_date"],
+                }
+                for item in CAREPACK_DATA
+            ]
+        )
+
+        st.dataframe(overview_df, use_container_width=True, hide_index=True)
+
+    else:
+        st.markdown(f"### Search results: {len(results)}")
+
+        if not results:
+            st.warning("No Carepack Bulletin found.")
+
+        for item in results:
+            pdf_path = CAREPACK_DIR / item["file"]
+
+            st.markdown(
+                f"""
+                <div class="carepack-card">
+                    <div class="carepack-title">{item["model"]} / {item["machine"]}</div>
+                    <div class="carepack-info">
+                        <b>Carepack Code:</b> {item["code"]}<br>
+                        <b>Bulletin Code:</b> {item["bulletin_code"]}<br>
+                        <b>Order Start Date:</b> {item["order_start_date"]}<br>
+                        <b>Release Date:</b> {item["release_date"]}<br>
+                        <b>File:</b> {item["file"]}
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+            if pdf_path.exists():
+                col_a, col_b = st.columns([1.2, 5])
+
+                with col_a:
+                    with open(pdf_path, "rb") as f:
+                        st.download_button(
+                            label="📥 Download PDF",
+                            data=f,
+                            file_name=item["file"],
+                            mime="application/pdf",
+                            use_container_width=True,
+                        )
+
+                with col_b:
+                    st.caption(f"PDF file found: {pdf_path}")
+
+                with st.expander("📄 Preview PDF", expanded=False):
+                    show_pdf_preview(pdf_path)
+
+            else:
+                st.error(
+                    f"PDF file not found: {pdf_path}. "
+                    "Please check whether the PDF is saved in the carepack_bulletins folder."
+                )
+
+            st.divider()
