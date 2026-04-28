@@ -442,11 +442,6 @@ st.markdown(
         filter: drop-shadow(0 12px 20px rgba(0,0,0,0.22));
     }
 
-    .small-note {
-        color: #667085;
-        font-size: 13px;
-    }
-
     .carepack-pill {
         display: inline-block;
         padding: 7px 14px;
@@ -571,7 +566,7 @@ def extract_pdf_info(pdf_path: Path):
         text_one_line = " ".join(text.split())
 
         date_match = re.search(
-            r"Date:\\s*(.*?)(?:\\s+Title:|\\s+Ref No\\.:|\\s+Model:|\\n)",
+            r"Date:\s*(.*?)(?:\s+Title:|\s+Ref No\.?:|\s+Model:|$)",
             text_one_line,
             re.IGNORECASE,
         )
@@ -580,7 +575,7 @@ def extract_pdf_info(pdf_path: Path):
             date_value = date_match.group(1).strip()
 
         bulletin_match = re.search(
-            r"Title:\\s*Carepack\\s*Code:\\s*([A-Z0-9-]+)",
+            r"Title:\s*Carepack\s*Code:\s*([A-Z0-9-]+)",
             text_one_line,
             re.IGNORECASE,
         )
@@ -590,7 +585,16 @@ def extract_pdf_info(pdf_path: Path):
 
         if bulletin_code == "-":
             fallback_match = re.search(
-                r"Code:\\s*([A-Z]{1,4}[0-9]{6,8}-[0-9]+)",
+                r"Carepack\s*Code:\s*([A-Z0-9-]+)",
+                text_one_line,
+                re.IGNORECASE,
+            )
+            if fallback_match:
+                bulletin_code = fallback_match.group(1).strip()
+
+        if bulletin_code == "-":
+            fallback_match = re.search(
+                r"Code:\s*([A-Z]{1,4}[0-9]{6,8}-[0-9]+)",
                 text_one_line,
                 re.IGNORECASE,
             )
@@ -686,6 +690,7 @@ def render_carepack_progress():
         progress_ratio = min(current_count / TARGET_MODELS, 1.0)
 
     total_blocks = 20
+
     if TARGET_MODELS <= 0:
         filled_blocks = 0
     else:
@@ -810,7 +815,6 @@ if view == "📊  iCE LiNK Report":
     )
 
     st.dataframe(sample_df, use_container_width=True, hide_index=True)
-
     st.line_chart(sample_df.set_index("Date")[["Production", "Run Hours", "Hourly Productivity"]])
 
 
@@ -869,7 +873,6 @@ elif view == "📦  Care Pack":
         )
 
         st.dataframe(overview_df, use_container_width=True, hide_index=True)
-
         render_carepack_progress()
 
     else:
