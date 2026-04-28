@@ -20,144 +20,228 @@ st.set_page_config(
 APP_PASSWORD = "ts123"
 
 
+# =========================
+# Login Page
+# =========================
 def login_page():
     st.markdown(
         """
         <style>
         .stApp {
-            background: linear-gradient(135deg, #eef2f7 0%, #f8fafc 100%);
+            background:
+                radial-gradient(circle at top left, rgba(59,130,246,0.28), transparent 32%),
+                radial-gradient(circle at bottom right, rgba(14,165,233,0.18), transparent 30%),
+                linear-gradient(135deg, #0f172a 0%, #1e293b 48%, #0b1120 100%);
         }
 
-        .login-wrapper {
+        header[data-testid="stHeader"] {
+            background: transparent;
+        }
+
+        .login-shell {
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-top: 35px;
-            margin-bottom: 15px;
+            padding-top: 55px;
+            padding-bottom: 20px;
         }
 
         .login-card {
             width: 100%;
-            max-width: 760px;
-            border-radius: 28px;
-            padding: 38px 42px;
-            background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
-            box-shadow: 0 18px 45px rgba(31, 42, 68, 0.12);
-            border: 1px solid #e7edf5;
+            max-width: 980px;
+            border-radius: 32px;
+            padding: 0;
+            overflow: hidden;
+            background: rgba(255,255,255,0.96);
+            box-shadow: 0 30px 90px rgba(0,0,0,0.35);
+            border: 1px solid rgba(255,255,255,0.35);
         }
 
-        .login-badge {
+        .login-grid {
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+            min-height: 430px;
+        }
+
+        .login-left {
+            padding: 48px 50px;
+            background:
+                linear-gradient(135deg, rgba(30,64,175,0.95), rgba(15,23,42,0.96)),
+                radial-gradient(circle at top left, rgba(255,255,255,0.18), transparent 35%);
+            color: white;
+        }
+
+        .login-right {
+            padding: 48px 46px;
+            background: #ffffff;
+        }
+
+        .portal-badge {
             display: inline-block;
-            padding: 6px 14px;
+            padding: 7px 15px;
             border-radius: 999px;
-            background: #e9f2ff;
-            color: #2457a7;
+            background: rgba(255,255,255,0.16);
+            border: 1px solid rgba(255,255,255,0.28);
+            color: #dbeafe;
             font-size: 13px;
-            font-weight: 700;
-            margin-bottom: 16px;
-        }
-
-        .login-title {
-            font-size: 42px;
             font-weight: 800;
-            color: #1f2a44;
-            margin-bottom: 10px;
-            line-height: 1.15;
-        }
-
-        .login-subtitle {
-            font-size: 16px;
-            color: #667085;
             margin-bottom: 22px;
         }
 
-        .login-feature-box {
-            margin-top: 20px;
-            padding: 18px 20px;
-            border-radius: 18px;
-            background: #f7faff;
-            border: 1px solid #e6eef8;
+        .portal-title {
+            font-size: 46px;
+            font-weight: 900;
+            line-height: 1.08;
+            letter-spacing: -0.04em;
+            margin-bottom: 18px;
         }
 
-        .login-feature-title {
-            font-size: 15px;
-            font-weight: 700;
-            color: #1f2a44;
-            margin-bottom: 10px;
+        .portal-subtitle {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #dbeafe;
+            margin-bottom: 28px;
         }
 
-        .login-feature-list {
-            color: #475467;
-            font-size: 14px;
-            line-height: 1.9;
+        .portal-mini-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 24px;
         }
 
-        .login-note {
-            margin-top: 14px;
-            color: #98a2b3;
+        .portal-mini-card {
+            padding: 14px 15px;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.18);
             font-size: 13px;
+            color: #eff6ff;
+        }
+
+        .login-title {
+            font-size: 28px;
+            font-weight: 900;
+            color: #1f2a44;
+            margin-bottom: 8px;
+        }
+
+        .login-desc {
+            color: #667085;
+            font-size: 14px;
+            line-height: 1.7;
+            margin-bottom: 26px;
+        }
+
+        .feature-list {
+            padding: 18px 20px;
+            border-radius: 20px;
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 24px;
+        }
+
+        .feature-title {
+            font-size: 14px;
+            font-weight: 800;
+            color: #1f2a44;
+            margin-bottom: 12px;
+        }
+
+        .feature-item {
+            font-size: 14px;
+            color: #475467;
+            line-height: 2;
         }
 
         div[data-testid="stTextInput"] input {
-            border-radius: 12px !important;
-            border: 1px solid #d0d5dd !important;
+            border-radius: 14px !important;
+            border: 1px solid #cbd5e1 !important;
             min-height: 48px !important;
             background-color: #ffffff !important;
         }
 
         div[data-testid="stButton"] button {
-            border-radius: 12px !important;
-            min-height: 46px !important;
-            font-weight: 700 !important;
-            background: linear-gradient(135deg, #2457a7 0%, #1f6feb 100%) !important;
+            border-radius: 14px !important;
+            min-height: 48px !important;
+            font-weight: 800 !important;
+            background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%) !important;
             color: white !important;
             border: none !important;
+            box-shadow: 0 10px 20px rgba(37,99,235,0.22);
         }
 
         div[data-testid="stButton"] button:hover {
-            filter: brightness(1.03);
+            filter: brightness(1.05);
+        }
+
+        @media (max-width: 900px) {
+            .login-grid {
+                grid-template-columns: 1fr;
+            }
+            .login-left {
+                padding: 34px 30px;
+            }
+            .login-right {
+                padding: 34px 30px;
+            }
+            .portal-title {
+                font-size: 34px;
+            }
         }
         </style>
         """,
         unsafe_allow_html=True,
     )
 
-    left, center, right = st.columns([1, 1.9, 1])
-
-    with center:
-        st.markdown(
-            """
-            <div class="login-wrapper">
-                <div class="login-card">
-                    <div class="login-badge">Horizon International</div>
-                    <div class="login-title">Service Report Portal</div>
-                    <div class="login-subtitle">
-                        Centralized access for service analysis, report management, and Carepack bulletin search.
-                    </div>
-
-                    <div class="login-feature-box">
-                        <div class="login-feature-title">Available features</div>
-                        <div class="login-feature-list">
-                            📊 Dealer overview<br>
-                            🌏 Country view<br>
-                            🛠️ Machine view<br>
-                            ⚠️ Error analysis<br>
-                            📈 Summary charts<br>
-                            📥 Import data<br>
-                            📦 Carepack Bulletin
+    st.markdown(
+        """
+        <div class="login-shell">
+            <div class="login-card">
+                <div class="login-grid">
+                    <div class="login-left">
+                        <div class="portal-badge">Horizon International</div>
+                        <div class="portal-title">Service Report<br>Portal</div>
+                        <div class="portal-subtitle">
+                            A centralized dashboard for service report analysis, machine trends,
+                            error review, and Carepack Bulletin management.
+                        </div>
+                        <div class="portal-mini-grid">
+                            <div class="portal-mini-card">📊 Dealer analysis</div>
+                            <div class="portal-mini-card">🌏 Country view</div>
+                            <div class="portal-mini-card">🛠️ Machine trends</div>
+                            <div class="portal-mini-card">📦 Carepack Bulletin</div>
                         </div>
                     </div>
-
-                    <div class="login-note">
-                        Please enter your access password to continue.
+                    <div class="login-right">
+                        <div class="login-title">Welcome back</div>
+                        <div class="login-desc">
+                            Please enter the access password to continue.
+                            This portal is designed for internal service data review and document access.
+                        </div>
+                        <div class="feature-list">
+                            <div class="feature-title">Available views</div>
+                            <div class="feature-item">
+                                📊 Dealer overview<br>
+                                🌏 Country view<br>
+                                🛠️ Machine view<br>
+                                ⚠️ Error analysis<br>
+                                📈 Summary charts<br>
+                                📥 Import data<br>
+                                📦 Carepack Bulletin
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-        st.write("")
+    left, center, right = st.columns([1.25, 1.5, 1.25])
+
+    with center:
         password = st.text_input(
             "Password",
             type="password",
@@ -182,13 +266,18 @@ if not st.session_state["logged_in"]:
 
 
 # =========================
-# Custom CSS
+# Main CSS
 # =========================
 st.markdown(
     """
     <style>
+    .stApp {
+        background: #f6f8fb;
+    }
+
     section[data-testid="stSidebar"] {
-        background-color: #1f2a44;
+        background:
+            linear-gradient(180deg, #1f2a44 0%, #111827 100%);
     }
 
     section[data-testid="stSidebar"] * {
@@ -196,62 +285,148 @@ st.markdown(
     }
 
     .main-title {
-        font-size: 36px;
-        font-weight: 800;
+        font-size: 38px;
+        font-weight: 900;
         color: #1f2a44;
-        margin-bottom: 5px;
+        margin-bottom: 6px;
+        letter-spacing: -0.03em;
     }
 
     .sub-title {
         font-size: 16px;
         color: #667085;
-        margin-bottom: 25px;
+        margin-bottom: 28px;
     }
 
     .metric-card {
-        padding: 22px;
-        border-radius: 20px;
+        padding: 24px;
+        border-radius: 24px;
         background: #ffffff;
-        box-shadow: 0 10px 28px rgba(0,0,0,0.08);
-        border: 1px solid #eef2f7;
+        box-shadow: 0 12px 32px rgba(15,23,42,0.08);
+        border: 1px solid #e5e7eb;
     }
 
     .metric-label {
         color: #667085;
         font-size: 14px;
+        margin-bottom: 8px;
     }
 
     .metric-value {
         color: #1f2a44;
-        font-size: 30px;
-        font-weight: 800;
+        font-size: 32px;
+        font-weight: 900;
+    }
+
+    .carepack-hero {
+        padding: 28px 30px;
+        border-radius: 28px;
+        background:
+            linear-gradient(135deg, #1e3a8a 0%, #2563eb 58%, #0ea5e9 100%);
+        color: white;
+        box-shadow: 0 18px 45px rgba(37,99,235,0.24);
+        margin-bottom: 24px;
+    }
+
+    .carepack-hero-title {
+        font-size: 34px;
+        font-weight: 900;
+        margin-bottom: 8px;
+        letter-spacing: -0.03em;
+    }
+
+    .carepack-hero-subtitle {
+        font-size: 15px;
+        color: #dbeafe;
+        line-height: 1.7;
+    }
+
+    .search-panel {
+        padding: 22px;
+        border-radius: 24px;
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 10px 30px rgba(15,23,42,0.06);
+        margin-bottom: 24px;
     }
 
     .carepack-card {
-        padding: 22px;
-        border-radius: 18px;
+        padding: 24px;
+        border-radius: 24px;
         background: #ffffff;
         border: 1px solid #e5e7eb;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+        box-shadow: 0 12px 34px rgba(15,23,42,0.07);
+        margin-bottom: 18px;
+    }
+
+    .carepack-title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
         margin-bottom: 18px;
     }
 
     .carepack-title {
-        font-size: 22px;
-        font-weight: 800;
+        font-size: 24px;
+        font-weight: 900;
         color: #1f2a44;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
     }
 
-    .carepack-info {
+    .carepack-machine {
         font-size: 14px;
-        color: #475467;
-        line-height: 1.8;
+        color: #667085;
+    }
+
+    .carepack-tag {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: #e0f2fe;
+        color: #0369a1;
+        font-size: 13px;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 12px;
+    }
+
+    .info-box {
+        padding: 14px 15px;
+        border-radius: 16px;
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+    }
+
+    .info-label {
+        font-size: 12px;
+        color: #667085;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+
+    .info-value {
+        font-size: 14px;
+        color: #1f2a44;
+        font-weight: 800;
+        word-break: break-word;
     }
 
     .small-note {
         color: #667085;
         font-size: 13px;
+    }
+
+    @media (max-width: 900px) {
+        .info-grid {
+            grid-template-columns: 1fr 1fr;
+        }
     }
     </style>
     """,
@@ -315,7 +490,7 @@ def show_pdf_preview(pdf_path: Path):
 
         for page_number in range(len(doc)):
             page = doc.load_page(page_number)
-            pix = page.get_pixmap(matrix=fitz.Matrix(1.5, 1.5))
+            pix = page.get_pixmap(matrix=fitz.Matrix(1.6, 1.6))
             image_bytes = pix.tobytes("png")
 
             st.image(
@@ -348,6 +523,7 @@ def search_carepack(keyword: str, show_all: bool):
                 item["bulletin_code"],
                 item["file"],
                 item["release_date"],
+                item["order_start_date"],
             ]
         ).lower()
 
@@ -536,23 +712,22 @@ elif view == "📥 Import data":
 # Page: Carepack Bulletin
 # =========================
 elif view == "📦 Carepack Bulletin":
-    page_header(
-        "📦 Carepack Bulletin",
-        "Search, preview, and download Carepack Information Bulletins.",
-    )
-
     st.markdown(
         """
-        <div class="small-note">
-        You can search by Carepack model, machine name, code, bulletin code, file name, or release date.
+        <div class="carepack-hero">
+            <div class="carepack-hero-title">📦 Carepack Bulletin</div>
+            <div class="carepack-hero-subtitle">
+                Search, preview, and download Carepack Information Bulletins.
+                You can search by model name, machine name, Carepack code, Bulletin code, file name, or release date.
+            </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    st.write("")
+    st.markdown('<div class="search-panel">', unsafe_allow_html=True)
 
-    col1, col2 = st.columns([5, 1.2])
+    col1, col2, col3 = st.columns([5, 1.25, 1.25])
 
     with col1:
         keyword = st.text_input(
@@ -565,19 +740,29 @@ elif view == "📦 Carepack Bulletin":
         st.write("")
         show_all = st.button("Show All", use_container_width=True)
 
+    with col3:
+        st.write("")
+        st.write("")
+        clear_search = st.button("Clear", use_container_width=True)
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    if clear_search:
+        keyword = ""
+        show_all = False
+
     results = search_carepack(keyword, show_all)
 
     if not keyword and not show_all:
         st.info("Enter a keyword or click **Show All** to display Carepack Bulletins.")
-
-        st.markdown("### Available Carepack Bulletins")
 
         overview_df = pd.DataFrame(
             [
                 {
                     "Carepack Model": item["model"],
                     "Machine": item["machine"],
-                    "Code": item["code"],
+                    "Carepack Code": item["code"],
+                    "Bulletin Code": item["bulletin_code"],
                     "Release Date": item["release_date"],
                 }
                 for item in CAREPACK_DATA
@@ -598,13 +783,31 @@ elif view == "📦 Carepack Bulletin":
             st.markdown(
                 f"""
                 <div class="carepack-card">
-                    <div class="carepack-title">{item["model"]} / {item["machine"]}</div>
-                    <div class="carepack-info">
-                        <b>Carepack Code:</b> {item["code"]}<br>
-                        <b>Bulletin Code:</b> {item["bulletin_code"]}<br>
-                        <b>Order Start Date:</b> {item["order_start_date"]}<br>
-                        <b>Release Date:</b> {item["release_date"]}<br>
-                        <b>File:</b> {item["file"]}
+                    <div class="carepack-title-row">
+                        <div>
+                            <div class="carepack-title">{item["model"]}</div>
+                            <div class="carepack-machine">For {item["machine"]}</div>
+                        </div>
+                        <div class="carepack-tag">Carepack</div>
+                    </div>
+
+                    <div class="info-grid">
+                        <div class="info-box">
+                            <div class="info-label">Carepack Code</div>
+                            <div class="info-value">{item["code"]}</div>
+                        </div>
+                        <div class="info-box">
+                            <div class="info-label">Bulletin Code</div>
+                            <div class="info-value">{item["bulletin_code"]}</div>
+                        </div>
+                        <div class="info-box">
+                            <div class="info-label">Order Start Date</div>
+                            <div class="info-value">{item["order_start_date"]}</div>
+                        </div>
+                        <div class="info-box">
+                            <div class="info-label">Release Date</div>
+                            <div class="info-value">{item["release_date"]}</div>
+                        </div>
                     </div>
                 </div>
                 """,
