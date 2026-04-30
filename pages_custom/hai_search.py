@@ -1,438 +1,366 @@
 import streamlit as st
-import pandas as pd
+from pathlib import Path
+import base64
+import mimetypes
 
 
-# =========================
-# Link Settings
-# =========================
-SLACK_URL = "https://app.slack.com/"
+def _image_to_data_uri(image_path: Path) -> str:
+    if not image_path.exists():
+        return ""
 
-# 以后如果有正式 Update Notes 链接，把这里替换成 Google Doc / Notion / GitHub / 社内链接即可
-UPDATE_NOTES_URL = "#"
+    mime_type, _ = mimetypes.guess_type(str(image_path))
+    if mime_type is None:
+        mime_type = "image/png"
+
+    encoded = base64.b64encode(image_path.read_bytes()).decode()
+    return f"data:{mime_type};base64,{encoded}"
 
 
-# =========================
-# CSS
-# =========================
-def apply_hai_search_css():
+def render_hai_search():
+    # =========================
+    # Path
+    # =========================
+    base_dir = Path(__file__).resolve().parents[1]
+    logo_path = base_dir / "assets" / "hai_search_logo.jpg.png"
+
+    logo_data_uri = _image_to_data_uri(logo_path)
+
+    # =========================
+    # CSS
+    # =========================
     st.markdown(
         """
         <style>
+        .hai-page {
+            padding-top: 6px;
+        }
+
         .hai-hero {
-            padding: 34px 42px;
+            background: linear-gradient(135deg, #1f2a78 0%, #2f62df 55%, #43b0ea 100%);
             border-radius: 30px;
-            background:
-                radial-gradient(circle at right center, rgba(255,255,255,0.18), transparent 28%),
-                linear-gradient(135deg, #1e1b4b 0%, #2563eb 55%, #0ea5e9 100%);
-            color: white;
-            box-shadow: 0 18px 45px rgba(37,99,235,0.24);
+            padding: 34px 34px;
             margin-bottom: 24px;
+            box-shadow: 0 14px 30px rgba(34, 58, 120, 0.18);
         }
 
-        .hai-hero-title {
-            font-size: 40px;
-            font-weight: 900;
-            margin-bottom: 16px;
-            letter-spacing: -0.03em;
+        .hai-hero-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 28px;
+            flex-wrap: wrap;
         }
 
-        .hai-hero-subtitle {
+        .hai-hero-left {
+            flex: 1 1 520px;
+            min-width: 320px;
+        }
+
+        .hai-badge {
+            display: inline-block;
+            padding: 10px 18px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.18);
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 22px;
+        }
+
+        .hai-hero-text {
+            color: #ffffff;
+            font-size: 19px;
+            line-height: 1.9;
+            font-weight: 500;
+            max-width: 900px;
+        }
+
+        .hai-hero-subtext {
+            margin-top: 18px;
+            color: rgba(255,255,255,0.92);
             font-size: 16px;
-            color: #e0f2fe;
             line-height: 1.8;
-            max-width: 1100px;
+        }
+
+        .hai-hero-right {
+            flex: 0 0 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .hai-logo-card {
+            width: 280px;
+            min-height: 220px;
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 28px;
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
+            backdrop-filter: blur(3px);
+        }
+
+        .hai-logo-card img {
+            max-width: 100%;
+            max-height: 170px;
+            object-fit: contain;
+            border-radius: 14px;
+            background: #ffffff;
+            padding: 12px;
+        }
+
+        .hai-logo-fallback {
+            color: #ffffff;
+            font-weight: 700;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        .hai-entry-title {
+            font-size: 34px;
+            font-weight: 800;
+            color: #1f2e5c;
+            margin: 10px 0 10px 0;
+        }
+
+        .hai-entry-subtitle {
+            font-size: 18px;
+            color: #5a6785;
+            margin-bottom: 26px;
+        }
+
+        .hai-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(320px, 1fr));
+            gap: 22px;
+            margin-bottom: 24px;
         }
 
         .hai-card {
             background: #ffffff;
-            border: 1px solid #e5e7eb;
-            border-radius: 22px;
-            padding: 22px 24px;
-            margin-top: 18px;
-            margin-bottom: 18px;
-            box-shadow: 0 10px 28px rgba(15,23,42,0.06);
-        }
-
-        .hai-card-title {
-            font-size: 20px;
-            font-weight: 900;
-            color: #1f2a44;
-            margin-bottom: 10px;
-        }
-
-        .hai-card-text {
-            font-size: 14px;
-            color: #667085;
-            line-height: 1.8;
-        }
-
-        .hai-command-box {
-            background: #f8fafc;
-            border: 1px solid #e5e7eb;
-            border-radius: 18px;
-            padding: 18px 20px;
-            margin-bottom: 16px;
-        }
-
-        .hai-command-title {
-            font-size: 16px;
-            font-weight: 900;
-            color: #1f2a44;
-            margin-bottom: 8px;
-        }
-
-        .hai-command-code {
-            display: inline-block;
-            padding: 5px 9px;
-            border-radius: 8px;
-            background: #e0f2fe;
-            color: #0369a1;
-            font-weight: 900;
-            font-size: 13px;
-            margin-right: 6px;
-        }
-
-        .hai-entry-card {
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
+            border: 1px solid #e7ebf3;
             border-radius: 24px;
-            padding: 26px 28px;
-            min-height: 210px;
-            box-shadow: 0 12px 30px rgba(15,23,42,0.06);
-            margin-bottom: 12px;
+            padding: 28px 26px 24px 26px;
+            box-shadow: 0 8px 22px rgba(30, 50, 100, 0.06);
         }
 
-        .hai-entry-icon {
-            width: 54px;
-            height: 54px;
-            border-radius: 16px;
-            background: #eff6ff;
+        .hai-card-icon {
+            width: 66px;
+            height: 66px;
+            border-radius: 18px;
+            background: #eef3fb;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 28px;
-            margin-bottom: 16px;
-        }
-
-        .hai-entry-title {
-            font-size: 24px;
-            font-weight: 900;
-            color: #1f2a44;
-            margin-bottom: 10px;
-        }
-
-        .hai-entry-text {
-            font-size: 15px;
-            color: #667085;
-            line-height: 1.8;
-        }
-
-        .hai-section-title {
-            font-size: 28px;
-            font-weight: 900;
-            color: #1f2a44;
-            margin-top: 24px;
-            margin-bottom: 8px;
-        }
-
-        .hai-section-desc {
-            font-size: 15px;
-            color: #667085;
+            font-size: 30px;
             margin-bottom: 18px;
         }
 
-        div[data-testid="stMetric"] {
-            background: #f8fafc;
-            border: 1px solid #e5e7eb;
-            padding: 14px 16px;
-            border-radius: 16px;
-        }
-
-        div[data-testid="stMetricLabel"] {
-            color: #667085;
-            font-weight: 700;
-        }
-
-        div[data-testid="stMetricValue"] {
-            color: #1f2a44;
-            font-weight: 900;
+        .hai-card-title {
             font-size: 22px;
+            font-weight: 800;
+            color: #243255;
+            margin-bottom: 14px;
         }
 
-        div.stLinkButton > a {
-            border-radius: 14px !important;
-            font-weight: 900 !important;
-            font-size: 15px !important;
-            padding: 0.75rem 1.1rem !important;
-            text-decoration: none !important;
-            box-shadow: 0 8px 18px rgba(37,99,235,0.14) !important;
+        .hai-card-text {
+            font-size: 16px;
+            color: #63708d;
+            line-height: 1.9;
+            min-height: 90px;
+        }
+
+        .hai-card-btn {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 12px 20px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .hai-btn-primary {
+            background: linear-gradient(135deg, #2b4cb3 0%, #3a8ee8 100%);
+            color: #ffffff !important;
+        }
+
+        .hai-btn-secondary {
+            background: #edf3ff;
+            color: #2450a9 !important;
+        }
+
+        .hai-note-box {
+            background: #ffffff;
+            border: 1px solid #e7ebf3;
+            border-radius: 24px;
+            padding: 26px 28px;
+            box-shadow: 0 8px 22px rgba(30, 50, 100, 0.05);
+            margin-top: 4px;
+            margin-bottom: 20px;
+        }
+
+        .hai-note-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #22315a;
+            margin-bottom: 16px;
+        }
+
+        .hai-note-list {
+            margin: 0;
+            padding-left: 20px;
+            color: #5f6d8b;
+            line-height: 2;
+            font-size: 16px;
+        }
+
+        .hai-tip {
+            background: #f6f9ff;
+            border: 1px solid #dfe8f8;
+            border-radius: 18px;
+            padding: 16px 18px;
+            color: #4e5f82;
+            font-size: 15px;
+            line-height: 1.8;
+            margin-top: 16px;
+        }
+
+        @media (max-width: 980px) {
+            .hai-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hai-hero-right {
+                width: 100%;
+            }
+
+            .hai-logo-card {
+                width: 100%;
+                max-width: 340px;
+            }
+
+            .hai-hero-text {
+                font-size: 17px;
+            }
         }
         </style>
         """,
         unsafe_allow_html=True,
     )
 
+    # =========================
+    # Hero block
+    # =========================
+    if logo_data_uri:
+        logo_html = f'<img src="{logo_data_uri}" alt="HAI Search Logo">'
+    else:
+        logo_html = '<div class="hai-logo-fallback">Logo image not found<br>assets/hai_search_logo.jpg.png</div>'
 
-# =========================
-# Data
-# =========================
-def get_hai_search_summary_data():
-    return pd.DataFrame(
-        {
-            "Item": [
-                "Main Entry",
-                "Question Command",
-                "Document Search Command",
-                "Main Users",
-                "Main Purpose",
-            ],
-            "Value": [
-                "Slack",
-                "/new",
-                "/docs",
-                "Service / Support / Dealers",
-                "Troubleshooting, document search, and service knowledge access",
-            ],
-        }
-    )
-
-
-def get_hai_search_tips_data():
-    return pd.DataFrame(
-        {
-            "No.": [1, 2, 3, 4],
-            "Tip": [
-                "Use the private HAI Search channel when asking questions.",
-                "Use /new when asking a question.",
-                "Use /docs when searching for a document.",
-                "Try another wording if the answer is unclear or no document is found.",
-            ],
-            "Example": [
-                "#hai-search-pz",
-                "/new what is error 802 on BQ-500",
-                "/docs BQ500 service manual",
-                "error 802 → error code 802 on BQ-500",
-            ],
-        }
-    )
-
-
-def get_update_history_data():
-    return pd.DataFrame(
-        {
-            "Version / Topic": [
-                "Ver 2.33",
-                "Multiple Search",
-                "Error Code Search",
-                "Japanese Document Link",
-                "Product Scope Rule",
-            ],
-            "Content": [
-                "Enhanced searching power to provide more accurate answers.",
-                "Multiple Search function was added to search documents more precisely.",
-                "Error code documents were added to provide more accurate answers for error-related questions.",
-                "Japanese documents can be shown when a Japanese version exists and the user asks in Japanese.",
-                "When a product name is included, HAI Search should focus on the specified product unless the question is about connectivity between multiple products.",
-            ],
-        }
-    )
-
-
-def get_future_items_data():
-    return pd.DataFrame(
-        {
-            "Item": [
-                "Document naming normalization",
-                "Hyphen handling",
-                "Error code retrieval accuracy",
-                "Usage promotion",
-                "FAQ improvement",
-            ],
-            "Status": [
-                "To be improved",
-                "In review",
-                "In progress",
-                "Ongoing",
-                "To be added",
-            ],
-            "Memo": [
-                "File names should be easier to match between English and Japanese documents.",
-                "Search results may differ depending on hyphen usage in model names.",
-                "Queries like error 802 may need to be normalized to error code 802.",
-                "Need to encourage more active usage among global users.",
-                "Useful examples and tips can be added to this page.",
-            ],
-        }
-    )
-
-
-# =========================
-# Render Parts
-# =========================
-def render_hero():
     st.markdown(
-        """
-        <div class="hai-hero">
-            <div class="hai-hero-title">🤖 HAI Search</div>
-            <div class="hai-hero-subtitle">
-                HAI Search is an AI-powered search and Q&A tool for service support.
-                It helps users find troubleshooting information, service manuals,
-                bulletins, error code information, and other service-related documents through Slack.
+        f"""
+        <div class="hai-page">
+            <div class="hai-hero">
+                <div class="hai-hero-inner">
+                    <div class="hai-hero-left">
+                        <div class="hai-badge">Internal AI Search Assistant</div>
+
+                        <div class="hai-hero-text">
+                            HAI Search is an AI-powered search and Q&amp;A tool for service support.
+                            It helps users find troubleshooting information, service manuals, bulletins,
+                            error code information, and other service-related documents through Slack.
+                        </div>
+
+                        <div class="hai-hero-subtext">
+                            Use this portal as the starting point for HAI Search access and update information.
+                        </div>
+                    </div>
+
+                    <div class="hai-hero-right">
+                        <div class="hai-logo-card">
+                            {logo_html}
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-
-def render_usage_metrics():
-    col1, col2, col3, col4 = st.columns(4)
-
-    with col1:
-        st.metric("Current Entry", "Slack")
-
-    with col2:
-        st.metric("Question Cmd", "/new")
-
-    with col3:
-        st.metric("Docs Cmd", "/docs")
-
-    with col4:
-        st.metric("Main Users", "Global")
-
-
-def render_portal_entries():
-    st.markdown('<div class="hai-section-title">HAI Search Portal</div>', unsafe_allow_html=True)
+    # =========================
+    # Portal title
+    # =========================
     st.markdown(
-        '<div class="hai-section-desc">Choose an entry below to start using or reviewing HAI Search.</div>',
+        """
+        <div class="hai-entry-title">HAI Search Portal</div>
+        <div class="hai-entry-subtitle">
+            Choose an entry below to start using HAI Search.
+        </div>
+        """,
         unsafe_allow_html=True,
     )
 
-    col1, col2 = st.columns(2, gap="large")
-
-    with col1:
-        st.markdown(
-            """
-            <div class="hai-entry-card">
-                <div class="hai-entry-icon">🔎</div>
-                <div class="hai-entry-title">Search in Slack</div>
-                <div class="hai-entry-text">
-                    Open Slack and use HAI Search from your available workspace and channel.
+    # =========================
+    # Two entry cards
+    # =========================
+    st.markdown(
+        """
+        <div class="hai-grid">
+            <div class="hai-card">
+                <div class="hai-card-icon">🔎</div>
+                <div class="hai-card-title">Search in Slack</div>
+                <div class="hai-card-text">
+                    Open Slack and use HAI Search through your available workspace and channel.
                     Use <b>/new</b> for questions and <b>/docs</b> for document search.
                 </div>
+                <a class="hai-card-btn hai-btn-primary" href="https://app.slack.com/" target="_blank">
+                    🚀 Open Slack
+                </a>
             </div>
-            """,
-            unsafe_allow_html=True,
-        )
-        st.link_button("🚀 Open Slack", SLACK_URL, use_container_width=True)
 
-    with col2:
-        st.markdown(
-            """
-            <div class="hai-entry-card">
-                <div class="hai-entry-icon">📝</div>
-                <div class="hai-entry-title">Update Notes</div>
-                <div class="hai-entry-text">
-                    Review HAI Search version updates, improvement history,
-                    known issues, and future enhancement items.
+            <div class="hai-card">
+                <div class="hai-card-icon">📝</div>
+                <div class="hai-card-title">Update Notes</div>
+                <div class="hai-card-text">
+                    Review version updates, improvement notes, known issues, and future enhancement items for HAI Search.
                 </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-        if UPDATE_NOTES_URL == "#":
-            st.button("📘 View Update Notes", use_container_width=True, disabled=True)
-            st.caption("Update Notes link is not set yet.")
-        else:
-            st.link_button("📘 View Update Notes", UPDATE_NOTES_URL, use_container_width=True)
-
-
-def render_command_guide():
-    st.markdown("### Command Guide")
-
-    st.markdown(
-        """
-        <div class="hai-command-box">
-            <div class="hai-command-title">Ask a question</div>
-            <div class="hai-card-text">
-                <span class="hai-command-code">/new</span>
-                Use this command when you want to ask HAI Search a question.
-                <br><br>
-                Example: <b>/new what is error 802 on BQ-500</b>
+                <a class="hai-card-btn hai-btn-secondary" href="#hai-update-notes">
+                    📘 View Update Notes
+                </a>
             </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
+    # =========================
+    # Update notes
+    # =========================
+    st.markdown('<div id="hai-update-notes"></div>', unsafe_allow_html=True)
+
     st.markdown(
         """
-        <div class="hai-command-box">
-            <div class="hai-command-title">Search documents</div>
-            <div class="hai-card-text">
-                <span class="hai-command-code">/docs</span>
-                Use this command when you want to search for a document directly.
-                <br><br>
-                Example: <b>/docs BQ500 service manual</b>
+        <div class="hai-note-box">
+            <div class="hai-note-title">Update Notes</div>
+            <ul class="hai-note-list">
+                <li>Multiple Search function was added to search documents more precisely.</li>
+                <li>Enhanced searching power to give more accurate answers.</li>
+                <li>Error code documents were added to improve response quality for error-related questions.</li>
+                <li>Japanese document handling and guidance can be updated here in the future.</li>
+            </ul>
+
+            <div class="hai-tip">
+                <b>Recommended use:</b>
+                Use <b>/new</b> for Q&amp;A and <b>/docs</b> for document search.
+                If the first answer is unclear, try rewriting the question in a simpler way.
             </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
-
-
-# =========================
-# Main Render Function
-# =========================
-def render_hai_search():
-    apply_hai_search_css()
-    render_hero()
-
-    render_usage_metrics()
-
-    st.markdown(
-        """
-        <div class="hai-card">
-            <div class="hai-card-title">Overview</div>
-            <div class="hai-card-text">
-                This page summarizes how to use HAI Search, current improvement items,
-                version update notes, and points to be shared with users.
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    render_portal_entries()
-
-    st.markdown("### HAI Search Summary")
-    summary_df = get_hai_search_summary_data()
-    st.dataframe(summary_df, use_container_width=True, hide_index=True)
-
-    render_command_guide()
-
-    st.markdown("### Usage Tips")
-    tips_df = get_hai_search_tips_data()
-    st.dataframe(tips_df, use_container_width=True, hide_index=True)
-
-    st.markdown("### Update History / Improvement Notes")
-    update_df = get_update_history_data()
-    st.dataframe(update_df, use_container_width=True, hide_index=True)
-
-    st.markdown("### Future Improvement Items")
-    future_df = get_future_items_data()
-    st.dataframe(future_df, use_container_width=True, hide_index=True)
-
-    st.markdown(
-        """
-        <div class="hai-card">
-            <div class="hai-card-title">Memo</div>
-            <div class="hai-card-text">
-                You can add actual usage data, search logs, frequently asked questions,
-                known search issues, and improvement history here later.
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    
