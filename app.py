@@ -29,6 +29,7 @@ CAREPACK_DIR = Path("carepack_bulletins")
 ASSET_DIR = Path("assets")
 CAREPACK_IMAGE = ASSET_DIR / "carepack.png"
 TARGET_MODELS = 60
+PROGRESS_SHEET_URL = "https://docs.google.com/spreadsheets/d/1thjeBf37HlxTTtW_etUJS1ZIiv7ZwCptBvOoL0th-rU/edit?usp=sharing"
 
 
 # =========================
@@ -101,7 +102,6 @@ def extract_target_machine_from_text(page_text: str, fallback_machine: str) -> s
     text = normalize_spaces(page_text)
 
     # 1) 本文の "for xxx and yyy" を最優先で取得
-    # 例: for AF-764AKLL and AF-784AKLL. It is ...
     for_patterns = [
         r"\bfor\s+([A-Z]{1,6}-?\d{2,5}[A-Z0-9]*(?:\s*(?:and|,|/|＆|&)\s*[A-Z]{1,6}-?\d{2,5}[A-Z0-9]*)*)",
         r"\bfor\s+([A-Z]{1,8}\d{1,5}[A-Z0-9]*(?:\s*(?:and|,|/|＆|&)\s*[A-Z]{1,8}\d{1,5}[A-Z0-9]*)*)",
@@ -128,8 +128,6 @@ def extract_target_machine_from_text(page_text: str, fallback_machine: str) -> s
             value = normalize_machine_separator(match.group(1))
             value = value.replace("-CRP", "")
 
-            # Model: AF7AKLL-CRP のような Care Pack 型式しか取れない場合もあるので、
-            # 長すぎる値や文章っぽい値は避ける。
             if value and 2 <= len(value) <= 120:
                 return value
 
@@ -163,9 +161,7 @@ def extract_pdf_info(pdf_path: Path):
             page_text = doc.load_page(0).get_text()
             text_one_line = normalize_spaces(page_text)
 
-            # -------------------------
             # Date
-            # -------------------------
             date_patterns = [
                 r"Date\s*:\s*(.*?)(?:\s+Title\s*:|\s+Code\s*:|\s+Ref\s*No\.?\s*:|\s+Model\s*:|\s+Machine\s*:|$)",
                 r"Issued\s+on\s*:\s*(.*?)(?:\s+Title\s*:|\s+Code\s*:|\s+Ref\s*No\.?\s*:|\s+Model\s*:|\s+Machine\s*:|$)",
@@ -179,9 +175,7 @@ def extract_pdf_info(pdf_path: Path):
                         date_value = candidate
                         break
 
-            # -------------------------
             # Bulletin Code
-            # -------------------------
             code_patterns = [
                 r"Bulletin\s*Code\s*:\s*([A-Z0-9\-]+)",
                 r"Carepack\s*Code\s*:\s*([A-Z0-9\-]+)",
@@ -197,9 +191,7 @@ def extract_pdf_info(pdf_path: Path):
                         bulletin_code = candidate
                         break
 
-            # -------------------------
             # Machine
-            # -------------------------
             machine_value = extract_target_machine_from_text(page_text, fallback_machine)
 
     except Exception:
@@ -252,10 +244,10 @@ def build_carepack_data(folder_mtime: float):
 
 
 def search_carepack(data, keyword: str, show_all: bool):
-    if show_all:
-        return data
-
     keyword = keyword.lower().strip()
+
+    if show_all and not keyword:
+        return data
 
     if not keyword:
         return []
@@ -370,12 +362,36 @@ def render_carepack_progress(data):
             <div class="progress-target">
                 (Target: All {TARGET_MODELS} models to be ready by the end of this fiscal year)
             </div>
+
+            <div style="margin-top: 18px;">
+                <a href="{PROGRESS_SHEET_URL}" target="_blank" style="
+                    display: inline-block;
+                    padding: 11px 18px;
+                    border-radius: 14px;
+                    background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+                    color: white;
+                    font-weight: 800;
+                    text-decoration: none;
+                    box-shadow: 0 8px 18px rgba(37,99,235,0.22);
+                ">
+                    📊 View Progress Sheet / 進捗状況を確認
+                </a>
+            </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
     st.progress(progress_ratio)
+
+
+def set_show_all():
+    st.session_state["carepack_show_all"] = True
+
+
+def clear_carepack_search():
+    st.session_state["carepack_keyword"] = ""
+    st.session_state["carepack_show_all"] = False
 
 
 # =========================
@@ -875,6 +891,7 @@ view = st.sidebar.radio(
         "📦  Care Pack",
         "🤖  HAI Search",
     ],
+    index=1,
 )
 
 st.sidebar.markdown("---")
@@ -936,16 +953,20 @@ elif view == "📦  Care Pack":
         with col2:
             st.write("")
             st.write("")
-            if st.button("Show All", use_container_width=True):
-                st.session_state["carepack_show_all"] = True
+            st.button(
+                "Show All",
+                use_container_width=True,
+                on_click=set_show_all,
+            )
 
         with col3:
             st.write("")
             st.write("")
-            if st.button("Clear", use_container_width=True):
-                st.session_state["carepack_keyword"] = ""
-                st.session_state["carepack_show_all"] = False
-                st.rerun()
+            st.button(
+                "Clear",
+                use_container_width=True,
+                on_click=clear_carepack_search,
+            )
 
     results = search_carepack(
         CAREPACK_DATA,
