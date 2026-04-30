@@ -11,7 +11,6 @@ import streamlit.components.v1 as components
 BASE_DIR = Path(__file__).resolve().parents[1]
 ASSETS_DIR = BASE_DIR / "assets"
 
-# 你现在的图片文件名
 HAI_LOGO_PATH = ASSETS_DIR / "hai_search_logo.jpg.png"
 
 SLACK_URL = "https://app.slack.com/"
@@ -181,36 +180,9 @@ body {{
 
 .hero-grid {{
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 330px;
-    gap: 36px;
+    grid-template-columns: 360px minmax(0, 1fr);
+    gap: 44px;
     align-items: center;
-}}
-
-.badge {{
-    display: inline-block;
-    padding: 9px 17px;
-    border-radius: 999px;
-    background: rgba(255,255,255,0.15);
-    border: 1px solid rgba(255,255,255,0.22);
-    color: #ffffff;
-    font-weight: 800;
-    font-size: 14px;
-    margin-bottom: 22px;
-}}
-
-.hero-text {{
-    color: #ffffff;
-    font-size: 19px;
-    line-height: 1.9;
-    font-weight: 500;
-    max-width: 980px;
-}}
-
-.hero-subtext {{
-    margin-top: 18px;
-    color: rgba(255,255,255,0.92);
-    font-size: 16px;
-    line-height: 1.8;
 }}
 
 .logo-panel {{
@@ -245,6 +217,33 @@ body {{
     object-fit: contain;
 }}
 
+.badge {{
+    display: inline-block;
+    padding: 9px 17px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.22);
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 14px;
+    margin-bottom: 22px;
+}}
+
+.hero-text {{
+    color: #ffffff;
+    font-size: 19px;
+    line-height: 1.9;
+    font-weight: 600;
+    max-width: 1080px;
+}}
+
+.hero-subtext {{
+    margin-top: 22px;
+    color: rgba(255,255,255,0.92);
+    font-size: 16px;
+    line-height: 1.8;
+}}
+
 .logo-fallback {{
     color: #667085;
     font-weight: 700;
@@ -271,6 +270,13 @@ body {{
 <body>
 <div class="hero">
     <div class="hero-grid">
+
+        <div class="logo-panel">
+            <div class="logo-box">
+                {logo_html}
+            </div>
+        </div>
+
         <div>
             <div class="badge">Internal AI Search Assistant</div>
 
@@ -285,11 +291,6 @@ body {{
             </div>
         </div>
 
-        <div class="logo-panel">
-            <div class="logo-box">
-                {logo_html}
-            </div>
-        </div>
     </div>
 </div>
 </body>
@@ -307,9 +308,6 @@ def render_hai_search():
 
     render_hero()
 
-    # =========================
-    # Portal Entries
-    # =========================
     st.markdown(
         """
 <div class="hai-section-title">HAI Search Portal</div>
@@ -354,9 +352,6 @@ def render_hai_search():
         )
         st.button("📘 View Update Notes", use_container_width=True, disabled=True)
 
-    # =========================
-    # Update Notes
-    # =========================
     st.markdown(
         """
 <div class="hai-note-box">
