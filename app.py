@@ -4,6 +4,7 @@ import pandas as pd
 import re
 import base64
 
+
 # =========================
 # Basic Page Settings
 # =========================
@@ -14,10 +15,12 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+
 # =========================
 # Login Settings
 # =========================
 APP_PASSWORD = "ts123"
+
 
 # =========================
 # Paths / Constants
@@ -42,13 +45,14 @@ if "carepack_show_all" not in st.session_state:
 
 
 # =========================
-# Helper Functions
+# Common Helper Functions
 # =========================
 def image_to_base64(image_path: Path) -> str:
     if not image_path.exists():
         return ""
 
     suffix = image_path.suffix.lower()
+
     if suffix in [".jpg", ".jpeg"]:
         mime = "image/jpeg"
     elif suffix == ".webp":
@@ -66,79 +70,111 @@ def normalize_spaces(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
-def clean_model_text(text: str) -> str:
+def clean_text_value(text: str) -> str:
+    text = text.strip()
     text = text.strip(" .,:;/-")
     text = re.sub(r"\s{2,}", " ", text)
     return text
 
 
-def extract_models_from_text(page_text: str, fallback_model: str) -> str:
+def normalize_machine_separator(text: str) -> str:
+    text = clean_text_value(text)
+    text = re.sub(r"\s+and\s+", " / ", text, flags=re.IGNORECASE)
+    text = re.sub(r"\s+＆\s+", " / ", text)
+    text = re.sub(r"\s*&\s*", " / ", text)
+    text = re.sub(r"\s*,\s*", " / ", text)
+    text = re.sub(r"\s*/\s*", " / ", text)
+    text = re.sub(r"\s{2,}", " ", text)
+    return text.strip()
+
+
+def extract_target_machine_from_text(page_text: str, fallback_machine: str) -> str:
     """
-    PDF内の記載から Machine 名を優先抽出する
-    例:
+    PDF本文から対象機種を抽出する。
+    優先例:
       - for AF-764AKLL and AF-784AKLL
+      - for BQ-300
       - Model: AF-764AKLL / AF-784AKLL
-      - Applicable model: xxxx
+
+    取れない場合は fallback_machine を返す。
     """
     text = normalize_spaces(page_text)
 
-    patterns = [
-        r"\bfor\s+([A-Z0-9][A-Z0-9\-\/\s,＆&and]+?)(?:\s+(?:Date:|Title:|Ref No\.?:|Code:|$))",
-        r"\bModels?\s*:\s*([A-Z0-9][A-Z0-9\-\/\s,＆&and]+?)(?:\s+(?:Date:|Title:|Ref No\.?:|Code:|$))",
-        r"\bModel\s*:\s*([A-Z0-9][A-Z0-9\-\/\s,＆&and]+?)(?:\s+(?:Date:|Title:|Ref No\.?:|Code:|$))",
-        r"\bApplicable\s+model[s]?\s*:\s*([A-Z0-9][A-Z0-9\-\/\s,＆&and]+?)(?:\s+(?:Date:|Title:|Ref No\.?:|Code:|$))",
-        r"\bMachine\s*:\s*([A-Z0-9][A-Z0-9\-\/\s,＆&and]+?)(?:\s+(?:Date:|Title:|Ref No\.?:|Code:|$))",
+    # 1) 本文の "for xxx and yyy" を最優先で取得
+    # 例: for AF-764AKLL and AF-784AKLL. It is ...
+    for_patterns = [
+        r"\bfor\s+([A-Z]{1,6}-?\d{2,5}[A-Z0-9]*(?:\s*(?:and|,|/|＆|&)\s*[A-Z]{1,6}-?\d{2,5}[A-Z0-9]*)*)",
+        r"\bfor\s+([A-Z]{1,8}\d{1,5}[A-Z0-9]*(?:\s*(?:and|,|/|＆|&)\s*[A-Z]{1,8}\d{1,5}[A-Z0-9]*)*)",
     ]
 
-    for pattern in patterns:
-        m = re.search(pattern, text, re.IGNORECASE)
-        if m:
-            value = clean_model_text(m.group(1))
-            # 过长时防止整段误吃进去
-            if 2 <= len(value) <= 120:
+    for pattern in for_patterns:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            value = normalize_machine_separator(match.group(1))
+            if value and len(value) <= 120:
                 return value
 
-    return fallback_model
+    # 2) Model / Models / Applicable model / Machine の表記から取得
+    label_patterns = [
+        r"\bApplicable\s+models?\s*:\s*(.*?)(?:\s+Subject\b|\s+Date\s*:|\s+Title\s*:|\s+Code\s*:|\s+Ref\s*No\.?\s*:|$)",
+        r"\bModels?\s*:\s*(.*?)(?:\s+Subject\b|\s+Date\s*:|\s+Title\s*:|\s+Code\s*:|\s+Ref\s*No\.?\s*:|$)",
+        r"\bMachine\s*:\s*(.*?)(?:\s+Subject\b|\s+Date\s*:|\s+Title\s*:|\s+Code\s*:|\s+Ref\s*No\.?\s*:|$)",
+        r"\bModel\s*:\s*(.*?)(?:\s+Subject\b|\s+Date\s*:|\s+Title\s*:|\s+Code\s*:|\s+Ref\s*No\.?\s*:|$)",
+    ]
+
+    for pattern in label_patterns:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            value = normalize_machine_separator(match.group(1))
+            value = value.replace("-CRP", "")
+
+            # Model: AF7AKLL-CRP のような Care Pack 型式しか取れない場合もあるので、
+            # 長すぎる値や文章っぽい値は避ける。
+            if value and 2 <= len(value) <= 120:
+                return value
+
+    return fallback_machine
 
 
 def extract_pdf_info(pdf_path: Path):
     """
-    从PDF第一页尽量提取:
-    - date
-    - bulletin code
-    - machine/model
+    PDF第一页から以下を抽出:
+      - Date
+      - Bulletin Code
+      - Machine
     """
     date_value = "-"
     bulletin_code = "-"
-    machine_value = "-"
 
     fallback_model = pdf_path.stem
     if fallback_model.startswith("IB_"):
         fallback_model = fallback_model[3:]
+
     fallback_machine = fallback_model.replace("-CRP", "")
+    machine_value = fallback_machine
 
     try:
-        import fitz  # PyMuPDF
+        import fitz
 
         with fitz.open(pdf_path) as doc:
             if len(doc) == 0:
-                return date_value, bulletin_code, fallback_machine
+                return date_value, bulletin_code, machine_value
 
-            page = doc.load_page(0)
-            text = page.get_text()
-            text_one_line = normalize_spaces(text)
+            page_text = doc.load_page(0).get_text()
+            text_one_line = normalize_spaces(page_text)
 
             # -------------------------
             # Date
             # -------------------------
             date_patterns = [
-                r"Date\s*:\s*(.*?)(?:\s+Title\s*:|\s+Ref\s*No\.?\s*:|\s+Model\s*:|\s+Machine\s*:|\s+Carepack\s*Code\s*:|$)",
-                r"\bIssued\s+on\s*:\s*(.*?)(?:\s+Title\s*:|\s+Ref\s*No\.?\s*:|\s+Model\s*:|\s+Machine\s*:|\s+Carepack\s*Code\s*:|$)",
+                r"Date\s*:\s*(.*?)(?:\s+Title\s*:|\s+Code\s*:|\s+Ref\s*No\.?\s*:|\s+Model\s*:|\s+Machine\s*:|$)",
+                r"Issued\s+on\s*:\s*(.*?)(?:\s+Title\s*:|\s+Code\s*:|\s+Ref\s*No\.?\s*:|\s+Model\s*:|\s+Machine\s*:|$)",
             ]
+
             for pattern in date_patterns:
-                m = re.search(pattern, text_one_line, re.IGNORECASE)
-                if m:
-                    candidate = clean_model_text(m.group(1))
+                match = re.search(pattern, text_one_line, re.IGNORECASE)
+                if match:
+                    candidate = clean_text_value(match.group(1))
                     if candidate:
                         date_value = candidate
                         break
@@ -147,28 +183,41 @@ def extract_pdf_info(pdf_path: Path):
             # Bulletin Code
             # -------------------------
             code_patterns = [
-                r"Carepack\s*Code\s*:\s*([A-Z0-9\-]+)",
                 r"Bulletin\s*Code\s*:\s*([A-Z0-9\-]+)",
+                r"Carepack\s*Code\s*:\s*([A-Z0-9\-]+)",
                 r"Ref\s*No\.?\s*:\s*([A-Z0-9\-]+)",
                 r"Code\s*:\s*([A-Z]{1,6}[0-9]{4,12}(?:-[0-9A-Z]+)?)",
             ]
+
             for pattern in code_patterns:
-                m = re.search(pattern, text_one_line, re.IGNORECASE)
-                if m:
-                    candidate = m.group(1).strip()
+                match = re.search(pattern, text_one_line, re.IGNORECASE)
+                if match:
+                    candidate = clean_text_value(match.group(1))
                     if candidate:
                         bulletin_code = candidate
                         break
 
             # -------------------------
-            # Machine / Model
+            # Machine
             # -------------------------
-            machine_value = extract_models_from_text(text, fallback_machine)
+            machine_value = extract_target_machine_from_text(page_text, fallback_machine)
 
     except Exception:
         machine_value = fallback_machine
 
     return date_value, bulletin_code, machine_value
+
+
+def get_folder_mtime() -> float:
+    if not CAREPACK_DIR.exists():
+        return 0.0
+
+    latest = CAREPACK_DIR.stat().st_mtime
+
+    for file in CAREPACK_DIR.glob("*.pdf"):
+        latest = max(latest, file.stat().st_mtime)
+
+    return latest
 
 
 @st.cache_data(show_spinner=False)
@@ -192,7 +241,7 @@ def build_carepack_data(folder_mtime: float):
         data.append(
             {
                 "model": model,
-                "machine": machine if machine else model.replace("-CRP", ""),
+                "machine": machine,
                 "bulletin_code": bulletin_code,
                 "date": date_value,
                 "file": file_name,
@@ -202,13 +251,32 @@ def build_carepack_data(folder_mtime: float):
     return data
 
 
-def get_folder_mtime():
-    if not CAREPACK_DIR.exists():
-        return 0.0
-    latest = CAREPACK_DIR.stat().st_mtime
-    for f in CAREPACK_DIR.glob("*.pdf"):
-        latest = max(latest, f.stat().st_mtime)
-    return latest
+def search_carepack(data, keyword: str, show_all: bool):
+    if show_all:
+        return data
+
+    keyword = keyword.lower().strip()
+
+    if not keyword:
+        return []
+
+    results = []
+
+    for item in data:
+        search_target = " ".join(
+            [
+                str(item.get("model", "")),
+                str(item.get("machine", "")),
+                str(item.get("bulletin_code", "")),
+                str(item.get("date", "")),
+                str(item.get("file", "")),
+            ]
+        ).lower()
+
+        if keyword in search_target:
+            results.append(item)
+
+    return results
 
 
 def show_pdf_preview(pdf_path: Path, max_pages: int = 5):
@@ -237,33 +305,7 @@ def show_pdf_preview(pdf_path: Path, max_pages: int = 5):
         st.error(f"PDF preview failed: {e}")
 
 
-def search_carepack(data, keyword: str, show_all: bool):
-    if show_all:
-        return data
-
-    keyword = keyword.lower().strip()
-    if not keyword:
-        return []
-
-    results = []
-    for item in data:
-        search_target = " ".join(
-            [
-                str(item.get("model", "")),
-                str(item.get("machine", "")),
-                str(item.get("bulletin_code", "")),
-                str(item.get("date", "")),
-                str(item.get("file", "")),
-            ]
-        ).lower()
-
-        if keyword in search_target:
-            results.append(item)
-
-    return results
-
-
-def page_header(title, subtitle):
+def page_header(title: str, subtitle: str):
     st.markdown(f"<div class='main-title'>{title}</div>", unsafe_allow_html=True)
     st.markdown(f"<div class='sub-title'>{subtitle}</div>", unsafe_allow_html=True)
 
@@ -291,7 +333,7 @@ def render_carepack_hero():
                 <div class="carepack-hero-title">📦 Care Pack</div>
                 <div class="carepack-hero-subtitle">
                     Search, preview, and download Care Pack Information Bulletins.
-                    You can search by model name, machine name, file name, Bulletin Code, or Date.
+                    You can search by Care Pack model, target machine, file name, Bulletin Code, or Date.
                     New PDFs will be displayed automatically after being uploaded to the carepack_bulletins folder.
                 </div>
             </div>
@@ -813,11 +855,13 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+
 # =========================
 # Data Load
 # =========================
 folder_mtime = get_folder_mtime()
 CAREPACK_DATA = build_carepack_data(folder_mtime)
+
 
 # =========================
 # Sidebar
@@ -841,6 +885,7 @@ if st.sidebar.button("Logout", use_container_width=True):
     st.session_state["logged_in"] = False
     st.rerun()
 
+
 # =========================
 # Page: iCE LiNK Report
 # =========================
@@ -863,6 +908,7 @@ if view == "📊  iCE LiNK Report":
 
     st.dataframe(sample_df, use_container_width=True, hide_index=True)
     st.line_chart(sample_df.set_index("Date")[["Production", "Run Hours", "Hourly Productivity"]])
+
 
 # =========================
 # Page: Care Pack
@@ -997,6 +1043,7 @@ elif view == "📦  Care Pack":
             st.write("")
 
         render_carepack_progress(CAREPACK_DATA)
+
 
 # =========================
 # Page: HAI Search
