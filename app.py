@@ -29,7 +29,11 @@ CAREPACK_DIR = Path("carepack_bulletins")
 ASSET_DIR = Path("assets")
 CAREPACK_IMAGE = ASSET_DIR / "carepack.png"
 TARGET_MODELS = 60
-PROGRESS_SHEET_URL = "https://docs.google.com/spreadsheets/d/1thjeBf37HlxTTtW_etUJS1ZIiv7ZwCptBvOoL0th-rU/edit?usp=sharing"
+
+PROGRESS_SHEET_URL = (
+    "https://docs.google.com/spreadsheets/d/"
+    "1thjeBf37HlxTTtW_etUJS1ZIiv7ZwCptBvOoL0th-rU/edit?usp=sharing"
+)
 
 
 # =========================
@@ -362,24 +366,15 @@ def render_carepack_progress(data):
             <div class="progress-target">
                 (Target: All {TARGET_MODELS} models to be ready by the end of this fiscal year)
             </div>
-
-            <div style="margin-top: 18px;">
-                <a href="{PROGRESS_SHEET_URL}" target="_blank" style="
-                    display: inline-block;
-                    padding: 11px 18px;
-                    border-radius: 14px;
-                    background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
-                    color: white;
-                    font-weight: 800;
-                    text-decoration: none;
-                    box-shadow: 0 8px 18px rgba(37,99,235,0.22);
-                ">
-                    📊 View Progress Sheet / 進捗状況を確認
-                </a>
-            </div>
         </div>
         """,
         unsafe_allow_html=True,
+    )
+
+    st.link_button(
+        "📊 View Progress Sheet / 進捗状況を確認",
+        PROGRESS_SHEET_URL,
+        use_container_width=False,
     )
 
     st.progress(progress_ratio)
