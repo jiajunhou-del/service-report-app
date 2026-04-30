@@ -2,6 +2,7 @@ import streamlit as st
 from pathlib import Path
 import base64
 import mimetypes
+import pandas as pd
 import streamlit.components.v1 as components
 
 
@@ -10,6 +11,7 @@ import streamlit.components.v1 as components
 # =========================
 BASE_DIR = Path(__file__).resolve().parents[1]
 ASSETS_DIR = BASE_DIR / "assets"
+REPORT_DIR = BASE_DIR / "hai_search_reports"
 
 HAI_LOGO_PATH = ASSETS_DIR / "hai_search_logo.jpg.png"
 
@@ -29,6 +31,21 @@ def image_to_data_uri(image_path: Path) -> str:
 
     encoded = base64.b64encode(image_path.read_bytes()).decode("utf-8")
     return f"data:{mime_type};base64,{encoded}"
+
+
+def normalize_column_name(col) -> str:
+    return str(col).strip()
+
+
+def find_column(df: pd.DataFrame, candidates: list[str]) -> str | None:
+    normalized_map = {normalize_column_name(col).lower(): col for col in df.columns}
+
+    for candidate in candidates:
+        key = candidate.lower()
+        if key in normalized_map:
+            return normalized_map[key]
+
+    return None
 
 
 # =========================
@@ -131,6 +148,30 @@ div.stLinkButton > a {
     font-size: 15px;
     line-height: 1.8;
     margin-top: 18px;
+}
+
+.hai-report-box {
+    background: #ffffff;
+    border: 1px solid #e7ebf3;
+    border-radius: 26px;
+    padding: 28px 30px;
+    box-shadow: 0 10px 28px rgba(30, 50, 100, 0.05);
+    margin-top: 24px;
+    margin-bottom: 24px;
+}
+
+.hai-report-title {
+    font-size: 28px;
+    font-weight: 900;
+    color: #1f2a44;
+    margin-bottom: 8px;
+}
+
+.hai-report-subtitle {
+    font-size: 15px;
+    color: #667085;
+    line-height: 1.8;
+    margin-bottom: 18px;
 }
 </style>
         """,
@@ -301,6 +342,199 @@ body {{
 
 
 # =========================
+# Monthly Report Loader
+# =========================
+def load_hai_search_reports() -> pd.DataFrame:
+    if not REPORT_DIR.exists():
+        return pd.DataFrame()
+
+    files = sorted(REPORT_DIR.glob("*.xlsx"), reverse=True)
+
+    if not files:
+        return pd.DataFrame()
+
+    all_frames = []
+
+    for file in files:
+        try:
+            df = pd.read_excel(file)
+            df.columns = [normalize_column_name(col) for col in df.columns]
+            df["Report File"] = file.name
+            df["Report Month"] = file.stem.replace("monthly_report_", "")
+            all_frames.append(df)
+        except Exception as e:
+            st.warning(f"Could not read {file.name}: {e}")
+
+    if not all_frames:
+        return pd.DataFrame()
+
+    return pd.concat(all_frames, ignore_index=True)
+
+
+def prepare_usage_dataframe(raw_df: pd.DataFrame) -> pd.DataFrame:
+    if raw_df.empty:
+        return pd.DataFrame()
+
+    user_id_col = find_column(raw_df, ["User ID", "ユーザーID", "user_id"])
+    channel_col = find_column(raw_df, ["Channel Name", "チャンネル名", "channel_name"])
+    user_name_col = find_column(raw_df, ["User Name", "ユーザー名", "user_name", "Name"])
+    new_col = find_column(raw_df, ["/newコマンド数", "/new", "new", "new command", "new command count"])
+    docs_col = find_column(raw_df, ["/docsコマンド数", "/docs", "docs", "docs command", "docs command count"])
+
+    required = {
+        "User ID": user_id_col,
+        "Channel Name": channel_col,
+        "User Name": user_name_col,
+        "/new": new_col,
+        "/docs": docs_col,
+    }
+
+    missing = [display_name for display_name, col in required.items() if col is None]
+
+    if missing:
+        st.error(f"Excel columns are missing or not recognized: {missing}")
+        st.caption("Expected columns: User ID, Channel Name, User Name, /newコマンド数, /docsコマンド数")
+        st.dataframe(raw_df.head(20), use_container_width=True)
+        return pd.DataFrame()
+
+    df = pd.DataFrame(
+        {
+            "Report Month": raw_df["Report Month"],
+            "Report File": raw_df["Report File"],
+            "User ID": raw_df[user_id_col].astype(str),
+            "Channel Name": raw_df[channel_col].astype(str),
+            "User Name": raw_df[user_name_col].astype(str),
+            "/new": pd.to_numeric(raw_df[new_col], errors="coerce").fillna(0).astype(int),
+            "/docs": pd.to_numeric(raw_df[docs_col], errors="coerce").fillna(0).astype(int),
+        }
+    )
+
+    df["Total Commands"] = df["/new"] + df["/docs"]
+
+    return df
+
+
+# =========================
+# Monthly Report Section
+# =========================
+def render_monthly_usage_report():
+    st.markdown(
+        """
+<div class="hai-report-box">
+    <div class="hai-report-title">HAI Search Monthly Usage Report</div>
+    <div class="hai-report-subtitle">
+        View HAI Search usage by month, dealer channel, and user. 
+        Monthly Excel files are read from <b>hai_search_reports/</b>.
+    </div>
+</div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    raw_df = load_hai_search_reports()
+
+    if raw_df.empty:
+        st.info(
+            "No monthly report Excel file found. Please upload files to "
+            "`hai_search_reports/monthly_report_YYYY-MM.xlsx`."
+        )
+        return
+
+    df = prepare_usage_dataframe(raw_df)
+
+    if df.empty:
+        return
+
+    months = sorted(df["Report Month"].dropna().unique(), reverse=True)
+
+    filter_col1, filter_col2 = st.columns([1, 2])
+
+    with filter_col1:
+        selected_month = st.selectbox(
+            "Select Month",
+            options=["All"] + months,
+            index=1 if months else 0,
+        )
+
+    with filter_col2:
+        keyword = st.text_input(
+            "Search dealer / channel / user",
+            placeholder="Example: hai-search-sd, pz, Max, Joseph...",
+        )
+
+    filtered_df = df.copy()
+
+    if selected_month != "All":
+        filtered_df = filtered_df[filtered_df["Report Month"] == selected_month]
+
+    if keyword.strip():
+        key = keyword.strip().lower()
+
+        filtered_df = filtered_df[
+            filtered_df["Channel Name"].str.lower().str.contains(key, na=False)
+            | filtered_df["User Name"].str.lower().str.contains(key, na=False)
+            | filtered_df["User ID"].str.lower().str.contains(key, na=False)
+        ]
+
+    total_users = filtered_df["User ID"].nunique()
+    total_new = int(filtered_df["/new"].sum())
+    total_docs = int(filtered_df["/docs"].sum())
+    total_commands = int(filtered_df["Total Commands"].sum())
+
+    kpi1, kpi2, kpi3, kpi4 = st.columns(4)
+
+    kpi1.metric("Users", total_users)
+    kpi2.metric("/new", total_new)
+    kpi3.metric("/docs", total_docs)
+    kpi4.metric("Total Commands", total_commands)
+
+    display_df = filtered_df[
+        [
+            "Report Month",
+            "Channel Name",
+            "User Name",
+            "/new",
+            "/docs",
+            "Total Commands",
+            "Report File",
+        ]
+    ].sort_values("Total Commands", ascending=False)
+
+    st.markdown("### Usage Detail")
+    st.dataframe(display_df, use_container_width=True, hide_index=True)
+
+    st.markdown("### Top 10 Users by Total Commands")
+
+    chart_df = (
+        filtered_df.groupby(["Channel Name", "User Name"], as_index=False)["Total Commands"]
+        .sum()
+        .sort_values("Total Commands", ascending=False)
+        .head(10)
+    )
+
+    if chart_df.empty:
+        st.info("No usage data to display.")
+    else:
+        chart_df["User / Channel"] = (
+            chart_df["User Name"].astype(str)
+            + " / "
+            + chart_df["Channel Name"].astype(str)
+        )
+
+        st.bar_chart(
+            chart_df,
+            x="User / Channel",
+            y="Total Commands",
+            use_container_width=True,
+        )
+
+    st.caption(
+        "To update this section, upload a new Excel file to `hai_search_reports/`, "
+        "for example `monthly_report_2026-05.xlsx`."
+    )
+
+
+# =========================
 # Main Render
 # =========================
 def render_hai_search():
@@ -372,3 +606,5 @@ def render_hai_search():
         """,
         unsafe_allow_html=True,
     )
+
+    render_monthly_usage_report()
