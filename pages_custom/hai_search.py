@@ -3,7 +3,6 @@ from pathlib import Path
 import base64
 import mimetypes
 import pandas as pd
-import textwrap
 import streamlit.components.v1 as components
 
 
@@ -22,10 +21,6 @@ SLACK_URL = "https://app.slack.com/"
 # =========================
 # Helper
 # =========================
-def html(content: str):
-    st.markdown(textwrap.dedent(content).strip(), unsafe_allow_html=True)
-
-
 def image_to_data_uri(image_path: Path) -> str:
     if not image_path.exists():
         return ""
@@ -54,267 +49,138 @@ def find_column(df: pd.DataFrame, candidates: list[str]) -> str | None:
 
 
 # =========================
-# CSS
+# CSS for Streamlit native area
 # =========================
 def apply_css():
-    html(
+    st.markdown(
         """
-        <style>
-        /* =========================
-           Common
-        ========================= */
-        .hai-section-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 15px 18px;
-            border-radius: 18px;
-            margin: 28px 0 16px 0;
-            font-size: 28px;
-            font-weight: 900;
-            letter-spacing: -0.02em;
-        }
+<style>
+.hai-section-title {
+    font-size: 32px;
+    font-weight: 900;
+    color: #1f2a44;
+    margin-top: 10px;
+    margin-bottom: 8px;
+}
 
-        .hai-section-dot {
-            width: 10px;
-            height: 30px;
-            border-radius: 999px;
-            display: inline-block;
-        }
+.hai-section-subtitle {
+    font-size: 17px;
+    color: #667085;
+    margin-bottom: 24px;
+}
 
-        .hai-section-desc {
-            font-size: 16px;
-            color: #667085;
-            margin: -6px 0 18px 4px;
-            line-height: 1.7;
-        }
+div.stLinkButton > a {
+    border-radius: 14px !important;
+    font-weight: 900 !important;
+    font-size: 15px !important;
+    padding: 0.75rem 1.1rem !important;
+    text-decoration: none !important;
+    box-shadow: 0 8px 18px rgba(239,68,68,0.14) !important;
+    border: 1px solid #fee2e2 !important;
+}
 
-        .section-blue {
-            background: #f5f9ff;
-            color: #22315a;
-            border: 1px solid #d8e7ff;
-        }
+.hai-card-box {
+    background: #ffffff;
+    border: 1px solid #e7ebf3;
+    border-radius: 24px;
+    padding: 28px 30px;
+    box-shadow: 0 10px 28px rgba(30, 50, 100, 0.06);
+    min-height: 230px;
+    margin-bottom: 14px;
+}
 
-        .section-blue .hai-section-dot {
-            background: #4f46e5;
-        }
+.hai-card-icon {
+    width: 66px;
+    height: 66px;
+    border-radius: 18px;
+    background: #fff1f2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 31px;
+    margin-bottom: 18px;
+}
 
-        .section-orange {
-            background: #fff8f3;
-            color: #7a3e1d;
-            border: 1px solid #ffd9c7;
-        }
+.hai-card-title {
+    font-size: 24px;
+    font-weight: 900;
+    color: #243255;
+    margin-bottom: 14px;
+}
 
-        .section-orange .hai-section-dot {
-            background: #f2994a;
-        }
+.hai-card-text {
+    font-size: 16px;
+    color: #63708d;
+    line-height: 1.9;
+}
 
-        .section-green {
-            background: #f4fbf8;
-            color: #1f5c46;
-            border: 1px solid #cfebdd;
-        }
+.hai-note-box {
+    background: #ffffff;
+    border: 1px solid #e7ebf3;
+    border-radius: 26px;
+    padding: 28px 30px;
+    box-shadow: 0 10px 28px rgba(30, 50, 100, 0.05);
+    margin-top: 12px;
+    margin-bottom: 24px;
+}
 
-        .section-green .hai-section-dot {
-            background: #2cb67d;
-        }
+.hai-note-title {
+    font-size: 24px;
+    font-weight: 900;
+    color: #22315a;
+    margin-bottom: 16px;
+}
 
-        /* =========================
-           Portal Cards
-        ========================= */
-        .portal-card {
-            border-radius: 26px;
-            padding: 30px 32px;
-            min-height: 245px;
-            box-shadow: 0 10px 26px rgba(30, 50, 100, 0.06);
-            margin-bottom: 14px;
-        }
+.hai-note-list {
+    margin: 0;
+    padding-left: 20px;
+    color: #5f6d8b;
+    line-height: 2;
+    font-size: 16px;
+}
 
-        .portal-blue {
-            background: linear-gradient(180deg, #f7faff 0%, #ffffff 100%);
-            border: 1px solid #d7e7ff;
-        }
+.hai-tip {
+    background: #fff7f7;
+    border: 1px solid #fee2e2;
+    border-radius: 18px;
+    padding: 16px 18px;
+    color: #4e5f82;
+    font-size: 15px;
+    line-height: 1.8;
+    margin-top: 18px;
+}
 
-        .portal-orange {
-            background: linear-gradient(180deg, #fff8f3 0%, #ffffff 100%);
-            border: 1px solid #ffd9c7;
-        }
+.hai-report-box {
+    background: #ffffff;
+    border: 1px solid #e7ebf3;
+    border-radius: 26px;
+    padding: 28px 30px;
+    box-shadow: 0 10px 28px rgba(30, 50, 100, 0.05);
+    margin-top: 24px;
+    margin-bottom: 24px;
+}
 
-        .portal-icon {
-            width: 66px;
-            height: 66px;
-            border-radius: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            margin-bottom: 18px;
-        }
+.hai-report-title {
+    font-size: 28px;
+    font-weight: 900;
+    color: #1f2a44;
+    margin-bottom: 8px;
+}
 
-        .portal-blue .portal-icon {
-            background: #eaf3ff;
-        }
-
-        .portal-orange .portal-icon {
-            background: #fff0e8;
-        }
-
-        .portal-title {
-            font-size: 25px;
-            font-weight: 900;
-            color: #243255;
-            margin-bottom: 12px;
-        }
-
-        .portal-text {
-            font-size: 16px;
-            color: #63708d;
-            line-height: 1.9;
-            min-height: 88px;
-        }
-
-        .portal-button {
-            display: inline-block;
-            margin-top: 18px;
-            padding: 12px 22px;
-            border-radius: 14px;
-            text-decoration: none !important;
-            font-weight: 900;
-            font-size: 15px;
-        }
-
-        .portal-button-blue {
-            background: linear-gradient(135deg, #2b4cb3 0%, #3a8ee8 100%);
-            color: #ffffff !important;
-            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.18);
-        }
-
-        .portal-button-orange {
-            background: #fff0e8;
-            color: #a24618 !important;
-            border: 1px solid #ffd9c7;
-        }
-
-        /* =========================
-           Update Notes
-        ========================= */
-        .update-box {
-            background: #fff8f3;
-            border: 1px solid #ffd9c7;
-            border-radius: 26px;
-            padding: 28px 30px;
-            box-shadow: 0 10px 26px rgba(122, 62, 29, 0.05);
-            margin-bottom: 26px;
-        }
-
-        .update-title {
-            font-size: 24px;
-            font-weight: 900;
-            color: #7a3e1d;
-            margin-bottom: 16px;
-        }
-
-        .update-list {
-            margin: 0;
-            padding-left: 20px;
-            color: #6a4a3a;
-            line-height: 2;
-            font-size: 16px;
-        }
-
-        .usage-tip {
-            background: #fff9e8;
-            border: 1px solid #ffe2a8;
-            border-radius: 18px;
-            padding: 16px 18px;
-            color: #6b5a2b;
-            font-size: 15px;
-            line-height: 1.8;
-            margin-top: 18px;
-        }
-
-        /* =========================
-           Report
-        ========================= */
-        .report-intro {
-            background: linear-gradient(180deg, #f4fbf8 0%, #ffffff 100%);
-            border: 1px solid #cfebdd;
-            border-radius: 26px;
-            padding: 28px 30px;
-            box-shadow: 0 10px 26px rgba(31, 92, 70, 0.05);
-            margin-bottom: 22px;
-        }
-
-        .report-intro-title {
-            font-size: 26px;
-            font-weight: 900;
-            color: #1f5c46;
-            margin-bottom: 10px;
-        }
-
-        .report-intro-text {
-            font-size: 15px;
-            color: #5b7469;
-            line-height: 1.8;
-        }
-
-        .report-tool-note {
-            background: #eefaf5;
-            border: 1px solid #cfebdd;
-            border-radius: 16px;
-            padding: 13px 16px;
-            color: #315f4e;
-            font-size: 14px;
-            margin: 10px 0 18px 0;
-        }
-
-        .data-card-title {
-            font-size: 22px;
-            font-weight: 900;
-            color: #1f2a44;
-            margin: 24px 0 12px 0;
-        }
-
-        /* =========================
-           KPI
-        ========================= */
-        div[data-testid="stMetric"] {
-            border-radius: 18px;
-            padding: 18px 18px;
-            border: 1px solid #e6edf7;
-            box-shadow: 0 8px 18px rgba(30, 50, 100, 0.04);
-            background: #ffffff;
-        }
-
-        div[data-testid="stMetricLabel"] {
-            color: #667085;
-            font-weight: 800;
-        }
-
-        div[data-testid="stMetricValue"] {
-            color: #1f2a44;
-            font-weight: 900;
-        }
-
-        /* =========================
-           Streamlit Buttons
-        ========================= */
-        div.stLinkButton > a {
-            border-radius: 14px !important;
-            font-weight: 900 !important;
-            font-size: 15px !important;
-            padding: 0.75rem 1.1rem !important;
-            text-decoration: none !important;
-            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.12) !important;
-            border: 1px solid #dbeafe !important;
-        }
-        </style>
-        """
+.hai-report-subtitle {
+    font-size: 15px;
+    color: #667085;
+    line-height: 1.8;
+    margin-bottom: 18px;
+}
+</style>
+        """,
+        unsafe_allow_html=True,
     )
 
 
 # =========================
-# Hero
+# Hero by components.html
 # =========================
 def render_hero():
     logo_data_uri = image_to_data_uri(HAI_LOGO_PATH)
@@ -346,11 +212,11 @@ body {{
     width: 100%;
     min-height: 280px;
     background:
-        radial-gradient(circle at right center, rgba(239, 68, 68, 0.24), transparent 34%),
+        radial-gradient(circle at right center, rgba(239,68,68,0.24), transparent 34%),
         linear-gradient(135deg, #111827 0%, #26313f 58%, #ef4444 100%);
     border-radius: 32px;
     padding: 40px 46px;
-    box-shadow: 0 16px 36px rgba(17, 24, 39, 0.24);
+    box-shadow: 0 16px 36px rgba(17,24,39,0.24);
 }}
 
 .hero-grid {{
@@ -361,8 +227,8 @@ body {{
 }}
 
 .logo-panel {{
-    background: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.20);
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.20);
     border-radius: 28px;
     padding: 22px;
     min-height: 210px;
@@ -370,15 +236,15 @@ body {{
     align-items: center;
     justify-content: center;
     box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.16),
-        0 14px 30px rgba(0, 0, 0, 0.18);
+        inset 0 1px 0 rgba(255,255,255,0.16),
+        0 14px 30px rgba(0,0,0,0.18);
 }}
 
 .logo-box {{
     width: 100%;
     min-height: 170px;
     border-radius: 22px;
-    background: rgba(255, 255, 255, 0.96);
+    background: rgba(255,255,255,0.96);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -396,8 +262,8 @@ body {{
     display: inline-block;
     padding: 9px 17px;
     border-radius: 999px;
-    background: rgba(239, 68, 68, 0.26);
-    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: rgba(239,68,68,0.26);
+    border: 1px solid rgba(255,255,255,0.22);
     color: #ffffff;
     font-weight: 800;
     font-size: 14px;
@@ -414,7 +280,7 @@ body {{
 
 .hero-subtext {{
     margin-top: 22px;
-    color: rgba(255, 255, 255, 0.90);
+    color: rgba(255,255,255,0.90);
     font-size: 16px;
     line-height: 1.8;
 }}
@@ -549,117 +415,20 @@ def prepare_usage_dataframe(raw_df: pd.DataFrame) -> pd.DataFrame:
 
 
 # =========================
-# Portal Entries
-# =========================
-def render_portal_entries():
-    html(
-        """
-        <div class="hai-section-header section-blue">
-            <span class="hai-section-dot"></span>
-            HAI Search Portal
-        </div>
-        <div class="hai-section-desc">
-            Choose an entry below to start using or reviewing HAI Search.
-        </div>
-        """
-    )
-
-    col1, col2 = st.columns(2, gap="large")
-
-    with col1:
-        html(
-            f"""
-            <div class="portal-card portal-blue">
-                <div class="portal-icon">🔎</div>
-                <div class="portal-title">Search in Slack</div>
-                <div class="portal-text">
-                    Open Slack and use HAI Search through your available workspace and channel.
-                    Use <b>/new</b> for questions and <b>/docs</b> for document search.
-                </div>
-                <a class="portal-button portal-button-blue" href="{SLACK_URL}" target="_blank">
-                    🚀 Open Slack
-                </a>
-            </div>
-            """
-        )
-
-    with col2:
-        html(
-            """
-            <div class="portal-card portal-orange">
-                <div class="portal-icon">📝</div>
-                <div class="portal-title">Update Notes</div>
-                <div class="portal-text">
-                    Review version updates, improvement notes, known issues,
-                    and future enhancement items for HAI Search.
-                </div>
-                <a class="portal-button portal-button-orange" href="#hai-update-notes">
-                    📘 View Update Notes
-                </a>
-            </div>
-            """
-        )
-
-
-# =========================
-# Update Notes
-# =========================
-def render_update_notes():
-    html('<div id="hai-update-notes"></div>')
-
-    html(
-        """
-        <div class="hai-section-header section-orange">
-            <span class="hai-section-dot"></span>
-            Update Notes
-        </div>
-        """
-    )
-
-    html(
-        """
-        <div class="update-box">
-            <div class="update-title">Latest Improvements</div>
-            <ul class="update-list">
-                <li>Multiple Search function was added to search documents more precisely.</li>
-                <li>Enhanced searching power to give more accurate answers.</li>
-                <li>Error code documents were added to improve response quality for error-related questions.</li>
-                <li>Japanese document handling and guidance can be updated here in the future.</li>
-            </ul>
-
-            <div class="usage-tip">
-                <b>Recommended use:</b>
-                Use <b>/new</b> for Q&amp;A and <b>/docs</b> for document search.
-                If the first answer is unclear, try rewriting the question in a simpler way.
-            </div>
-        </div>
-        """
-    )
-
-
-# =========================
 # Monthly Report Section
 # =========================
 def render_monthly_usage_report():
-    html(
+    st.markdown(
         """
-        <div class="hai-section-header section-green">
-            <span class="hai-section-dot"></span>
-            HAI Search Monthly Usage Report
-        </div>
-        """
-    )
-
-    html(
-        """
-        <div class="report-intro">
-            <div class="report-intro-title">Monthly Usage Dashboard</div>
-            <div class="report-intro-text">
-                View HAI Search usage by month, dealer channel, and user.
-                Monthly Excel files are read from <b>hai_search_reports/</b>.
-            </div>
-        </div>
-        """
+<div class="hai-report-box">
+    <div class="hai-report-title">HAI Search Monthly Usage Report</div>
+    <div class="hai-report-subtitle">
+        View HAI Search usage by month, dealer channel, and user. 
+        Monthly Excel files are read from <b>hai_search_reports/</b>.
+    </div>
+</div>
+        """,
+        unsafe_allow_html=True,
     )
 
     raw_df = load_hai_search_reports()
@@ -677,14 +446,6 @@ def render_monthly_usage_report():
         return
 
     months = sorted(df["Report Month"].dropna().unique(), reverse=True)
-
-    html(
-        """
-        <div class="report-tool-note">
-            Filter by month, dealer channel, or user name. The table and chart below update automatically.
-        </div>
-        """
-    )
 
     filter_col1, filter_col2 = st.columns([1, 2])
 
@@ -739,10 +500,10 @@ def render_monthly_usage_report():
         ]
     ].sort_values("Total Commands", ascending=False)
 
-    html('<div class="data-card-title">Usage Detail</div>')
+    st.markdown("### Usage Detail")
     st.dataframe(display_df, use_container_width=True, hide_index=True)
 
-    html('<div class="data-card-title">Top 10 Users by Total Commands</div>')
+    st.markdown("### Top 10 Users by Total Commands")
 
     chart_df = (
         filtered_df.groupby(["Channel Name", "User Name"], as_index=False)["Total Commands"]
@@ -781,8 +542,69 @@ def render_hai_search():
 
     render_hero()
 
-    render_portal_entries()
+    st.markdown(
+        """
+<div class="hai-section-title">HAI Search Portal</div>
+<div class="hai-section-subtitle">
+    Choose an entry below to start using HAI Search.
+</div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-    render_update_notes()
+    col1, col2 = st.columns(2, gap="large")
+
+    with col1:
+        st.markdown(
+            """
+<div class="hai-card-box">
+    <div class="hai-card-icon">🔎</div>
+    <div class="hai-card-title">Search in Slack</div>
+    <div class="hai-card-text">
+        Open Slack and use HAI Search through your available workspace and channel.
+        Use <b>/new</b> for questions and <b>/docs</b> for document search.
+    </div>
+</div>
+            """,
+            unsafe_allow_html=True,
+        )
+        st.link_button("🚀 Open Slack", SLACK_URL, use_container_width=True)
+
+    with col2:
+        st.markdown(
+            """
+<div class="hai-card-box">
+    <div class="hai-card-icon">📝</div>
+    <div class="hai-card-title">Update Notes</div>
+    <div class="hai-card-text">
+        Review version updates, improvement notes, known issues,
+        and future enhancement items for HAI Search.
+    </div>
+</div>
+            """,
+            unsafe_allow_html=True,
+        )
+        st.button("📘 View Update Notes", use_container_width=True, disabled=True)
+
+    st.markdown(
+        """
+<div class="hai-note-box">
+    <div class="hai-note-title">Update Notes</div>
+    <ul class="hai-note-list">
+        <li>Multiple Search function was added to search documents more precisely.</li>
+        <li>Enhanced searching power to give more accurate answers.</li>
+        <li>Error code documents were added to improve response quality for error-related questions.</li>
+        <li>Japanese document handling and guidance can be updated here in the future.</li>
+    </ul>
+
+    <div class="hai-tip">
+        <b>Recommended use:</b>
+        Use <b>/new</b> for Q&amp;A and <b>/docs</b> for document search.
+        If the first answer is unclear, try rewriting the question in a simpler way.
+    </div>
+</div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     render_monthly_usage_report()
