@@ -9,7 +9,7 @@ import base64
 BASE_DIR = Path(__file__).resolve().parent.parent
 ASSETS_DIR = BASE_DIR / "assets"
 
-# 如果以后有 HAI Search 具体频道链接，把这里替换成频道链接即可
+# Open Slack login / workspace page only, not a specific HAI Search channel
 SLACK_HAI_SEARCH_URL = "https://app.slack.com/"
 
 
@@ -323,9 +323,6 @@ def render_hai_search():
         </div>
         """
 
-    # =========================
-    # Hero Section
-    # =========================
     st.markdown(
         f"""
         <div class="hai-hero">
@@ -342,7 +339,7 @@ def render_hai_search():
 
                 <div class="hai-button-row">
                     <a class="hai-main-button" href="{SLACK_HAI_SEARCH_URL}" target="_blank">
-                        🚀 Open Slack / HAI Search
+                        🚀 Open Slack
                     </a>
                     <a class="hai-sub-button" href="#hai-guide">
                         📘 View Usage Guide
@@ -356,9 +353,6 @@ def render_hai_search():
         unsafe_allow_html=True,
     )
 
-    # =========================
-    # Recommended Use Note
-    # =========================
     st.markdown(
         """
         <div class="hai-note">
@@ -371,9 +365,6 @@ def render_hai_search():
         unsafe_allow_html=True,
     )
 
-    # =========================
-    # Guide Section
-    # =========================
     st.markdown('<div id="hai-guide" class="hai-section-title">HAI Search Guide</div>', unsafe_allow_html=True)
     st.markdown(
         '<div class="hai-section-desc">A simple overview of what HAI Search does and how to use it.</div>',
@@ -454,12 +445,12 @@ def render_hai_search():
                 <div class="hai-card-title">Quick Links</div>
 
                 <div class="hai-link-card">
-                    <div class="hai-link-title">Slack / HAI Search</div>
+                    <div class="hai-link-title">Slack</div>
                     <div class="hai-link-desc">
-                        Open Slack workspace and access HAI Search channels.
+                        Open Slack login / workspace page.
                     </div>
                     <a class="hai-link-button" href="{SLACK_HAI_SEARCH_URL}" target="_blank">
-                        Open Slack / HAI Search →
+                        Open Slack →
                     </a>
                 </div>
 
