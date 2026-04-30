@@ -85,6 +85,7 @@ def clean_text_value(text: str) -> str:
 def get_machine_prefix(machine_name: str) -> str:
     """
     Extract prefix before the first number.
+
     Examples:
       AFV-564 -> AFV-
       AF-762KL -> AF-
@@ -142,10 +143,13 @@ def expand_slash_machine_name(machine_text: str) -> str:
 def normalize_machine_separator(text: str) -> str:
     """
     Normalize machine separators.
+
     Examples:
       AFV-564/566SA -> AFV-564 / AFV-566SA
       RD-N4055 and RD-N4055DM -> RD-N4055 / RD-N4055DM
       BBF-480, EL-480 -> BBF-480 / EL-480
+      CBF-SB -> CBF-SB
+      Stitch Liner MarkIV -> Stitch Liner MarkIV
     """
     text = clean_text_value(text)
 
@@ -176,6 +180,62 @@ def is_bulletin_code_like(value: str) -> bool:
     return False
 
 
+def looks_like_machine_value(value: str) -> bool:
+    """
+    Decide whether a short text fragment looks like a machine/model value.
+
+    Examples accepted:
+      CBF-SB
+      AFV-564
+      AF-762KL
+      AFV-564/566SA
+      BBF-480 / EL-480
+      Stitch Liner MarkIV
+    """
+    value = clean_text_value(value)
+
+    if not value:
+        return False
+
+    if len(value) > 120:
+        return False
+
+    low = value.lower()
+
+    ng_words = [
+        "carepack",
+        "information bulletin",
+        "product release information",
+        "spare parts",
+        "downtime",
+        "release of the",
+        "this bulletin informs you",
+        "included",
+        "includes",
+        "most frequent",
+        "machine will help",
+    ]
+
+    if any(word in low for word in ng_words):
+        return False
+
+    if is_bulletin_code_like(value):
+        return False
+
+    # Code-like machine names:
+    # CBF-SB, AFV-564, BBF-480 / EL-480
+    if re.fullmatch(r"[A-Z0-9][A-Z0-9\-\/\s\.]+", value, flags=re.IGNORECASE):
+        return True
+
+    # Product name style:
+    # Stitch Liner MarkIV
+    # iCE Stitch Liner MarkV
+    if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9\s\-\/\.]+", value):
+        return True
+
+    return False
+
+
 def extract_machine_candidates(raw_text: str):
     """
     Extract machine-like candidates from text.
@@ -186,30 +246,39 @@ def extract_machine_candidates(raw_text: str):
       RD-N4055 and RD-N4055DM
       BQ-300
       VAC-1000
+      CBF-SB
+      CBF-SB / CBF-SS
     """
     raw_text = normalize_spaces(raw_text)
 
-    pattern = (
-        r"[A-Z]{1,8}-?[A-Z]*\d{1,5}[A-Z0-9]*"
-        r"(?:\s*/\s*(?:[A-Z]{1,8}-?[A-Z]*)?\d{1,5}[A-Z0-9]*)*"
-    )
+    patterns = [
+        # With digits
+        r"[A-Z]{1,10}-?[A-Z]*\d{1,5}[A-Z0-9]*"
+        r"(?:\s*/\s*(?:[A-Z]{1,10}-?[A-Z]*)?\d{1,5}[A-Z0-9]*)*",
 
-    candidates = re.findall(pattern, raw_text, flags=re.IGNORECASE)
+        # Alphabetic hyphen type, e.g. CBF-SB
+        r"[A-Z]{2,10}-[A-Z]{1,10}"
+        r"(?:\s*/\s*[A-Z]{2,10}-[A-Z]{1,10})*",
+    ]
 
-    cleaned = []
+    candidates = []
 
-    for candidate in candidates:
-        candidate = clean_text_value(candidate)
+    for pattern in patterns:
+        matches = re.findall(pattern, raw_text, flags=re.IGNORECASE)
 
-        if not candidate:
-            continue
+        for candidate in matches:
+            candidate = clean_text_value(candidate)
 
-        if is_bulletin_code_like(candidate):
-            continue
+            if not candidate:
+                continue
 
-        cleaned.append(candidate)
+            if is_bulletin_code_like(candidate):
+                continue
 
-    return cleaned
+            if candidate not in candidates:
+                candidates.append(candidate)
+
+    return candidates
 
 
 def extract_target_machine_from_text(page_text: str, fallback_machine: str) -> str:
@@ -221,8 +290,30 @@ def extract_target_machine_from_text(page_text: str, fallback_machine: str) -> s
       2. Text after "for ..."
       3. Model / Machine label
       4. Fallback from filename
+
+    Supports:
+      - AFV-564/566SA
+      - CBF-SB
+      - RD-N4055 and RD-N4055DM
+      - Stitch Liner MarkIV
     """
     text = normalize_spaces(page_text)
+
+    def finalize_candidate_list(machine_candidates):
+        normalized_list = [
+            normalize_machine_separator(candidate)
+            for candidate in machine_candidates
+            if candidate and not is_bulletin_code_like(candidate)
+        ]
+
+        value = " / ".join(normalized_list)
+        value = re.sub(r"\s*/\s*", " / ", value)
+        value = re.sub(r"\s{2,}", " ", value).strip()
+
+        if value and len(value) <= 150:
+            return value
+
+        return None
 
     # 1) Strong pattern: "(Carepack) for XXX."
     carepack_for_match = re.search(
@@ -233,20 +324,17 @@ def extract_target_machine_from_text(page_text: str, fallback_machine: str) -> s
 
     if carepack_for_match:
         raw_value = carepack_for_match.group(1).strip()
+
         machine_candidates = extract_machine_candidates(raw_value)
 
         if machine_candidates:
-            normalized_list = [
-                normalize_machine_separator(candidate)
-                for candidate in machine_candidates
-            ]
-
-            value = " / ".join(normalized_list)
-            value = re.sub(r"\s*/\s*", " / ", value)
-            value = re.sub(r"\s{2,}", " ", value).strip()
-
-            if value and len(value) <= 150:
+            value = finalize_candidate_list(machine_candidates)
+            if value:
                 return value
+
+        direct_value = normalize_machine_separator(raw_value)
+        if looks_like_machine_value(direct_value):
+            return direct_value
 
     # 2) General pattern: "for XXX."
     for_match = re.search(
@@ -267,17 +355,13 @@ def extract_target_machine_from_text(page_text: str, fallback_machine: str) -> s
         machine_candidates = extract_machine_candidates(raw_value)
 
         if machine_candidates:
-            normalized_list = [
-                normalize_machine_separator(candidate)
-                for candidate in machine_candidates
-            ]
-
-            value = " / ".join(normalized_list)
-            value = re.sub(r"\s*/\s*", " / ", value)
-            value = re.sub(r"\s{2,}", " ", value).strip()
-
-            if value and len(value) <= 150:
+            value = finalize_candidate_list(machine_candidates)
+            if value:
                 return value
+
+        direct_value = normalize_machine_separator(raw_value)
+        if looks_like_machine_value(direct_value):
+            return direct_value
 
     # 3) Fallback: Model / Models / Applicable model / Machine labels
     label_patterns = [
@@ -295,7 +379,7 @@ def extract_target_machine_from_text(page_text: str, fallback_machine: str) -> s
             value = value.replace("-CRP", "")
             value = clean_text_value(value)
 
-            if value and 2 <= len(value) <= 120:
+            if looks_like_machine_value(value):
                 return value
 
     return fallback_machine
@@ -1115,7 +1199,7 @@ elif view == "📦  Care Pack":
         with col1:
             keyword = st.text_input(
                 "Search Care Pack",
-                placeholder="Example: BQ300, AFV-564, AS23122025-1, Dec. 23rd...",
+                placeholder="Example: BQ300, Stitch Liner MarkIV, CBF-SB, AFV-564, AS23122025-1...",
                 key="carepack_keyword",
             )
 
