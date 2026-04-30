@@ -58,8 +58,8 @@ div.stLinkButton > a {
     font-size: 15px !important;
     padding: 0.75rem 1.1rem !important;
     text-decoration: none !important;
-    box-shadow: 0 8px 18px rgba(37,99,235,0.12) !important;
-    border: 1px solid #dbeafe !important;
+    box-shadow: 0 8px 18px rgba(239,68,68,0.14) !important;
+    border: 1px solid #fee2e2 !important;
 }
 
 .hai-card-box {
@@ -76,7 +76,7 @@ div.stLinkButton > a {
     width: 66px;
     height: 66px;
     border-radius: 18px;
-    background: #eef3fb;
+    background: #fff1f2;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -123,8 +123,8 @@ div.stLinkButton > a {
 }
 
 .hai-tip {
-    background: #f6f9ff;
-    border: 1px solid #dfe8f8;
+    background: #fff7f7;
+    border: 1px solid #fee2e2;
     border-radius: 18px;
     padding: 16px 18px;
     color: #4e5f82;
@@ -171,11 +171,11 @@ body {{
     width: 100%;
     min-height: 280px;
     background:
-        radial-gradient(circle at right center, rgba(255,255,255,0.18), transparent 30%),
-        linear-gradient(135deg, #1f2a78 0%, #2f62df 58%, #43b0ea 100%);
+        radial-gradient(circle at right center, rgba(239,68,68,0.24), transparent 34%),
+        linear-gradient(135deg, #111827 0%, #26313f 58%, #ef4444 100%);
     border-radius: 32px;
     padding: 40px 46px;
-    box-shadow: 0 16px 36px rgba(34, 58, 120, 0.18);
+    box-shadow: 0 16px 36px rgba(17,24,39,0.24);
 }}
 
 .hero-grid {{
@@ -186,8 +186,8 @@ body {{
 }}
 
 .logo-panel {{
-    background: rgba(255,255,255,0.14);
-    border: 1px solid rgba(255,255,255,0.22);
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.20);
     border-radius: 28px;
     padding: 22px;
     min-height: 210px;
@@ -196,7 +196,7 @@ body {{
     justify-content: center;
     box-shadow:
         inset 0 1px 0 rgba(255,255,255,0.16),
-        0 14px 30px rgba(0,0,0,0.12);
+        0 14px 30px rgba(0,0,0,0.18);
 }}
 
 .logo-box {{
@@ -221,7 +221,7 @@ body {{
     display: inline-block;
     padding: 9px 17px;
     border-radius: 999px;
-    background: rgba(255,255,255,0.15);
+    background: rgba(239,68,68,0.26);
     border: 1px solid rgba(255,255,255,0.22);
     color: #ffffff;
     font-weight: 800;
@@ -233,13 +233,13 @@ body {{
     color: #ffffff;
     font-size: 19px;
     line-height: 1.9;
-    font-weight: 600;
+    font-weight: 650;
     max-width: 1080px;
 }}
 
 .hero-subtext {{
     margin-top: 22px;
-    color: rgba(255,255,255,0.92);
+    color: rgba(255,255,255,0.90);
     font-size: 16px;
     line-height: 1.8;
 }}
