@@ -2,6 +2,7 @@ import streamlit as st
 
 from pages_custom.care_pack import render_care_pack
 from pages_custom.ice_link_report import render_ice_link_report
+from pages_custom.hai_search import render_hai_search
 
 
 # =========================
@@ -412,34 +413,4 @@ elif view == "📦  Care Pack":
     render_care_pack()
 
 elif view == "🤖  HAI Search":
-    page_header(
-        "🤖 HAI Search",
-        "Overview of HAI Search usage, search trends, and knowledge access support.",
-    )
-
-    st.info("ここに HAI Search の利用状況、検索件数、改善内容、FAQ などを追加できます。")
-
-    hai_df = {
-        "Item": [
-            "Total Users",
-            "Total Queries",
-            "Successful Answers",
-        ],
-        "Value": [
-            200,
-            1580,
-            1425,
-        ],
-    }
-
-    st.dataframe(hai_df, use_container_width=True, hide_index=True)
-
-    st.markdown("### HAI Search Notes")
-    st.markdown(
-        """
-        - `/new` is used for asking questions.
-        - `/docs` is used for searching documents.
-        - Search quality depends on document naming, PDF text quality, and metadata.
-        - Future improvement items can be added here.
-        """
-    )
+    render_hai_search()
