@@ -4,10 +4,13 @@ import base64
 
 
 # =========================
-# Path Settings
+# Path / Link Settings
 # =========================
 BASE_DIR = Path(__file__).resolve().parent.parent
 ASSETS_DIR = BASE_DIR / "assets"
+
+# 如果以后有 HAI Search 具体频道链接，把这里替换成频道链接即可
+SLACK_HAI_SEARCH_URL = "https://app.slack.com/"
 
 
 # =========================
@@ -117,6 +120,44 @@ def apply_hai_search_css():
             object-fit: contain;
         }
 
+        .hai-button-row {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-top: 26px;
+        }
+
+        .hai-main-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 14px 24px;
+            border-radius: 16px;
+            background: white;
+            color: #1d4ed8 !important;
+            font-size: 16px;
+            font-weight: 900;
+            text-decoration: none !important;
+            box-shadow: 0 12px 26px rgba(0,0,0,0.16);
+            border: 1px solid rgba(255,255,255,0.25);
+        }
+
+        .hai-sub-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 14px 24px;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.15);
+            color: white !important;
+            font-size: 16px;
+            font-weight: 900;
+            text-decoration: none !important;
+            border: 1px solid rgba(255,255,255,0.28);
+        }
+
         .hai-note {
             background: #eff6ff;
             border: 1px solid #dbeafe;
@@ -220,12 +261,19 @@ def apply_hai_search_css():
             font-size: 14px;
             color: #667085;
             line-height: 1.6;
+            margin-bottom: 10px;
         }
 
-        .hai-link-card a {
-            color: #2563eb !important;
-            font-weight: 800;
-            text-decoration: none;
+        .hai-link-button {
+            display: inline-block;
+            padding: 9px 15px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+            color: white !important;
+            font-weight: 900;
+            text-decoration: none !important;
+            font-size: 14px;
+            box-shadow: 0 8px 18px rgba(37,99,235,0.20);
         }
 
         @media (max-width: 900px) {
@@ -275,6 +323,9 @@ def render_hai_search():
         </div>
         """
 
+    # =========================
+    # Hero Section
+    # =========================
     st.markdown(
         f"""
         <div class="hai-hero">
@@ -288,13 +339,26 @@ def render_hai_search():
                     This page is an entrance page for HAI Search guidance,
                     update notes, usage tips, and future search links.
                 </div>
+
+                <div class="hai-button-row">
+                    <a class="hai-main-button" href="{SLACK_HAI_SEARCH_URL}" target="_blank">
+                        🚀 Open Slack / HAI Search
+                    </a>
+                    <a class="hai-sub-button" href="#hai-guide">
+                        📘 View Usage Guide
+                    </a>
+                </div>
             </div>
+
             {logo_html}
         </div>
         """,
         unsafe_allow_html=True,
     )
 
+    # =========================
+    # Recommended Use Note
+    # =========================
     st.markdown(
         """
         <div class="hai-note">
@@ -307,7 +371,10 @@ def render_hai_search():
         unsafe_allow_html=True,
     )
 
-    st.markdown('<div class="hai-section-title">HAI Search Guide</div>', unsafe_allow_html=True)
+    # =========================
+    # Guide Section
+    # =========================
+    st.markdown('<div id="hai-guide" class="hai-section-title">HAI Search Guide</div>', unsafe_allow_html=True)
     st.markdown(
         '<div class="hai-section-desc">A simple overview of what HAI Search does and how to use it.</div>',
         unsafe_allow_html=True,
@@ -382,16 +449,18 @@ def render_hai_search():
 
     with col4:
         st.markdown(
-            """
+            f"""
             <div class="hai-card">
                 <div class="hai-card-title">Quick Links</div>
 
                 <div class="hai-link-card">
-                    <div class="hai-link-title">Slack</div>
+                    <div class="hai-link-title">Slack / HAI Search</div>
                     <div class="hai-link-desc">
                         Open Slack workspace and access HAI Search channels.
                     </div>
-                    <a href="https://app.slack.com/" target="_blank">Open Slack</a>
+                    <a class="hai-link-button" href="{SLACK_HAI_SEARCH_URL}" target="_blank">
+                        Open Slack / HAI Search →
+                    </a>
                 </div>
 
                 <div class="hai-link-card">
@@ -399,7 +468,9 @@ def render_hai_search():
                     <div class="hai-link-desc">
                         You can replace this with your internal guide link later.
                     </div>
-                    <a href="#" target="_blank">Set guide link here</a>
+                    <a class="hai-link-button" href="#" target="_blank">
+                        Set guide link here →
+                    </a>
                 </div>
 
                 <div class="hai-link-card">
@@ -407,7 +478,9 @@ def render_hai_search():
                     <div class="hai-link-desc">
                         You can place HAI Search update notes here.
                     </div>
-                    <a href="#" target="_blank">Set update link here</a>
+                    <a class="hai-link-button" href="#" target="_blank">
+                        Set update link here →
+                    </a>
                 </div>
             </div>
             """,
