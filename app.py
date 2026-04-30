@@ -82,12 +82,34 @@ def clean_text_value(text: str) -> str:
     return text
 
 
+def get_machine_prefix(machine_name: str) -> str:
+    """
+    Extract prefix before the first number.
+    Examples:
+      AFV-564 -> AFV-
+      AF-762KL -> AF-
+      RD-N4055 -> RD-N
+      BQ-300 -> BQ-
+    """
+    machine_name = machine_name.strip()
+
+    match = re.match(r"^([A-Z]+-?[A-Z]*)(?=\d)", machine_name, flags=re.IGNORECASE)
+
+    if match:
+        return match.group(1)
+
+    return ""
+
+
 def expand_slash_machine_name(machine_text: str) -> str:
     """
+    Expand slash-style machine names.
+
     Examples:
       AFV-564/566SA -> AFV-564 / AFV-566SA
-      AF-764/784AKLL -> AF-764 / AF-784AKLL
-      RD-N4055/RD-N4055DM -> RD-N4055 / RD-N4055DM
+      AF-762KL/782KL -> AF-762KL / AF-782KL
+      RD-N4055/4055DM -> RD-N4055 / RD-N4055DM
+      AFV-564/AFV-566SA -> AFV-564 / AFV-566SA
     """
     machine_text = clean_text_value(machine_text)
     machine_text = re.sub(r"\s*/\s*", "/", machine_text)
@@ -95,32 +117,36 @@ def expand_slash_machine_name(machine_text: str) -> str:
     if "/" not in machine_text:
         return machine_text
 
-    parts = machine_text.split("/")
-    if len(parts) < 2:
+    parts = [part.strip() for part in machine_text.split("/") if part.strip()]
+
+    if not parts:
         return machine_text
 
-    first = parts[0].strip()
+    first = parts[0]
+    prefix = get_machine_prefix(first)
+
     expanded = [first]
 
-    prefix_match = re.match(r"^([A-Z]+-?)(.*)$", first, flags=re.IGNORECASE)
+    for part in parts[1:]:
+        part = part.strip()
 
-    if prefix_match:
-        prefix = prefix_match.group(1)
-
-        for part in parts[1:]:
-            part = part.strip()
-
-            if re.match(r"^[A-Z]+-?", part, flags=re.IGNORECASE):
-                expanded.append(part)
-            else:
-                expanded.append(prefix + part)
-    else:
-        expanded.extend([p.strip() for p in parts[1:]])
+        # If the second part already has a clear prefix, keep it.
+        if get_machine_prefix(part):
+            expanded.append(part)
+        else:
+            expanded.append(prefix + part)
 
     return " / ".join(expanded)
 
 
 def normalize_machine_separator(text: str) -> str:
+    """
+    Normalize machine separators.
+    Examples:
+      AFV-564/566SA -> AFV-564 / AFV-566SA
+      RD-N4055 and RD-N4055DM -> RD-N4055 / RD-N4055DM
+      BBF-480, EL-480 -> BBF-480 / EL-480
+    """
     text = clean_text_value(text)
 
     text = re.sub(r"\s+and\s+", " / ", text, flags=re.IGNORECASE)
@@ -129,33 +155,46 @@ def normalize_machine_separator(text: str) -> str:
     text = re.sub(r"\s*,\s*", " / ", text)
     text = re.sub(r"\s{2,}", " ", text)
 
-    groups = [g.strip() for g in re.split(r"\s*/\s*", text) if g.strip()]
+    groups = [group.strip() for group in re.split(r"\s*/\s*", text) if group.strip()]
 
-    if len(groups) == 2:
-        combined = "/".join(groups)
-        return expand_slash_machine_name(combined)
-
-    if "/" in text:
-        return expand_slash_machine_name(text)
+    if len(groups) >= 2:
+        joined = "/".join(groups)
+        return expand_slash_machine_name(joined)
 
     return text.strip()
+
+
+def is_bulletin_code_like(value: str) -> bool:
+    """
+    Avoid picking bulletin codes such as AS27032026-3 as machine names.
+    """
+    value = value.strip()
+
+    if re.match(r"^[A-Z]{1,6}[0-9]{6,12}-[0-9A-Z]+$", value, flags=re.IGNORECASE):
+        return True
+
+    return False
 
 
 def extract_machine_candidates(raw_text: str):
     """
     Extract machine-like candidates from text.
+
     Supports:
       AFV-564/566SA
+      AF-762KL/782KL
       RD-N4055 and RD-N4055DM
-      AF-764AKLL
       BQ-300
       VAC-1000
     """
-    candidates = re.findall(
-        r"[A-Z]{1,8}(?:-[A-Z])?-?[A-Z]?[0-9]{1,5}[A-Z0-9]*(?:/[A-Z]?[0-9]{1,5}[A-Z0-9]*)?",
-        raw_text,
-        flags=re.IGNORECASE,
+    raw_text = normalize_spaces(raw_text)
+
+    pattern = (
+        r"[A-Z]{1,8}-?[A-Z]*\d{1,5}[A-Z0-9]*"
+        r"(?:\s*/\s*(?:[A-Z]{1,8}-?[A-Z]*)?\d{1,5}[A-Z0-9]*)*"
     )
+
+    candidates = re.findall(pattern, raw_text, flags=re.IGNORECASE)
 
     cleaned = []
 
@@ -165,8 +204,7 @@ def extract_machine_candidates(raw_text: str):
         if not candidate:
             continue
 
-        # Avoid picking bulletin code like AS27032026-3 as machine name
-        if re.match(r"^[A-Z]{1,4}[0-9]{6,12}-[0-9A-Z]+$", candidate, flags=re.IGNORECASE):
+        if is_bulletin_code_like(candidate):
             continue
 
         cleaned.append(candidate)
@@ -176,22 +214,43 @@ def extract_machine_candidates(raw_text: str):
 
 def extract_target_machine_from_text(page_text: str, fallback_machine: str) -> str:
     """
-    PDF本文から対象機種を抽出する。
-    優先例:
-      - for AF-764AKLL and AF-784AKLL
-      - for AFV-564/566SA
-      - for RD-N4055 and RD-N4055DM
-      - Model: AFV56SA-CRP
+    Extract target machines from the first page text.
 
-    取れない場合は fallback_machine を返す。
+    Priority:
+      1. Text after "(Carepack) for ..."
+      2. Text after "for ..."
+      3. Model / Machine label
+      4. Fallback from filename
     """
     text = normalize_spaces(page_text)
 
-    # 1) Product Release Information の本文から "for xxx" を優先取得
-    # Example:
-    # This bulletin informs you about the release of the AFV56SA-CRP (Carepack) for AFV-564/566SA.
+    # 1) Strong pattern: "(Carepack) for XXX."
+    carepack_for_match = re.search(
+        r"\(Carepack\)\s+for\s+(.+?)(?:\.|\s+It\s+is|\s+This\s+is|\s+which\s+|$)",
+        text,
+        flags=re.IGNORECASE,
+    )
+
+    if carepack_for_match:
+        raw_value = carepack_for_match.group(1).strip()
+        machine_candidates = extract_machine_candidates(raw_value)
+
+        if machine_candidates:
+            normalized_list = [
+                normalize_machine_separator(candidate)
+                for candidate in machine_candidates
+            ]
+
+            value = " / ".join(normalized_list)
+            value = re.sub(r"\s*/\s*", " / ", value)
+            value = re.sub(r"\s{2,}", " ", value).strip()
+
+            if value and len(value) <= 150:
+                return value
+
+    # 2) General pattern: "for XXX."
     for_match = re.search(
-        r"\bfor\s+(.+?)(?:\s+It\s+is|\s+This\s+is|\s+which\s+|\s+includes|\s+with\s+the|\.\s|$)",
+        r"\bfor\s+(.+?)(?:\.|\s+It\s+is|\s+This\s+is|\s+which\s+|\s+includes|\s+with\s+the|$)",
         text,
         flags=re.IGNORECASE,
     )
@@ -208,35 +267,10 @@ def extract_target_machine_from_text(page_text: str, fallback_machine: str) -> s
         machine_candidates = extract_machine_candidates(raw_value)
 
         if machine_candidates:
-            normalized_list = []
-
-            for candidate in machine_candidates:
-                normalized = normalize_machine_separator(candidate)
-                normalized_list.append(normalized)
-
-            value = " / ".join(normalized_list)
-            value = re.sub(r"\s*/\s*", " / ", value)
-            value = re.sub(r"\s{2,}", " ", value).strip()
-
-            if value and len(value) <= 150:
-                return value
-
-    # 2) 本文全体から "(Carepack) for xxx" の形を追加で探す
-    carepack_for_match = re.search(
-        r"\(Carepack\)\s+for\s+(.+?)(?:\.|\s+It\s+is|\s+This\s+is|\s+which\s+|$)",
-        text,
-        flags=re.IGNORECASE,
-    )
-
-    if carepack_for_match:
-        raw_value = carepack_for_match.group(1).strip()
-        machine_candidates = extract_machine_candidates(raw_value)
-
-        if machine_candidates:
-            normalized_list = []
-
-            for candidate in machine_candidates:
-                normalized_list.append(normalize_machine_separator(candidate))
+            normalized_list = [
+                normalize_machine_separator(candidate)
+                for candidate in machine_candidates
+            ]
 
             value = " / ".join(normalized_list)
             value = re.sub(r"\s*/\s*", " / ", value)
@@ -245,7 +279,7 @@ def extract_target_machine_from_text(page_text: str, fallback_machine: str) -> s
             if value and len(value) <= 150:
                 return value
 
-    # 3) Model / Models / Applicable model / Machine の表記から取得
+    # 3) Fallback: Model / Models / Applicable model / Machine labels
     label_patterns = [
         r"\bApplicable\s+models?\s*:\s*(.*?)(?:\s+Subject\b|\s+Date\s*:|\s+Title\s*:|\s+Code\s*:|\s+Ref\s*No\.?\s*:|$)",
         r"\bModels?\s*:\s*(.*?)(?:\s+Subject\b|\s+Date\s*:|\s+Title\s*:|\s+Code\s*:|\s+Ref\s*No\.?\s*:|$)",
@@ -269,15 +303,16 @@ def extract_target_machine_from_text(page_text: str, fallback_machine: str) -> s
 
 def extract_pdf_info(pdf_path: Path):
     """
-    PDF第一页から以下を抽出:
+    Extract from the first page:
       - Date
       - Bulletin Code
-      - Machine
+      - Target Machine
     """
     date_value = "-"
     bulletin_code = "-"
 
     fallback_model = pdf_path.stem
+
     if fallback_model.startswith("IB_"):
         fallback_model = fallback_model[3:]
 
@@ -302,8 +337,10 @@ def extract_pdf_info(pdf_path: Path):
 
             for pattern in date_patterns:
                 match = re.search(pattern, text_one_line, re.IGNORECASE)
+
                 if match:
                     candidate = clean_text_value(match.group(1))
+
                     if candidate:
                         date_value = candidate
                         break
@@ -318,8 +355,10 @@ def extract_pdf_info(pdf_path: Path):
 
             for pattern in code_patterns:
                 match = re.search(pattern, text_one_line, re.IGNORECASE)
+
                 if match:
                     candidate = clean_text_value(match.group(1))
+
                     if candidate:
                         bulletin_code = candidate
                         break
@@ -345,8 +384,13 @@ def get_folder_mtime() -> float:
     return latest
 
 
-@st.cache_data(show_spinner=False)
 def build_carepack_data(folder_mtime: float):
+    """
+    Build Care Pack data from PDF files.
+
+    Cache is intentionally disabled to avoid old Machine values remaining
+    after updating the extraction logic.
+    """
     data = []
 
     if not CAREPACK_DIR.exists():
@@ -358,6 +402,7 @@ def build_carepack_data(folder_mtime: float):
         file_name = pdf_file.name
 
         model = pdf_file.stem
+
         if model.startswith("IB_"):
             model = model[3:]
 
@@ -1070,7 +1115,7 @@ elif view == "📦  Care Pack":
         with col1:
             keyword = st.text_input(
                 "Search Care Pack",
-                placeholder="Example: BQ300, AF-764AKLL, AS23122025-1, Dec. 23rd...",
+                placeholder="Example: BQ300, AFV-564, AS23122025-1, Dec. 23rd...",
                 key="carepack_keyword",
             )
 
