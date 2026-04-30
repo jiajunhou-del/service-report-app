@@ -9,11 +9,7 @@ import base64
 BASE_DIR = Path(__file__).resolve().parent.parent
 ASSETS_DIR = BASE_DIR / "assets"
 
-# Slack login / workspace page only
 SLACK_URL = "https://app.slack.com/"
-
-# Update Notes link
-# 以后如果你有正式的 HAI Search 更新说明链接，把这里替换掉即可
 UPDATE_NOTES_URL = "#"
 
 
@@ -52,11 +48,15 @@ def apply_hai_css():
         """
         <style>
         .hai-hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 340px;
+            gap: 34px;
+            align-items: center;
             background:
                 radial-gradient(circle at right top, rgba(255,255,255,0.18), transparent 32%),
                 linear-gradient(135deg, #1e3a8a 0%, #2563eb 58%, #38bdf8 100%);
             border-radius: 32px;
-            padding: 36px 40px;
+            padding: 40px 44px;
             box-shadow: 0 18px 42px rgba(37,99,235,0.22);
             margin-bottom: 26px;
         }
@@ -77,25 +77,26 @@ def apply_hai_css():
             display: flex;
             align-items: center;
             gap: 18px;
-            margin-bottom: 16px;
+            margin-bottom: 18px;
         }
 
         .hai-title-logo {
-            width: 64px;
-            height: 64px;
+            width: 66px;
+            height: 66px;
             border-radius: 18px;
-            background: rgba(255,255,255,0.16);
-            border: 1px solid rgba(255,255,255,0.25);
+            background: rgba(255,255,255,0.96);
+            border: 1px solid rgba(255,255,255,0.28);
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
             flex-shrink: 0;
+            padding: 8px;
         }
 
         .hai-title-logo img {
-            max-width: 88%;
-            max-height: 88%;
+            max-width: 100%;
+            max-height: 100%;
             object-fit: contain;
         }
 
@@ -115,9 +116,44 @@ def apply_hai_css():
             margin-top: 12px;
         }
 
+        .hai-hero-button-row {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-top: 28px;
+        }
+
+        .hai-hero-button-main {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 13px 22px;
+            border-radius: 15px;
+            background: #ffffff;
+            color: #1d4ed8 !important;
+            font-weight: 900;
+            font-size: 15px;
+            text-decoration: none !important;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+        }
+
+        .hai-hero-button-sub {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 13px 22px;
+            border-radius: 15px;
+            background: rgba(255,255,255,0.15);
+            color: #ffffff !important;
+            font-weight: 900;
+            font-size: 15px;
+            text-decoration: none !important;
+            border: 1px solid rgba(255,255,255,0.28);
+        }
+
         .hai-hero-logo-panel {
-            background: rgba(255,255,255,0.14);
-            border: 1px solid rgba(255,255,255,0.22);
+            background: rgba(255,255,255,0.16);
+            border: 1px solid rgba(255,255,255,0.25);
             border-radius: 26px;
             padding: 18px;
             min-height: 240px;
@@ -274,18 +310,12 @@ def apply_hai_css():
             border: 1px solid #dbeafe !important;
         }
 
-        .primary-link div.stLinkButton > a {
-            background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%) !important;
-            color: white !important;
-            border: none !important;
-        }
-
-        .secondary-link div.stLinkButton > a {
-            background: #ffffff !important;
-            color: #2563eb !important;
-        }
-
         @media (max-width: 900px) {
+            .hai-hero {
+                grid-template-columns: 1fr;
+                padding: 30px 26px;
+            }
+
             .hai-title-text {
                 font-size: 40px;
             }
@@ -310,70 +340,69 @@ def render_hai_search():
     logo_path = find_hai_logo()
     logo_b64 = image_to_base64(logo_path) if logo_path else None
 
-    # =========================
-    # Hero
-    # =========================
-    hero_left, hero_right = st.columns([4.3, 1.5], gap="large")
+    if logo_b64:
+        small_logo_html = f"""
+        <div class="hai-title-logo">
+            <img src="data:image/png;base64,{logo_b64}">
+        </div>
+        """
 
-    with hero_left:
-        st.markdown('<div class="hai-hero">', unsafe_allow_html=True)
-
-        st.markdown(
-            '<div class="hai-badge">Internal AI Search Assistant</div>',
-            unsafe_allow_html=True,
-        )
-
-        if logo_b64:
-            st.markdown(
-                f"""
-                <div class="hai-title-row">
-                    <div class="hai-title-logo">
-                        <img src="data:image/png;base64,{logo_b64}">
-                    </div>
-                    <div class="hai-title-text">HAI Search</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-        else:
-            st.markdown(
-                """
-                <div class="hai-title-row">
-                    <div class="hai-title-text">HAI Search</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-        st.markdown(
-            """
-            <div class="hai-subtitle">
-                Search internal technical knowledge, service information, manuals, bulletins,
-                and troubleshooting data more efficiently.
-                <br><br>
-                This page is an entrance portal for HAI Search guidance, update notes,
-                usage tips, and future support links.
+        big_logo_html = f"""
+        <div class="hai-hero-logo-panel">
+            <div class="hai-hero-logo-inner">
+                <img src="data:image/png;base64,{logo_b64}">
             </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        </div>
+        """
+    else:
+        small_logo_html = ""
 
-        st.markdown("</div>", unsafe_allow_html=True)
+        big_logo_html = """
+        <div class="hai-hero-logo-panel">
+            <div class="hai-hero-logo-inner" style="color:#667085;text-align:center;line-height:1.8;">
+                Logo image not found.<br>
+                Please place it in the assets folder.
+            </div>
+        </div>
+        """
 
-    with hero_right:
-        st.markdown('<div class="hai-hero-logo-panel">', unsafe_allow_html=True)
-        st.markdown('<div class="hai-hero-logo-inner">', unsafe_allow_html=True)
+    # =========================
+    # Hero - one complete HTML block
+    # =========================
+    st.markdown(
+        f"""
+        <div class="hai-hero">
+            <div>
+                <div class="hai-badge">Internal AI Search Assistant</div>
 
-        if logo_path and logo_path.exists():
-            st.image(str(logo_path), use_container_width=True)
-        else:
-            st.markdown(
-                "<div style='color:#667085;text-align:center;'>Logo image not found.<br>Please place it in the assets folder.</div>",
-                unsafe_allow_html=True,
-            )
+                <div class="hai-title-row">
+                    {small_logo_html}
+                    <div class="hai-title-text">HAI Search</div>
+                </div>
 
-        st.markdown("</div>", unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+                <div class="hai-subtitle">
+                    Search internal technical knowledge, service information, manuals, bulletins,
+                    and troubleshooting data more efficiently.
+                    <br><br>
+                    This page is an entrance portal for HAI Search guidance, update notes,
+                    usage tips, and future support links.
+                </div>
+
+                <div class="hai-hero-button-row">
+                    <a class="hai-hero-button-main" href="{SLACK_URL}" target="_blank">
+                        🚀 Open Slack
+                    </a>
+                    <a class="hai-hero-button-sub" href="#hai-guide">
+                        📘 Usage Guide
+                    </a>
+                </div>
+            </div>
+
+            {big_logo_html}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     # =========================
     # Recommended Use
@@ -417,10 +446,7 @@ def render_hai_search():
             """,
             unsafe_allow_html=True,
         )
-
-        st.markdown('<div class="primary-link">', unsafe_allow_html=True)
         st.link_button("🚀 Open Slack", SLACK_URL, use_container_width=True)
-        st.markdown("</div>", unsafe_allow_html=True)
 
     with entry_col2:
         st.markdown(
@@ -436,10 +462,7 @@ def render_hai_search():
             """,
             unsafe_allow_html=True,
         )
-
-        st.markdown('<div class="secondary-link">', unsafe_allow_html=True)
         st.link_button("📘 View Update Notes", UPDATE_NOTES_URL, use_container_width=True)
-        st.markdown("</div>", unsafe_allow_html=True)
 
     # =========================
     # Guide
