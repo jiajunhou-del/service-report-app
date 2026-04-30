@@ -1,7 +1,7 @@
 import streamlit as st
-import pandas as pd
 
 from pages_custom.care_pack import render_care_pack
+from pages_custom.ice_link_report import render_ice_link_report
 
 
 # =========================
@@ -403,39 +403,14 @@ if st.sidebar.button("Logout", use_container_width=True):
 
 
 # =========================
-# Page: iCE LiNK Report
+# Page Switch
 # =========================
 if view == "📊  iCE LiNK Report":
-    page_header(
-        "📊 iCE LiNK Report",
-        "Review iCE LiNK report data, production trends, and machine performance.",
-    )
+    render_ice_link_report()
 
-    st.info("ここに iCE LiNK Report のデータ、グラフ、PDF 出力などを追加できます。")
-
-    sample_df = pd.DataFrame(
-        {
-            "Date": ["2026-04-01", "2026-04-02", "2026-04-03", "2026-04-04"],
-            "Production": [1200, 1350, 1280, 1420],
-            "Run Hours": [8.1, 8.4, 7.9, 8.6],
-            "Hourly Productivity": [148.1, 160.7, 162.0, 165.1],
-        }
-    )
-
-    st.dataframe(sample_df, use_container_width=True, hide_index=True)
-    st.line_chart(sample_df.set_index("Date")[["Production", "Run Hours", "Hourly Productivity"]])
-
-
-# =========================
-# Page: Care Pack
-# =========================
 elif view == "📦  Care Pack":
     render_care_pack()
 
-
-# =========================
-# Page: HAI Search
-# =========================
 elif view == "🤖  HAI Search":
     page_header(
         "🤖 HAI Search",
@@ -444,20 +419,18 @@ elif view == "🤖  HAI Search":
 
     st.info("ここに HAI Search の利用状況、検索件数、改善内容、FAQ などを追加できます。")
 
-    hai_df = pd.DataFrame(
-        {
-            "Item": [
-                "Total Users",
-                "Total Queries",
-                "Successful Answers",
-            ],
-            "Value": [
-                200,
-                1580,
-                1425,
-            ],
-        }
-    )
+    hai_df = {
+        "Item": [
+            "Total Users",
+            "Total Queries",
+            "Successful Answers",
+        ],
+        "Value": [
+            200,
+            1580,
+            1425,
+        ],
+    }
 
     st.dataframe(hai_df, use_container_width=True, hide_index=True)
 
