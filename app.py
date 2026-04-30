@@ -4,7 +4,6 @@ import pandas as pd
 import re
 import base64
 
-
 # =========================
 # Basic Page Settings
 # =========================
@@ -15,11 +14,326 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-
 # =========================
 # Login Settings
 # =========================
 APP_PASSWORD = "ts123"
+
+# =========================
+# Paths / Constants
+# =========================
+CAREPACK_DIR = Path("carepack_bulletins")
+ASSET_DIR = Path("assets")
+CAREPACK_IMAGE = ASSET_DIR / "carepack.png"
+TARGET_MODELS = 60
+
+
+# =========================
+# Session State Init
+# =========================
+if "logged_in" not in st.session_state:
+    st.session_state["logged_in"] = False
+
+if "carepack_keyword" not in st.session_state:
+    st.session_state["carepack_keyword"] = ""
+
+if "carepack_show_all" not in st.session_state:
+    st.session_state["carepack_show_all"] = False
+
+
+# =========================
+# Helper Functions
+# =========================
+def image_to_base64(image_path: Path) -> str:
+    if not image_path.exists():
+        return ""
+
+    suffix = image_path.suffix.lower()
+    if suffix in [".jpg", ".jpeg"]:
+        mime = "image/jpeg"
+    elif suffix == ".webp":
+        mime = "image/webp"
+    else:
+        mime = "image/png"
+
+    with open(image_path, "rb") as image_file:
+        encoded = base64.b64encode(image_file.read()).decode("utf-8")
+
+    return f"data:{mime};base64,{encoded}"
+
+
+def normalize_spaces(text: str) -> str:
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def clean_model_text(text: str) -> str:
+    text = text.strip(" .,:;/-")
+    text = re.sub(r"\s{2,}", " ", text)
+    return text
+
+
+def extract_models_from_text(page_text: str, fallback_model: str) -> str:
+    """
+    PDF内の記載から Machine 名を優先抽出する
+    例:
+      - for AF-764AKLL and AF-784AKLL
+      - Model: AF-764AKLL / AF-784AKLL
+      - Applicable model: xxxx
+    """
+    text = normalize_spaces(page_text)
+
+    patterns = [
+        r"\bfor\s+([A-Z0-9][A-Z0-9\-\/\s,＆&and]+?)(?:\s+(?:Date:|Title:|Ref No\.?:|Code:|$))",
+        r"\bModels?\s*:\s*([A-Z0-9][A-Z0-9\-\/\s,＆&and]+?)(?:\s+(?:Date:|Title:|Ref No\.?:|Code:|$))",
+        r"\bModel\s*:\s*([A-Z0-9][A-Z0-9\-\/\s,＆&and]+?)(?:\s+(?:Date:|Title:|Ref No\.?:|Code:|$))",
+        r"\bApplicable\s+model[s]?\s*:\s*([A-Z0-9][A-Z0-9\-\/\s,＆&and]+?)(?:\s+(?:Date:|Title:|Ref No\.?:|Code:|$))",
+        r"\bMachine\s*:\s*([A-Z0-9][A-Z0-9\-\/\s,＆&and]+?)(?:\s+(?:Date:|Title:|Ref No\.?:|Code:|$))",
+    ]
+
+    for pattern in patterns:
+        m = re.search(pattern, text, re.IGNORECASE)
+        if m:
+            value = clean_model_text(m.group(1))
+            # 过长时防止整段误吃进去
+            if 2 <= len(value) <= 120:
+                return value
+
+    return fallback_model
+
+
+def extract_pdf_info(pdf_path: Path):
+    """
+    从PDF第一页尽量提取:
+    - date
+    - bulletin code
+    - machine/model
+    """
+    date_value = "-"
+    bulletin_code = "-"
+    machine_value = "-"
+
+    fallback_model = pdf_path.stem
+    if fallback_model.startswith("IB_"):
+        fallback_model = fallback_model[3:]
+    fallback_machine = fallback_model.replace("-CRP", "")
+
+    try:
+        import fitz  # PyMuPDF
+
+        with fitz.open(pdf_path) as doc:
+            if len(doc) == 0:
+                return date_value, bulletin_code, fallback_machine
+
+            page = doc.load_page(0)
+            text = page.get_text()
+            text_one_line = normalize_spaces(text)
+
+            # -------------------------
+            # Date
+            # -------------------------
+            date_patterns = [
+                r"Date\s*:\s*(.*?)(?:\s+Title\s*:|\s+Ref\s*No\.?\s*:|\s+Model\s*:|\s+Machine\s*:|\s+Carepack\s*Code\s*:|$)",
+                r"\bIssued\s+on\s*:\s*(.*?)(?:\s+Title\s*:|\s+Ref\s*No\.?\s*:|\s+Model\s*:|\s+Machine\s*:|\s+Carepack\s*Code\s*:|$)",
+            ]
+            for pattern in date_patterns:
+                m = re.search(pattern, text_one_line, re.IGNORECASE)
+                if m:
+                    candidate = clean_model_text(m.group(1))
+                    if candidate:
+                        date_value = candidate
+                        break
+
+            # -------------------------
+            # Bulletin Code
+            # -------------------------
+            code_patterns = [
+                r"Carepack\s*Code\s*:\s*([A-Z0-9\-]+)",
+                r"Bulletin\s*Code\s*:\s*([A-Z0-9\-]+)",
+                r"Ref\s*No\.?\s*:\s*([A-Z0-9\-]+)",
+                r"Code\s*:\s*([A-Z]{1,6}[0-9]{4,12}(?:-[0-9A-Z]+)?)",
+            ]
+            for pattern in code_patterns:
+                m = re.search(pattern, text_one_line, re.IGNORECASE)
+                if m:
+                    candidate = m.group(1).strip()
+                    if candidate:
+                        bulletin_code = candidate
+                        break
+
+            # -------------------------
+            # Machine / Model
+            # -------------------------
+            machine_value = extract_models_from_text(text, fallback_machine)
+
+    except Exception:
+        machine_value = fallback_machine
+
+    return date_value, bulletin_code, machine_value
+
+
+@st.cache_data(show_spinner=False)
+def build_carepack_data(folder_mtime: float):
+    data = []
+
+    if not CAREPACK_DIR.exists():
+        return data
+
+    pdf_files = sorted(CAREPACK_DIR.glob("*.pdf"))
+
+    for pdf_file in pdf_files:
+        file_name = pdf_file.name
+
+        model = pdf_file.stem
+        if model.startswith("IB_"):
+            model = model[3:]
+
+        date_value, bulletin_code, machine = extract_pdf_info(pdf_file)
+
+        data.append(
+            {
+                "model": model,
+                "machine": machine if machine else model.replace("-CRP", ""),
+                "bulletin_code": bulletin_code,
+                "date": date_value,
+                "file": file_name,
+            }
+        )
+
+    return data
+
+
+def get_folder_mtime():
+    if not CAREPACK_DIR.exists():
+        return 0.0
+    latest = CAREPACK_DIR.stat().st_mtime
+    for f in CAREPACK_DIR.glob("*.pdf"):
+        latest = max(latest, f.stat().st_mtime)
+    return latest
+
+
+def show_pdf_preview(pdf_path: Path, max_pages: int = 5):
+    try:
+        import fitz
+
+        with fitz.open(pdf_path) as doc:
+            total_pages = len(doc)
+            preview_pages = min(total_pages, max_pages)
+
+            if total_pages > max_pages:
+                st.caption(f"Showing first {max_pages} pages only. Total pages: {total_pages}")
+
+            for page_number in range(preview_pages):
+                page = doc.load_page(page_number)
+                pix = page.get_pixmap(matrix=fitz.Matrix(1.5, 1.5), alpha=False)
+                image_bytes = pix.tobytes("png")
+
+                st.image(
+                    image_bytes,
+                    caption=f"Page {page_number + 1}",
+                    use_container_width=True,
+                )
+
+    except Exception as e:
+        st.error(f"PDF preview failed: {e}")
+
+
+def search_carepack(data, keyword: str, show_all: bool):
+    if show_all:
+        return data
+
+    keyword = keyword.lower().strip()
+    if not keyword:
+        return []
+
+    results = []
+    for item in data:
+        search_target = " ".join(
+            [
+                str(item.get("model", "")),
+                str(item.get("machine", "")),
+                str(item.get("bulletin_code", "")),
+                str(item.get("date", "")),
+                str(item.get("file", "")),
+            ]
+        ).lower()
+
+        if keyword in search_target:
+            results.append(item)
+
+    return results
+
+
+def page_header(title, subtitle):
+    st.markdown(f"<div class='main-title'>{title}</div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='sub-title'>{subtitle}</div>", unsafe_allow_html=True)
+
+
+def render_carepack_hero():
+    image_src = image_to_base64(CAREPACK_IMAGE)
+
+    if image_src:
+        image_html = f"""
+        <div class="carepack-hero-image-wrap">
+            <img class="carepack-hero-image" src="{image_src}" alt="Care Pack image">
+        </div>
+        """
+    else:
+        image_html = """
+        <div class="carepack-hero-image-wrap">
+            <div class="carepack-hero-fallback">📦</div>
+        </div>
+        """
+
+    st.markdown(
+        f"""
+        <div class="carepack-hero">
+            <div class="carepack-hero-text">
+                <div class="carepack-hero-title">📦 Care Pack</div>
+                <div class="carepack-hero-subtitle">
+                    Search, preview, and download Care Pack Information Bulletins.
+                    You can search by model name, machine name, file name, Bulletin Code, or Date.
+                    New PDFs will be displayed automatically after being uploaded to the carepack_bulletins folder.
+                </div>
+            </div>
+            {image_html}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_carepack_progress(data):
+    current_count = len(data)
+
+    if TARGET_MODELS <= 0:
+        percent = 0
+        progress_ratio = 0.0
+    else:
+        percent = round((current_count / TARGET_MODELS) * 100)
+        progress_ratio = min(current_count / TARGET_MODELS, 1.0)
+
+    total_blocks = 20
+    filled_blocks = round(progress_ratio * total_blocks)
+    filled_blocks = max(0, min(filled_blocks, total_blocks))
+
+    bar_text = "■" * filled_blocks + "□" * (total_blocks - filled_blocks)
+
+    st.markdown(
+        f"""
+        <div class="progress-card">
+            <div class="progress-title">Care Pack Progress</div>
+            <div class="progress-text">
+                {bar_text} {current_count}/{TARGET_MODELS} models ({percent}%)
+            </div>
+            <div class="progress-target">
+                (Target: All {TARGET_MODELS} models to be ready by the end of this fiscal year)
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.progress(progress_ratio)
 
 
 # =========================
@@ -258,9 +572,6 @@ def login_page():
                 st.error("Password is incorrect.")
 
 
-if "logged_in" not in st.session_state:
-    st.session_state["logged_in"] = False
-
 if not st.session_state["logged_in"]:
     login_page()
     st.stop()
@@ -357,26 +668,6 @@ st.markdown(
         font-size: 16px;
         color: #667085;
         margin-bottom: 28px;
-    }
-
-    .metric-card {
-        padding: 24px;
-        border-radius: 24px;
-        background: #ffffff;
-        box-shadow: 0 12px 32px rgba(15,23,42,0.08);
-        border: 1px solid #e5e7eb;
-    }
-
-    .metric-label {
-        color: #667085;
-        font-size: 14px;
-        margin-bottom: 8px;
-    }
-
-    .metric-value {
-        color: #1f2a44;
-        font-size: 32px;
-        font-weight: 900;
     }
 
     .carepack-hero {
@@ -496,6 +787,7 @@ st.markdown(
         letter-spacing: 0.5px;
         margin-bottom: 8px;
         line-height: 1.5;
+        word-break: break-word;
     }
 
     .progress-target {
@@ -521,255 +813,11 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-
 # =========================
-# Data Settings
+# Data Load
 # =========================
-CAREPACK_DIR = Path("carepack_bulletins")
-ASSET_DIR = Path("assets")
-CAREPACK_IMAGE = ASSET_DIR / "carepack.png"
-TARGET_MODELS = 60
-
-
-def image_to_base64(image_path: Path):
-    if not image_path.exists():
-        return ""
-
-    suffix = image_path.suffix.lower()
-
-    if suffix in [".jpg", ".jpeg"]:
-        mime = "image/jpeg"
-    elif suffix == ".webp":
-        mime = "image/webp"
-    else:
-        mime = "image/png"
-
-    with open(image_path, "rb") as image_file:
-        encoded = base64.b64encode(image_file.read()).decode("utf-8")
-
-    return f"data:{mime};base64,{encoded}"
-
-
-def extract_pdf_info(pdf_path: Path):
-    date_value = "-"
-    bulletin_code = "-"
-
-    try:
-        import fitz
-
-        doc = fitz.open(pdf_path)
-
-        if len(doc) == 0:
-            return date_value, bulletin_code
-
-        text = doc.load_page(0).get_text()
-        text_one_line = " ".join(text.split())
-
-        date_match = re.search(
-            r"Date:\s*(.*?)(?:\s+Title:|\s+Ref No\.?:|\s+Model:|$)",
-            text_one_line,
-            re.IGNORECASE,
-        )
-
-        if date_match:
-            date_value = date_match.group(1).strip()
-
-        bulletin_match = re.search(
-            r"Title:\s*Carepack\s*Code:\s*([A-Z0-9-]+)",
-            text_one_line,
-            re.IGNORECASE,
-        )
-
-        if bulletin_match:
-            bulletin_code = bulletin_match.group(1).strip()
-
-        if bulletin_code == "-":
-            fallback_match = re.search(
-                r"Carepack\s*Code:\s*([A-Z0-9-]+)",
-                text_one_line,
-                re.IGNORECASE,
-            )
-            if fallback_match:
-                bulletin_code = fallback_match.group(1).strip()
-
-        if bulletin_code == "-":
-            fallback_match = re.search(
-                r"Code:\s*([A-Z]{1,4}[0-9]{6,8}-[0-9]+)",
-                text_one_line,
-                re.IGNORECASE,
-            )
-            if fallback_match:
-                bulletin_code = fallback_match.group(1).strip()
-
-    except Exception:
-        pass
-
-    return date_value, bulletin_code
-
-
-def build_carepack_data():
-    data = []
-
-    if not CAREPACK_DIR.exists():
-        return data
-
-    pdf_files = sorted(CAREPACK_DIR.glob("*.pdf"))
-
-    for pdf_file in pdf_files:
-        file_name = pdf_file.name
-
-        model = pdf_file.stem
-        if model.startswith("IB_"):
-            model = model[3:]
-
-        machine = model.replace("-CRP", "")
-
-        date_value, bulletin_code = extract_pdf_info(pdf_file)
-
-        data.append(
-            {
-                "model": model,
-                "machine": machine,
-                "bulletin_code": bulletin_code,
-                "date": date_value,
-                "file": file_name,
-            }
-        )
-
-    return data
-
-
-CAREPACK_DATA = build_carepack_data()
-
-
-# =========================
-# Helper Functions
-# =========================
-def render_carepack_hero():
-    image_src = image_to_base64(CAREPACK_IMAGE)
-
-    if image_src:
-        image_html = f"""
-        <div class="carepack-hero-image-wrap">
-            <img class="carepack-hero-image" src="{image_src}" alt="Carepack image">
-        </div>
-        """
-    else:
-        image_html = """
-        <div class="carepack-hero-image-wrap">
-            <div class="carepack-hero-fallback">📦</div>
-        </div>
-        """
-
-    st.markdown(
-        f"""
-        <div class="carepack-hero">
-            <div class="carepack-hero-text">
-                <div class="carepack-hero-title">📦 Care Pack</div>
-                <div class="carepack-hero-subtitle">
-                    Search, preview, and download Care Pack Information Bulletins.
-                    You can search by model name, file name, Bulletin Code, or Date.
-                    New PDFs will be displayed automatically after being uploaded to the carepack_bulletins folder.
-                </div>
-            </div>
-            {image_html}
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
-def render_carepack_progress():
-    current_count = len(CAREPACK_DATA)
-
-    if TARGET_MODELS <= 0:
-        percent = 0
-        progress_ratio = 0
-    else:
-        percent = round((current_count / TARGET_MODELS) * 100)
-        progress_ratio = min(current_count / TARGET_MODELS, 1.0)
-
-    total_blocks = 20
-
-    if TARGET_MODELS <= 0:
-        filled_blocks = 0
-    else:
-        filled_blocks = round((current_count / TARGET_MODELS) * total_blocks)
-
-    filled_blocks = max(0, min(filled_blocks, total_blocks))
-    bar_text = "■" * filled_blocks + "□" * (total_blocks - filled_blocks)
-
-    st.markdown(
-        f"""
-        <div class="progress-card">
-            <div class="progress-title">Care Pack Progress</div>
-            <div class="progress-text">
-                {bar_text} {current_count}/{TARGET_MODELS} models ({percent}%)
-            </div>
-            <div class="progress-target">
-                (Target: All {TARGET_MODELS} models to be ready by the end of this fiscal year)
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    st.progress(progress_ratio)
-
-
-def show_pdf_preview(pdf_path: Path):
-    try:
-        import fitz
-
-        doc = fitz.open(pdf_path)
-
-        for page_number in range(len(doc)):
-            page = doc.load_page(page_number)
-            pix = page.get_pixmap(matrix=fitz.Matrix(1.6, 1.6))
-            image_bytes = pix.tobytes("png")
-
-            st.image(
-                image_bytes,
-                caption=f"Page {page_number + 1}",
-                use_container_width=True,
-            )
-
-    except Exception as e:
-        st.error(f"PDF preview failed: {e}")
-
-
-def search_carepack(keyword: str, show_all: bool):
-    if show_all:
-        return CAREPACK_DATA
-
-    keyword = keyword.lower().strip()
-
-    if not keyword:
-        return []
-
-    results = []
-
-    for item in CAREPACK_DATA:
-        search_target = " ".join(
-            [
-                item["model"],
-                item["machine"],
-                item["bulletin_code"],
-                item["date"],
-                item["file"],
-            ]
-        ).lower()
-
-        if keyword in search_target:
-            results.append(item)
-
-    return results
-
-
-def page_header(title, subtitle):
-    st.markdown(f"<div class='main-title'>{title}</div>", unsafe_allow_html=True)
-    st.markdown(f"<div class='sub-title'>{subtitle}</div>", unsafe_allow_html=True)
-
+folder_mtime = get_folder_mtime()
+CAREPACK_DATA = build_carepack_data(folder_mtime)
 
 # =========================
 # Sidebar
@@ -792,7 +840,6 @@ st.sidebar.caption("Horizon International")
 if st.sidebar.button("Logout", use_container_width=True):
     st.session_state["logged_in"] = False
     st.rerun()
-
 
 # =========================
 # Page: iCE LiNK Report
@@ -817,7 +864,6 @@ if view == "📊  iCE LiNK Report":
     st.dataframe(sample_df, use_container_width=True, hide_index=True)
     st.line_chart(sample_df.set_index("Date")[["Production", "Run Hours", "Hourly Productivity"]])
 
-
 # =========================
 # Page: Care Pack
 # =========================
@@ -837,26 +883,31 @@ elif view == "📦  Care Pack":
         with col1:
             keyword = st.text_input(
                 "Search Care Pack",
-                placeholder="Example: BQ300, CF400, VAC1, AF406F, AS23122025-1, Dec. 23rd...",
+                placeholder="Example: BQ300, AF-764AKLL, AS23122025-1, Dec. 23rd...",
+                key="carepack_keyword",
             )
 
         with col2:
             st.write("")
             st.write("")
-            show_all = st.button("Show All", use_container_width=True)
+            if st.button("Show All", use_container_width=True):
+                st.session_state["carepack_show_all"] = True
 
         with col3:
             st.write("")
             st.write("")
-            clear_search = st.button("Clear", use_container_width=True)
+            if st.button("Clear", use_container_width=True):
+                st.session_state["carepack_keyword"] = ""
+                st.session_state["carepack_show_all"] = False
+                st.rerun()
 
-    if clear_search:
-        keyword = ""
-        show_all = False
+    results = search_carepack(
+        CAREPACK_DATA,
+        st.session_state["carepack_keyword"],
+        st.session_state["carepack_show_all"],
+    )
 
-    results = search_carepack(keyword, show_all)
-
-    if not keyword and not show_all:
+    if not st.session_state["carepack_keyword"] and not st.session_state["carepack_show_all"]:
         st.info("Enter a keyword or click **Show All** to display Care Pack bulletins.")
 
         overview_df = pd.DataFrame(
@@ -873,7 +924,7 @@ elif view == "📦  Care Pack":
         )
 
         st.dataframe(overview_df, use_container_width=True, hide_index=True)
-        render_carepack_progress()
+        render_carepack_progress(CAREPACK_DATA)
 
     else:
         st.markdown(f"### Search results: {len(results)}")
@@ -921,13 +972,15 @@ elif view == "📦  Care Pack":
 
                     with col_a:
                         with open(pdf_path, "rb") as f:
-                            st.download_button(
-                                label="📥 Download PDF",
-                                data=f,
-                                file_name=item["file"],
-                                mime="application/pdf",
-                                use_container_width=True,
-                            )
+                            pdf_bytes = f.read()
+
+                        st.download_button(
+                            label="📥 Download PDF",
+                            data=pdf_bytes,
+                            file_name=item["file"],
+                            mime="application/pdf",
+                            use_container_width=True,
+                        )
 
                     with col_b:
                         st.caption("PDF is available.")
@@ -943,8 +996,7 @@ elif view == "📦  Care Pack":
 
             st.write("")
 
-        render_carepack_progress()
-
+        render_carepack_progress(CAREPACK_DATA)
 
 # =========================
 # Page: HAI Search
