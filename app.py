@@ -82,15 +82,96 @@ def clean_text_value(text: str) -> str:
     return text
 
 
+def expand_slash_machine_name(machine_text: str) -> str:
+    """
+    Examples:
+      AFV-564/566SA -> AFV-564 / AFV-566SA
+      AF-764/784AKLL -> AF-764 / AF-784AKLL
+      RD-N4055/RD-N4055DM -> RD-N4055 / RD-N4055DM
+    """
+    machine_text = clean_text_value(machine_text)
+    machine_text = re.sub(r"\s*/\s*", "/", machine_text)
+
+    if "/" not in machine_text:
+        return machine_text
+
+    parts = machine_text.split("/")
+    if len(parts) < 2:
+        return machine_text
+
+    first = parts[0].strip()
+    expanded = [first]
+
+    prefix_match = re.match(r"^([A-Z]+-?)(.*)$", first, flags=re.IGNORECASE)
+
+    if prefix_match:
+        prefix = prefix_match.group(1)
+
+        for part in parts[1:]:
+            part = part.strip()
+
+            if re.match(r"^[A-Z]+-?", part, flags=re.IGNORECASE):
+                expanded.append(part)
+            else:
+                expanded.append(prefix + part)
+    else:
+        expanded.extend([p.strip() for p in parts[1:]])
+
+    return " / ".join(expanded)
+
+
 def normalize_machine_separator(text: str) -> str:
     text = clean_text_value(text)
+
     text = re.sub(r"\s+and\s+", " / ", text, flags=re.IGNORECASE)
     text = re.sub(r"\s+＆\s+", " / ", text)
     text = re.sub(r"\s*&\s*", " / ", text)
     text = re.sub(r"\s*,\s*", " / ", text)
-    text = re.sub(r"\s*/\s*", " / ", text)
     text = re.sub(r"\s{2,}", " ", text)
+
+    groups = [g.strip() for g in re.split(r"\s*/\s*", text) if g.strip()]
+
+    if len(groups) == 2:
+        combined = "/".join(groups)
+        return expand_slash_machine_name(combined)
+
+    if "/" in text:
+        return expand_slash_machine_name(text)
+
     return text.strip()
+
+
+def extract_machine_candidates(raw_text: str):
+    """
+    Extract machine-like candidates from text.
+    Supports:
+      AFV-564/566SA
+      RD-N4055 and RD-N4055DM
+      AF-764AKLL
+      BQ-300
+      VAC-1000
+    """
+    candidates = re.findall(
+        r"[A-Z]{1,8}(?:-[A-Z])?-?[A-Z]?[0-9]{1,5}[A-Z0-9]*(?:/[A-Z]?[0-9]{1,5}[A-Z0-9]*)?",
+        raw_text,
+        flags=re.IGNORECASE,
+    )
+
+    cleaned = []
+
+    for candidate in candidates:
+        candidate = clean_text_value(candidate)
+
+        if not candidate:
+            continue
+
+        # Avoid picking bulletin code like AS27032026-3 as machine name
+        if re.match(r"^[A-Z]{1,4}[0-9]{6,12}-[0-9A-Z]+$", candidate, flags=re.IGNORECASE):
+            continue
+
+        cleaned.append(candidate)
+
+    return cleaned
 
 
 def extract_target_machine_from_text(page_text: str, fallback_machine: str) -> str:
@@ -98,27 +179,73 @@ def extract_target_machine_from_text(page_text: str, fallback_machine: str) -> s
     PDF本文から対象機種を抽出する。
     優先例:
       - for AF-764AKLL and AF-784AKLL
-      - for BQ-300
-      - Model: AF-764AKLL / AF-784AKLL
+      - for AFV-564/566SA
+      - for RD-N4055 and RD-N4055DM
+      - Model: AFV56SA-CRP
 
     取れない場合は fallback_machine を返す。
     """
     text = normalize_spaces(page_text)
 
-    # 1) 本文の "for xxx and yyy" を最優先で取得
-    for_patterns = [
-        r"\bfor\s+([A-Z]{1,6}-?\d{2,5}[A-Z0-9]*(?:\s*(?:and|,|/|＆|&)\s*[A-Z]{1,6}-?\d{2,5}[A-Z0-9]*)*)",
-        r"\bfor\s+([A-Z]{1,8}\d{1,5}[A-Z0-9]*(?:\s*(?:and|,|/|＆|&)\s*[A-Z]{1,8}\d{1,5}[A-Z0-9]*)*)",
-    ]
+    # 1) Product Release Information の本文から "for xxx" を優先取得
+    # Example:
+    # This bulletin informs you about the release of the AFV56SA-CRP (Carepack) for AFV-564/566SA.
+    for_match = re.search(
+        r"\bfor\s+(.+?)(?:\s+It\s+is|\s+This\s+is|\s+which\s+|\s+includes|\s+with\s+the|\.\s|$)",
+        text,
+        flags=re.IGNORECASE,
+    )
 
-    for pattern in for_patterns:
-        match = re.search(pattern, text, re.IGNORECASE)
-        if match:
-            value = normalize_machine_separator(match.group(1))
-            if value and len(value) <= 120:
+    if for_match:
+        raw_value = for_match.group(1).strip()
+
+        raw_value = re.split(
+            r"\s+(?:and\s+it|which|that|including|includes|with|for\s+the)\s+",
+            raw_value,
+            flags=re.IGNORECASE,
+        )[0].strip()
+
+        machine_candidates = extract_machine_candidates(raw_value)
+
+        if machine_candidates:
+            normalized_list = []
+
+            for candidate in machine_candidates:
+                normalized = normalize_machine_separator(candidate)
+                normalized_list.append(normalized)
+
+            value = " / ".join(normalized_list)
+            value = re.sub(r"\s*/\s*", " / ", value)
+            value = re.sub(r"\s{2,}", " ", value).strip()
+
+            if value and len(value) <= 150:
                 return value
 
-    # 2) Model / Models / Applicable model / Machine の表記から取得
+    # 2) 本文全体から "(Carepack) for xxx" の形を追加で探す
+    carepack_for_match = re.search(
+        r"\(Carepack\)\s+for\s+(.+?)(?:\.|\s+It\s+is|\s+This\s+is|\s+which\s+|$)",
+        text,
+        flags=re.IGNORECASE,
+    )
+
+    if carepack_for_match:
+        raw_value = carepack_for_match.group(1).strip()
+        machine_candidates = extract_machine_candidates(raw_value)
+
+        if machine_candidates:
+            normalized_list = []
+
+            for candidate in machine_candidates:
+                normalized_list.append(normalize_machine_separator(candidate))
+
+            value = " / ".join(normalized_list)
+            value = re.sub(r"\s*/\s*", " / ", value)
+            value = re.sub(r"\s{2,}", " ", value).strip()
+
+            if value and len(value) <= 150:
+                return value
+
+    # 3) Model / Models / Applicable model / Machine の表記から取得
     label_patterns = [
         r"\bApplicable\s+models?\s*:\s*(.*?)(?:\s+Subject\b|\s+Date\s*:|\s+Title\s*:|\s+Code\s*:|\s+Ref\s*No\.?\s*:|$)",
         r"\bModels?\s*:\s*(.*?)(?:\s+Subject\b|\s+Date\s*:|\s+Title\s*:|\s+Code\s*:|\s+Ref\s*No\.?\s*:|$)",
@@ -128,9 +255,11 @@ def extract_target_machine_from_text(page_text: str, fallback_machine: str) -> s
 
     for pattern in label_patterns:
         match = re.search(pattern, text, re.IGNORECASE)
+
         if match:
             value = normalize_machine_separator(match.group(1))
             value = value.replace("-CRP", "")
+            value = clean_text_value(value)
 
             if value and 2 <= len(value) <= 120:
                 return value
