@@ -155,7 +155,7 @@ def render_goal_progress():
             <div class="goal-card">
                 <div class="goal-badge">🎯 Goal Management</div>
 
-                <div class="goal-title">Service Goal Progress Sheet</div>
+                <div class="goal-title">Goal Progress Sheet for SP Family</div>
 
                 <div class="goal-desc">
                     This page provides quick access to the shared goal progress sheet.
