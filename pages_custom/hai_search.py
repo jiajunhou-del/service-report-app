@@ -367,11 +367,11 @@ body {{
     width: 100%;
     min-height: 280px;
     background:
-        radial-gradient(circle at right center, rgba(239, 68, 68, 0.24), transparent 34%),
-        linear-gradient(135deg, #111827 0%, #26313f 58%, #ef4444 100%);
+        radial-gradient(circle at right center, rgba(214, 190, 176, 0.22), transparent 36%),
+        linear-gradient(135deg, #1f2c3f 0%, #2f435d 48%, #5f7691 78%, #d8c4ba 100%);
     border-radius: 32px;
     padding: 40px 46px;
-    box-shadow: 0 16px 36px rgba(17, 24, 39, 0.24);
+    box-shadow: 0 14px 30px rgba(31, 44, 63, 0.16);
 }}
 
 .hero-grid {{
@@ -382,8 +382,8 @@ body {{
 }}
 
 .logo-panel {{
-    background: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.20);
+    background: rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 28px;
     padding: 22px;
     min-height: 210px;
@@ -391,8 +391,8 @@ body {{
     align-items: center;
     justify-content: center;
     box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.16),
-        0 14px 30px rgba(0, 0, 0, 0.18);
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        0 10px 24px rgba(31, 44, 63, 0.16);
 }}
 
 .logo-box {{
@@ -417,12 +417,13 @@ body {{
     display: inline-block;
     padding: 9px 17px;
     border-radius: 999px;
-    background: rgba(239, 68, 68, 0.26);
-    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.20);
     color: #ffffff;
     font-weight: 800;
     font-size: 14px;
     margin-bottom: 22px;
+    backdrop-filter: blur(4px);
 }}
 
 .hero-text {{
@@ -431,6 +432,7 @@ body {{
     line-height: 1.9;
     font-weight: 650;
     max-width: 1080px;
+    text-shadow: 0 1px 10px rgba(31, 44, 63, 0.16);
 }}
 
 .hero-subtext {{
@@ -597,11 +599,8 @@ def prepare_usage_dataframe(raw_df: pd.DataFrame) -> pd.DataFrame:
         }
     )
 
-    # =========================
-    # Important Fix:
     # Remove summary / total rows from Excel.
-    # This prevents April data from being counted twice when the Excel file has a 合計 row.
-    # =========================
+    # This prevents monthly data from being counted twice when Excel has a 合計 row.
     summary_words = [
         "",
         "none",
