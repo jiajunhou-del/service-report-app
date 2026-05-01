@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 from pathlib import Path
 import pandas as pd
 import re
@@ -26,9 +27,6 @@ def apply_care_pack_css():
     st.markdown(
         """
 <style>
-/* =========================
-   Care Pack Base Theme
-========================= */
 .block-container {
     padding-top: 2rem;
 }
@@ -221,145 +219,6 @@ div[data-testid="stMetricValue"] {
 }
 
 /* =========================
-   Progress Card
-========================= */
-.progress-card {
-    background:
-        linear-gradient(135deg, #0f172a 0%, #1e3a8a 55%, #0ea5e9 100%);
-    border-radius: 28px;
-    padding: 28px 30px;
-    margin-top: 28px;
-    margin-bottom: 18px;
-    box-shadow: 0 24px 58px rgba(15,23,42,0.24);
-    color: white;
-    position: relative;
-    overflow: hidden;
-}
-
-.progress-card::after {
-    content: "";
-    position: absolute;
-    width: 240px;
-    height: 240px;
-    border-radius: 50%;
-    background: rgba(251,146,60,0.26);
-    right: -80px;
-    top: -80px;
-}
-
-.progress-inner {
-    position: relative;
-    z-index: 1;
-}
-
-.progress-top-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 20px;
-    margin-bottom: 18px;
-}
-
-.progress-title {
-    font-size: 22px;
-    font-weight: 950;
-    color: #ffffff;
-    margin-bottom: 6px;
-}
-
-.progress-subtitle {
-    font-size: 13px;
-    color: #bfdbfe;
-    line-height: 1.6;
-}
-
-.progress-percent {
-    min-width: 112px;
-    text-align: center;
-    padding: 12px 16px;
-    border-radius: 20px;
-    background: rgba(255,255,255,0.16);
-    border: 1px solid rgba(255,255,255,0.22);
-    backdrop-filter: blur(8px);
-}
-
-.progress-percent-number {
-    font-size: 30px;
-    font-weight: 950;
-    line-height: 1;
-    color: #ffffff;
-}
-
-.progress-percent-label {
-    font-size: 12px;
-    color: #dbeafe;
-    margin-top: 4px;
-    font-weight: 700;
-}
-
-.progress-bar-bg {
-    width: 100%;
-    height: 18px;
-    border-radius: 999px;
-    background: rgba(255,255,255,0.18);
-    overflow: hidden;
-    border: 1px solid rgba(255,255,255,0.18);
-    margin: 18px 0 14px 0;
-}
-
-.progress-bar-fill {
-    height: 100%;
-    border-radius: 999px;
-    background: linear-gradient(90deg, #f97316 0%, #facc15 100%);
-    box-shadow: 0 0 22px rgba(250,204,21,0.45);
-}
-
-.progress-bottom-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    flex-wrap: wrap;
-}
-
-.progress-count {
-    font-size: 20px;
-    font-weight: 950;
-    color: #ffffff;
-}
-
-.progress-target {
-    font-size: 13px;
-    color: #dbeafe;
-}
-
-.progress-status-good {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    padding: 8px 13px;
-    border-radius: 999px;
-    background: rgba(34,197,94,0.18);
-    color: #dcfce7;
-    border: 1px solid rgba(134,239,172,0.32);
-    font-size: 13px;
-    font-weight: 850;
-}
-
-.progress-status-warning {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    padding: 8px 13px;
-    border-radius: 999px;
-    background: rgba(251,146,60,0.18);
-    color: #ffedd5;
-    border: 1px solid rgba(253,186,116,0.34);
-    font-size: 13px;
-    font-weight: 850;
-}
-
-/* =========================
    Result Card
 ========================= */
 .result-title {
@@ -385,14 +244,6 @@ div[data-testid="stMetricValue"] {
     .carepack-hero-image-wrap {
         width: 100%;
         height: 240px;
-    }
-
-    .progress-top-row {
-        flex-direction: column;
-    }
-
-    .progress-percent {
-        width: 100%;
     }
 }
 </style>
@@ -446,12 +297,6 @@ def get_machine_prefix(machine_name: str) -> str:
 
 
 def expand_slash_machine_name(machine_text: str) -> str:
-    """
-    Examples:
-      AFV-564/566SA -> AFV-564 / AFV-566SA
-      AF-762KL/782KL -> AF-762KL / AF-782KL
-      RD-N4055/4055DM -> RD-N4055 / RD-N4055DM
-    """
     machine_text = clean_text_value(machine_text)
     machine_text = re.sub(r"\s*/\s*", "/", machine_text)
 
@@ -478,13 +323,6 @@ def expand_slash_machine_name(machine_text: str) -> str:
 
 
 def normalize_machine_separator(text: str) -> str:
-    """
-    Examples:
-      AFV-564/566SA -> AFV-564 / AFV-566SA
-      RD-N4055 and RD-N4055DM -> RD-N4055 / RD-N4055DM
-      CBF-SB -> CBF-SB
-      Stitch Liner MarkIV -> Stitch Liner MarkIV
-    """
     text = clean_text_value(text)
 
     text = re.sub(r"\s+and\s+", " / ", text, flags=re.IGNORECASE)
@@ -512,14 +350,6 @@ def is_bulletin_code_like(value: str) -> bool:
 
 
 def looks_like_machine_value(value: str) -> bool:
-    """
-    Accept:
-      CBF-SB
-      AFV-564
-      AFV-564/566SA
-      BBF-480 / EL-480
-      Stitch Liner MarkIV
-    """
     value = clean_text_value(value)
 
     if not value:
@@ -560,16 +390,6 @@ def looks_like_machine_value(value: str) -> bool:
 
 
 def extract_machine_candidates(raw_text: str):
-    """
-    Supports:
-      AFV-564/566SA
-      AF-762KL/782KL
-      RD-N4055 and RD-N4055DM
-      BQ-300
-      VAC-1000
-      CBF-SB
-      CBF-SB / CBF-SS
-    """
     raw_text = normalize_spaces(raw_text)
 
     patterns = [
@@ -601,13 +421,6 @@ def extract_machine_candidates(raw_text: str):
 
 
 def extract_target_machine_from_text(page_text: str, fallback_machine: str) -> str:
-    """
-    Priority:
-      1. Text after "(Carepack) for ..."
-      2. Text after "for ..."
-      3. Model / Machine label
-      4. Fallback from filename
-    """
     text = normalize_spaces(page_text)
 
     def finalize_candidate_list(machine_candidates):
@@ -634,7 +447,6 @@ def extract_target_machine_from_text(page_text: str, fallback_machine: str) -> s
 
     if carepack_for_match:
         raw_value = carepack_for_match.group(1).strip()
-
         machine_candidates = extract_machine_candidates(raw_value)
 
         if machine_candidates:
@@ -933,13 +745,160 @@ def render_carepack_progress(data):
     remaining = max(TARGET_MODELS - current_count, 0)
 
     if percent >= 80:
-        status_class = "progress-status-good"
         status_text = "🟢 On Track"
+        status_bg = "rgba(34,197,94,0.18)"
+        status_color = "#dcfce7"
+        status_border = "rgba(134,239,172,0.32)"
     else:
-        status_class = "progress-status-warning"
         status_text = "🟠 In Progress"
+        status_bg = "rgba(251,146,60,0.18)"
+        status_color = "#ffedd5"
+        status_border = "rgba(253,186,116,0.34)"
 
     progress_html = f"""
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body {{
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}}
+
+.progress-card {{
+    box-sizing: border-box;
+    width: 100%;
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 55%, #0ea5e9 100%);
+    border-radius: 28px;
+    padding: 28px 30px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 24px 58px rgba(15,23,42,0.24);
+}}
+
+.progress-card::after {{
+    content: "";
+    position: absolute;
+    width: 240px;
+    height: 240px;
+    border-radius: 50%;
+    background: rgba(251,146,60,0.26);
+    right: -80px;
+    top: -80px;
+}}
+
+.progress-inner {{
+    position: relative;
+    z-index: 1;
+}}
+
+.progress-top-row {{
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 18px;
+}}
+
+.progress-title {{
+    font-size: 22px;
+    font-weight: 900;
+    margin-bottom: 8px;
+}}
+
+.progress-subtitle {{
+    font-size: 13px;
+    color: #bfdbfe;
+    line-height: 1.6;
+}}
+
+.progress-percent {{
+    min-width: 112px;
+    text-align: center;
+    padding: 12px 16px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.16);
+    border: 1px solid rgba(255,255,255,0.22);
+}}
+
+.progress-percent-number {{
+    font-size: 32px;
+    font-weight: 950;
+    line-height: 1;
+}}
+
+.progress-percent-label {{
+    font-size: 12px;
+    color: #dbeafe;
+    margin-top: 5px;
+    font-weight: 700;
+}}
+
+.progress-bar-bg {{
+    width: 100%;
+    height: 18px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.18);
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.18);
+    margin: 18px 0 14px 0;
+}}
+
+.progress-bar-fill {{
+    height: 100%;
+    width: {fill_width}%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #f97316 0%, #facc15 100%);
+    box-shadow: 0 0 22px rgba(250,204,21,0.45);
+}}
+
+.progress-bottom-row {{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}}
+
+.progress-count {{
+    font-size: 20px;
+    font-weight: 900;
+}}
+
+.progress-target {{
+    font-size: 13px;
+    color: #dbeafe;
+    margin-top: 4px;
+}}
+
+.progress-status {{
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 13px;
+    border-radius: 999px;
+    background: {status_bg};
+    color: {status_color};
+    border: 1px solid {status_border};
+    font-size: 13px;
+    font-weight: 850;
+}}
+
+@media (max-width: 700px) {{
+    .progress-top-row {{
+        flex-direction: column;
+    }}
+
+    .progress-percent {{
+        width: 100%;
+        box-sizing: border-box;
+    }}
+}}
+</style>
+</head>
+
+<body>
 <div class="progress-card">
     <div class="progress-inner">
         <div class="progress-top-row">
@@ -957,7 +916,7 @@ def render_carepack_progress(data):
         </div>
 
         <div class="progress-bar-bg">
-            <div class="progress-bar-fill" style="width: {fill_width}%;"></div>
+            <div class="progress-bar-fill"></div>
         </div>
 
         <div class="progress-bottom-row">
@@ -966,15 +925,17 @@ def render_carepack_progress(data):
                 <div class="progress-target">{remaining} models remaining</div>
             </div>
 
-            <div class="{status_class}">
+            <div class="progress-status">
                 {status_text}
             </div>
         </div>
     </div>
 </div>
+</body>
+</html>
 """
 
-    st.markdown(progress_html, unsafe_allow_html=True)
+    components.html(progress_html, height=230, scrolling=False)
 
     st.link_button(
         "📊 View Progress Sheet / 進捗状況を確認",
