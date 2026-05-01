@@ -40,10 +40,10 @@ def apply_ice_link_css():
             padding: 34px 42px;
             border-radius: 30px;
             background:
-                radial-gradient(circle at right center, rgba(255,255,255,0.18), transparent 30%),
-                linear-gradient(135deg, #243b53 0%, #36506b 52%, #90a4b8 100%);
+                radial-gradient(circle at right center, rgba(255,255,255,0.16), transparent 32%),
+                linear-gradient(135deg, #0f827f 0%, #1687a7 42%, #2563eb 72%, #4169e1 100%);
             color: white;
-            box-shadow: 0 16px 36px rgba(36,59,83,0.18);
+            box-shadow: 0 16px 36px rgba(37,99,235,0.18);
             margin-bottom: 24px;
         }
 
@@ -87,17 +87,6 @@ def apply_ice_link_css():
             color: #9a3412;
             font-size: 14px;
             line-height: 1.7;
-            margin-bottom: 16px;
-        }
-
-        .ice-success {
-            background: #ecfdf5;
-            border: 1px solid #bbf7d0;
-            border-radius: 14px;
-            padding: 11px 14px;
-            color: #166534;
-            font-size: 14px;
-            font-weight: 800;
             margin-bottom: 16px;
         }
 
@@ -706,19 +695,10 @@ def render_ice_link_report():
 
     html(
         """
-        <div class="ice-success">
-            New ice_link_report.py is running. Multi-path Excel search is enabled.
-        </div>
-        """
-    )
-
-    html(
-        """
         <div class="ice-hero">
-            <div class="ice-hero-title">📊 iCE LiNK Report Dashboard</div>
+            <div class="ice-hero-title">📊 iCE LiNK Report</div>
             <div class="ice-hero-subtitle">
-                Review iCE LiNK usage, monthly reported machines, and license follow-up items.
-                This page converts the three-sheet Excel file into a management-friendly dashboard.
+                Review iCE LiNK report data, production trends, run hours, error information, and hourly productivity.
             </div>
         </div>
         """
