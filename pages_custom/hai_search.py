@@ -16,10 +16,8 @@ ASSETS_DIR = BASE_DIR / "assets"
 REPORT_DIR = BASE_DIR / "hai_search_reports"
 
 HAI_LOGO_PATH = ASSETS_DIR / "hai_search_logo.jpg.png"
-
 SLACK_URL = "https://app.slack.com/"
 
-# Editable memo file
 UPDATE_NOTES_FILE = BASE_DIR / "hai_search_update_notes.md"
 
 
@@ -58,12 +56,6 @@ def find_column(df: pd.DataFrame, candidates: list[str]) -> str | None:
 
 
 def extract_report_month(file_stem: str) -> str:
-    """
-    Extract YYYY-MM from file name.
-    Example:
-    monthly_report_2026-04.xlsx -> 2026-04
-    monthly_report_2026-04(2).xlsx -> 2026-04
-    """
     match = re.search(r"(20\d{2}-\d{2})", file_stem)
     if match:
         return match.group(1)
@@ -78,9 +70,17 @@ def apply_css():
     html(
         """
         <style>
-        /* =========================
-           Common
-        ========================= */
+        .debug-version-box {
+            background: #eef6ff;
+            border: 1px solid #bfdbfe;
+            color: #1e3a8a;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+
         .hai-section-header {
             display: flex;
             align-items: center;
@@ -147,9 +147,6 @@ def apply_css():
             background: #7c3aed;
         }
 
-        /* =========================
-           Portal Cards
-        ========================= */
         .portal-card {
             border-radius: 26px;
             padding: 30px 32px;
@@ -223,9 +220,6 @@ def apply_css():
             border: 1px solid #ffd9c7;
         }
 
-        /* =========================
-           Update Notes
-        ========================= */
         .update-box {
             background: #fff8f3;
             border: 1px solid #ffd9c7;
@@ -253,9 +247,6 @@ def apply_css():
             margin-top: 18px;
         }
 
-        /* =========================
-           Report / Dashboard
-        ========================= */
         .report-intro {
             background: linear-gradient(180deg, #f4fbf8 0%, #ffffff 100%);
             border: 1px solid #cfebdd;
@@ -296,9 +287,6 @@ def apply_css():
             line-height: 1.7;
         }
 
-        /* =========================
-           KPI
-        ========================= */
         div[data-testid="stMetric"] {
             border-radius: 18px;
             padding: 18px 18px;
@@ -315,19 +303,6 @@ def apply_css():
         div[data-testid="stMetricValue"] {
             color: #1f2a44;
             font-weight: 900;
-        }
-
-        /* =========================
-           Streamlit Buttons
-        ========================= */
-        div.stLinkButton > a {
-            border-radius: 14px !important;
-            font-weight: 900 !important;
-            font-size: 15px !important;
-            padding: 0.75rem 1.1rem !important;
-            text-decoration: none !important;
-            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.12) !important;
-            border: 1px solid #dbeafe !important;
         }
         </style>
         """
@@ -367,8 +342,8 @@ body {{
     width: 100%;
     min-height: 280px;
     background:
-        radial-gradient(circle at right center, rgba(214, 190, 176, 0.22), transparent 36%),
-        linear-gradient(135deg, #1f2c3f 0%, #2f435d 48%, #5f7691 78%, #d8c4ba 100%);
+        radial-gradient(circle at right center, rgba(212, 228, 240, 0.55), transparent 36%),
+        linear-gradient(135deg, #26384f 0%, #405b78 46%, #7891aa 78%, #d9d7cf 100%);
     border-radius: 32px;
     padding: 40px 46px;
     box-shadow: 0 14px 30px rgba(31, 44, 63, 0.16);
@@ -382,8 +357,8 @@ body {{
 }}
 
 .logo-panel {{
-    background: rgba(255, 255, 255, 0.10);
-    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.13);
+    border: 1px solid rgba(255, 255, 255, 0.20);
     border-radius: 28px;
     padding: 22px;
     min-height: 210px;
@@ -391,8 +366,8 @@ body {{
     align-items: center;
     justify-content: center;
     box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.12),
-        0 10px 24px rgba(31, 44, 63, 0.16);
+        inset 0 1px 0 rgba(255, 255, 255, 0.14),
+        0 10px 24px rgba(31, 44, 63, 0.14);
 }}
 
 .logo-box {{
@@ -417,8 +392,8 @@ body {{
     display: inline-block;
     padding: 9px 17px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.10);
-    border: 1px solid rgba(255, 255, 255, 0.20);
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.24);
     color: #ffffff;
     font-weight: 800;
     font-size: 14px;
@@ -502,7 +477,6 @@ body {{
 # Monthly Report Loader
 # =========================
 def sheet_has_usage_columns(df: pd.DataFrame) -> bool:
-    """Check whether a sheet looks like the real user-level usage detail sheet."""
     if df.empty:
         return False
 
@@ -599,8 +573,6 @@ def prepare_usage_dataframe(raw_df: pd.DataFrame) -> pd.DataFrame:
         }
     )
 
-    # Remove summary / total rows from Excel.
-    # This prevents monthly data from being counted twice when Excel has a 合計 row.
     summary_words = [
         "",
         "none",
@@ -630,7 +602,6 @@ def prepare_usage_dataframe(raw_df: pd.DataFrame) -> pd.DataFrame:
             )
         ].copy()
 
-    # Remove rows where both command counts are 0
     df = df[
         ~((df["/new"] == 0) & (df["/docs"] == 0))
     ].copy()
@@ -890,22 +861,16 @@ def render_monthly_usage_report():
     latest_total = int(latest_summary["Total_Commands"])
     latest_users = int(latest_summary["Unique_Users"])
     latest_new = int(latest_summary["New_Commands"])
-    latest_docs = int(latest_summary["Docs_Commands"])
 
     if previous_summary is not None:
         prev_total = int(previous_summary["Total_Commands"])
         prev_users = int(previous_summary["Unique_Users"])
         prev_new = int(previous_summary["New_Commands"])
-        prev_docs = int(previous_summary["Docs_Commands"])
     else:
         prev_total = 0
         prev_users = 0
         prev_new = 0
-        prev_docs = 0
 
-    # =========================
-    # Executive Summary
-    # =========================
     html(
         """
         <div class="hai-section-header section-purple">
@@ -934,9 +899,6 @@ def render_monthly_usage_report():
         """
     )
 
-    # =========================
-    # Monthly Trend
-    # =========================
     html('<div class="data-card-title">Monthly Usage Trend</div>')
 
     trend_df = monthly_summary.rename(
@@ -955,20 +917,15 @@ def render_monthly_usage_report():
         use_container_width=True,
     )
 
-    # =========================
-    # Filter
-    # =========================
     html('<div class="data-card-title">Monthly Detail Filter</div>')
 
     filter_col1, filter_col2 = st.columns([1, 2])
-
-    default_index = 1 if months else 0
 
     with filter_col1:
         selected_month = st.selectbox(
             "Select Month",
             options=["All"] + sorted(months, reverse=True),
-            index=default_index,
+            index=1 if months else 0,
         )
 
     with filter_col2:
@@ -1003,9 +960,6 @@ def render_monthly_usage_report():
     k3.metric("/docs", total_docs)
     k4.metric("Total Commands", total_commands)
 
-    # =========================
-    # Channel Ranking
-    # =========================
     html('<div class="data-card-title">Top Dealer / Channel Ranking</div>')
 
     channel_df = (
@@ -1049,9 +1003,6 @@ def render_monthly_usage_report():
             hide_index=True,
         )
 
-    # =========================
-    # User Activity Level
-    # =========================
     html('<div class="data-card-title">User Activity Level</div>')
 
     user_activity_df = (
@@ -1101,9 +1052,6 @@ def render_monthly_usage_report():
             """
         )
 
-    # =========================
-    # Top 10 Users
-    # =========================
     html('<div class="data-card-title">Top 10 Users by Total Commands</div>')
 
     top_user_df = (
@@ -1129,9 +1077,6 @@ def render_monthly_usage_report():
             use_container_width=True,
         )
 
-    # =========================
-    # Usage Detail
-    # =========================
     html('<div class="data-card-title">Usage Detail</div>')
 
     display_df = filtered_df[
@@ -1170,9 +1115,6 @@ def render_monthly_usage_report():
         st.write("Monthly summary after removing total rows:")
         st.dataframe(debug_summary, use_container_width=True, hide_index=True)
 
-        st.write("Prepared data preview:")
-        st.dataframe(df.head(50), use_container_width=True)
-
     st.caption(
         "To update this dashboard, upload a new Excel file to `hai_search_reports/`, "
         "for example `monthly_report_2026-05.xlsx`."
@@ -1185,17 +1127,19 @@ def render_monthly_usage_report():
 def render_hai_search():
     apply_css()
 
+    html(
+        """
+        <div class="debug-version-box">
+            HAI Search page loaded: 2026 soft color version
+        </div>
+        """
+    )
+
     render_hero()
-
     render_portal_entries()
-
     render_update_notes()
-
     render_monthly_usage_report()
 
 
-# =========================
-# Standalone Test
-# =========================
 if __name__ == "__main__":
     render_hai_search()
