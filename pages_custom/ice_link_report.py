@@ -8,13 +8,21 @@ import textwrap
 # =========================
 # iCE LiNK Report Settings
 # =========================
-BASE_DIR = Path(__file__).resolve().parents[1]
+CURRENT_FILE = Path(__file__).resolve()
+BASE_DIR = CURRENT_FILE.parents[1]
 
-# Excel file location:
-# service-report-app/icelink_reports/iCE LiNK ライセンスなど.xlsx
-REPORT_DIR = BASE_DIR / "icelink_reports"
 REPORT_EXCEL_NAME = "iCE LiNK ライセンスなど.xlsx"
-REPORT_EXCEL_PATH = REPORT_DIR / REPORT_EXCEL_NAME
+
+# Try multiple possible locations
+EXCEL_CANDIDATES = [
+    BASE_DIR / "icelink_reports" / REPORT_EXCEL_NAME,
+    BASE_DIR / "icereport" / REPORT_EXCEL_NAME,
+    BASE_DIR / "ice_report" / REPORT_EXCEL_NAME,
+    BASE_DIR / "data" / REPORT_EXCEL_NAME,
+    BASE_DIR / REPORT_EXCEL_NAME,
+    CURRENT_FILE.parent / "icelink_reports" / REPORT_EXCEL_NAME,
+    CURRENT_FILE.parent / REPORT_EXCEL_NAME,
+]
 
 
 # =========================
@@ -93,6 +101,17 @@ def apply_ice_link_css():
             margin-bottom: 16px;
         }
 
+        .ice-debug {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 14px;
+            padding: 11px 14px;
+            color: #1e3a8a;
+            font-size: 13px;
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+
         div[data-testid="stMetric"] {
             background: #ffffff;
             border: 1px solid #e5edf6;
@@ -122,14 +141,23 @@ def excel_obj(source):
     return source
 
 
+def find_existing_excel_path():
+    for path in EXCEL_CANDIDATES:
+        if path.exists():
+            return path
+    return None
+
+
 def get_excel_source():
     """
     Priority:
-    1. Excel file saved in /icelink_reports/
+    1. Excel file saved in GitHub project folder
     2. Uploaded file from Streamlit UI
     """
-    if REPORT_EXCEL_PATH.exists():
-        return str(REPORT_EXCEL_PATH), REPORT_EXCEL_PATH.name
+    found_path = find_existing_excel_path()
+
+    if found_path is not None:
+        return str(found_path), found_path.name, found_path
 
     uploaded = st.file_uploader(
         "Upload iCE LiNK Excel",
@@ -138,9 +166,9 @@ def get_excel_source():
     )
 
     if uploaded is not None:
-        return uploaded.getvalue(), uploaded.name
+        return uploaded.getvalue(), uploaded.name, None
 
-    return None, None
+    return None, None, None
 
 
 def parse_month_label(col):
@@ -167,19 +195,10 @@ def parse_month_label(col):
 # =========================
 @st.cache_data(show_spinner=False)
 def parse_summary_sheet(source, sheet_name: str, metric_name: str):
-    """
-    Parse user / device sheet.
-
-    Expected structure:
-    Row 1: Agency / Month / Agency names
-    Row 2: active_user or active_device labels
-    Row 3 onwards: data
-    """
     raw = pd.read_excel(excel_obj(source), sheet_name=sheet_name)
     raw.columns = [str(c).strip() for c in raw.columns]
 
-    # The first Excel data row contains active_user / active_device labels.
-    # Real data starts from the next row.
+    # First Excel row under header contains active_user / active_device labels
     raw = raw.iloc[1:].copy()
 
     first_col = raw.columns[0]
@@ -241,16 +260,6 @@ def parse_summary_sheet(source, sheet_name: str, metric_name: str):
 
 @st.cache_data(show_spinner=False)
 def parse_report_sheet(source):
-    """
-    Parse report sheet.
-
-    Main outputs:
-    1. Monthly reported machine count from the summary row:
-       License end == 一か月の間にレポートを送った機械の数
-
-    2. Machine license list with status:
-       Expired / Expiring within 30 days / Expiring within 90 days / Active / Unknown
-    """
     report = pd.read_excel(excel_obj(source), sheet_name="report")
     report.columns = [str(c).strip() for c in report.columns]
 
@@ -698,7 +707,7 @@ def render_ice_link_report():
     html(
         """
         <div class="ice-success">
-            New ice_link_report.py is running. Source path setting is icelink_reports.
+            New ice_link_report.py is running. Multi-path Excel search is enabled.
         </div>
         """
     )
@@ -715,7 +724,15 @@ def render_ice_link_report():
         """
     )
 
-    source, file_name = get_excel_source()
+    with st.expander("Debug: Excel path check", expanded=False):
+        st.write("Current file:", str(CURRENT_FILE))
+        st.write("Base dir:", str(BASE_DIR))
+        st.write("Expected Excel name:", REPORT_EXCEL_NAME)
+        st.write("Search candidates:")
+        for path in EXCEL_CANDIDATES:
+            st.write(f"{path} | exists = {path.exists()}")
+
+    source, file_name, found_path = get_excel_source()
 
     if source is None:
         st.warning(
@@ -727,7 +744,11 @@ def render_ice_link_report():
         return
 
     st.caption(f"Current source: {file_name}")
-    st.caption(f"Expected path: {REPORT_EXCEL_PATH}")
+
+    if found_path is not None:
+        st.caption(f"Loaded from: {found_path}")
+    else:
+        st.caption("Loaded from uploaded file.")
 
     try:
         user_total_df, user_long_df = parse_summary_sheet(
