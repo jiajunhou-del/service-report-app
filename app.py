@@ -1,7 +1,7 @@
 import streamlit as st
 
 from pages_custom.care_pack import render_care_pack
-from pages_custom.ice_link_report import render_ice_link_report
+from pages_custom.ice_link_report_v2 import render_ice_link_report
 from pages_custom.hai_search import render_hai_search
 
 
