@@ -17,6 +17,12 @@ st.set_page_config(
 
 
 # =========================
+# Version Check
+# =========================
+st.error("TEST: app.py latest version is running.")
+
+
+# =========================
 # Login Settings
 # =========================
 APP_PASSWORD = "ts123"
