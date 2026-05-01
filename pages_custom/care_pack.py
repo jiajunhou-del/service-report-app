@@ -446,10 +446,10 @@ def looks_like_machine_value(value: str) -> bool:
     if is_bulletin_code_like(value):
         return False
 
-    if re.fullmatch(r"[A-Z0-9][A-Z0-9\\-/\\s\\.]+", value, flags=re.IGNORECASE):
+    if re.fullmatch(r"[A-Z0-9][A-Z0-9\-\/\s\.]+", value, flags=re.IGNORECASE):
         return True
 
-    if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9\\s\\-/\\.]+", value):
+    if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9\s\-\/\.]+", value):
         return True
 
     return False
@@ -829,14 +829,14 @@ body {{
 .progress-card {{
     box-sizing: border-box;
     width: 100%;
-    background: linear-gradient(135deg, #f8fbff 0%, #f3f6fd 55%, #eef3fb 100%);
+    background: linear-gradient(135deg, #f5fbff 0%, #edf8ff 55%, #e6f7fb 100%);
     border-radius: 26px;
     padding: 26px 28px;
     color: #0f172a;
     position: relative;
     overflow: hidden;
-    border: 1px solid #dbe4f1;
-    box-shadow: 0 12px 24px rgba(120, 144, 180, 0.08);
+    border: 1px solid #d6eaf7;
+    box-shadow: 0 12px 24px rgba(56, 189, 248, 0.10);
 }}
 
 .progress-card::after {{
@@ -845,7 +845,7 @@ body {{
     width: 220px;
     height: 220px;
     border-radius: 50%;
-    background: rgba(167, 190, 230, 0.20);
+    background: rgba(56, 189, 248, 0.18);
     right: -70px;
     top: -70px;
 }}
@@ -882,7 +882,7 @@ body {{
     padding: 12px 16px;
     border-radius: 18px;
     background: rgba(255,255,255,0.78);
-    border: 1px solid #dbe4f1;
+    border: 1px solid #d6eaf7;
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
 }}
 
@@ -890,7 +890,7 @@ body {{
     font-size: 32px;
     font-weight: 950;
     line-height: 1;
-    color: #6b8fd6;
+    color: #2f80ed;
 }}
 
 .progress-percent-label {{
@@ -904,9 +904,9 @@ body {{
     width: 100%;
     height: 16px;
     border-radius: 999px;
-    background: #e8eef8;
+    background: #e4f3fb;
     overflow: hidden;
-    border: 1px solid #d7e2f2;
+    border: 1px solid #cce7f6;
     margin: 18px 0 16px 0;
 }}
 
@@ -914,8 +914,8 @@ body {{
     height: 100%;
     width: {fill_width}%;
     border-radius: 999px;
-    background: linear-gradient(90deg, #a7bfe8 0%, #9bb7e8 45%, #8faedf 100%);
-    box-shadow: 0 0 8px rgba(143,174,223,0.20);
+    background: linear-gradient(90deg, #3b82f6 0%, #38bdf8 55%, #22d3ee 100%);
+    box-shadow: 0 0 10px rgba(56,189,248,0.22);
 }}
 
 .progress-bottom-row {{
