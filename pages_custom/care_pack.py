@@ -25,384 +25,377 @@ PROGRESS_SHEET_URL = (
 def apply_care_pack_css():
     st.markdown(
         """
-        <style>
-        /* =========================
-           Care Pack Base Theme
-        ========================= */
-        .block-container {
-            padding-top: 2rem;
-        }
+<style>
+/* =========================
+   Care Pack Base Theme
+========================= */
+.block-container {
+    padding-top: 2rem;
+}
 
-        /* =========================
-           Hero Area
-        ========================= */
-        .carepack-hero {
-            padding: 38px 46px;
-            border-radius: 34px;
-            background:
-                radial-gradient(circle at 88% 18%, rgba(255,255,255,0.28), transparent 26%),
-                radial-gradient(circle at 12% 90%, rgba(251,146,60,0.30), transparent 24%),
-                linear-gradient(135deg, #0f172a 0%, #1d4ed8 52%, #06b6d4 100%);
-            color: white;
-            box-shadow: 0 24px 60px rgba(15,23,42,0.28);
-            margin-bottom: 28px;
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) 380px;
-            align-items: center;
-            gap: 36px;
-            min-height: 270px;
-            position: relative;
-            overflow: hidden;
-        }
+/* =========================
+   Hero Area
+========================= */
+.carepack-hero {
+    padding: 38px 46px;
+    border-radius: 34px;
+    background:
+        radial-gradient(circle at 88% 18%, rgba(255,255,255,0.28), transparent 26%),
+        radial-gradient(circle at 12% 90%, rgba(251,146,60,0.30), transparent 24%),
+        linear-gradient(135deg, #0f172a 0%, #1d4ed8 52%, #06b6d4 100%);
+    color: white;
+    box-shadow: 0 24px 60px rgba(15,23,42,0.28);
+    margin-bottom: 28px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    align-items: center;
+    gap: 36px;
+    min-height: 270px;
+    position: relative;
+    overflow: hidden;
+}
 
-        .carepack-hero::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background-image:
-                linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
-            background-size: 28px 28px;
-            opacity: 0.35;
-        }
+.carepack-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
+    background-size: 28px 28px;
+    opacity: 0.35;
+}
 
-        .carepack-hero-text,
-        .carepack-hero-image-wrap {
-            position: relative;
-            z-index: 1;
-        }
+.carepack-hero-text,
+.carepack-hero-image-wrap {
+    position: relative;
+    z-index: 1;
+}
 
-        .carepack-hero-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 14px;
-            border-radius: 999px;
-            background: rgba(255,255,255,0.16);
-            border: 1px solid rgba(255,255,255,0.24);
-            color: #ffffff;
-            font-size: 13px;
-            font-weight: 800;
-            margin-bottom: 14px;
-        }
+.carepack-hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.16);
+    border: 1px solid rgba(255,255,255,0.24);
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 800;
+    margin-bottom: 14px;
+}
 
-        .carepack-hero-title {
-            font-size: 42px;
-            font-weight: 950;
-            margin-bottom: 14px;
-            letter-spacing: -0.04em;
-        }
+.carepack-hero-title {
+    font-size: 42px;
+    font-weight: 950;
+    margin-bottom: 14px;
+    letter-spacing: -0.04em;
+}
 
-        .carepack-hero-subtitle {
-            font-size: 16px;
-            color: #e0f2fe;
-            line-height: 1.85;
-            max-width: 900px;
-        }
+.carepack-hero-subtitle {
+    font-size: 16px;
+    color: #e0f2fe;
+    line-height: 1.85;
+    max-width: 900px;
+}
 
-        .carepack-hero-image-wrap {
-            width: 360px;
-            height: 230px;
-            border-radius: 32px;
-            background:
-                linear-gradient(145deg, rgba(255,255,255,0.30), rgba(255,255,255,0.10));
-            border: 1px solid rgba(255,255,255,0.34);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            box-shadow:
-                inset 0 1px 0 rgba(255,255,255,0.30),
-                0 22px 42px rgba(0,0,0,0.24);
-            padding: 16px;
-        }
+.carepack-hero-image-wrap {
+    width: 360px;
+    height: 230px;
+    border-radius: 32px;
+    background:
+        linear-gradient(145deg, rgba(255,255,255,0.30), rgba(255,255,255,0.10));
+    border: 1px solid rgba(255,255,255,0.34);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.30),
+        0 22px 42px rgba(0,0,0,0.24);
+    padding: 16px;
+}
 
-        .carepack-hero-image {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            border-radius: 22px;
-            filter: drop-shadow(0 10px 16px rgba(0,0,0,0.22));
-        }
+.carepack-hero-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 22px;
+    filter: drop-shadow(0 10px 16px rgba(0,0,0,0.22));
+}
 
-        .carepack-hero-fallback {
-            font-size: 82px;
-            filter: drop-shadow(0 12px 20px rgba(0,0,0,0.22));
-        }
+.carepack-hero-fallback {
+    font-size: 82px;
+    filter: drop-shadow(0 12px 20px rgba(0,0,0,0.22));
+}
 
-        /* =========================
-           Info Message
-        ========================= */
-        .carepack-info-box {
-            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-            border: 1px solid #bfdbfe;
-            border-left: 7px solid #2563eb;
-            border-radius: 18px;
-            padding: 16px 18px;
-            color: #1e3a8a;
-            font-size: 15px;
-            font-weight: 700;
-            margin: 16px 0 16px 0;
-        }
+/* =========================
+   Info Message
+========================= */
+.carepack-info-box {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border: 1px solid #bfdbfe;
+    border-left: 7px solid #2563eb;
+    border-radius: 18px;
+    padding: 16px 18px;
+    color: #1e3a8a;
+    font-size: 15px;
+    font-weight: 700;
+    margin: 16px 0 16px 0;
+}
 
-        /* =========================
-           Table Header
-        ========================= */
-        .table-header-card {
-            background:
-                linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%);
-            border: 1px solid #dbeafe;
-            border-left: 7px solid #2563eb;
-            border-radius: 18px;
-            padding: 16px 18px;
-            margin: 18px 0 12px 0;
-        }
+/* =========================
+   Table Header
+========================= */
+.table-header-card {
+    background:
+        linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%);
+    border: 1px solid #dbeafe;
+    border-left: 7px solid #2563eb;
+    border-radius: 18px;
+    padding: 16px 18px;
+    margin: 18px 0 12px 0;
+}
 
-        .table-header-title {
-            font-size: 20px;
-            font-weight: 900;
-            color: #0f172a;
-            margin-bottom: 4px;
-        }
+.table-header-title {
+    font-size: 20px;
+    font-weight: 900;
+    color: #0f172a;
+    margin-bottom: 4px;
+}
 
-        .table-header-subtitle {
-            font-size: 13px;
-            color: #64748b;
-            line-height: 1.5;
-        }
+.table-header-subtitle {
+    font-size: 13px;
+    color: #64748b;
+    line-height: 1.5;
+}
 
-        /* =========================
-           Dataframe Styling
-        ========================= */
-        div[data-testid="stDataFrame"] {
-            border-radius: 18px;
-            overflow: hidden;
-            box-shadow: 0 14px 34px rgba(15,23,42,0.08);
-            border: 1px solid #e2e8f0;
-        }
+/* =========================
+   Dataframe Styling
+========================= */
+div[data-testid="stDataFrame"] {
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 14px 34px rgba(15,23,42,0.08);
+    border: 1px solid #e2e8f0;
+}
 
-        /* =========================
-           Metric Cards
-        ========================= */
-        div[data-testid="stMetric"] {
-            background:
-                linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-            border: 1px solid #e2e8f0;
-            padding: 16px 18px;
-            border-radius: 18px;
-            box-shadow: 0 8px 20px rgba(15,23,42,0.05);
-        }
+/* =========================
+   Metric Cards
+========================= */
+div[data-testid="stMetric"] {
+    background:
+        linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e2e8f0;
+    padding: 16px 18px;
+    border-radius: 18px;
+    box-shadow: 0 8px 20px rgba(15,23,42,0.05);
+}
 
-        div[data-testid="stMetricLabel"] {
-            color: #64748b;
-            font-weight: 800;
-        }
+div[data-testid="stMetricLabel"] {
+    color: #64748b;
+    font-weight: 800;
+}
 
-        div[data-testid="stMetricValue"] {
-            color: #0f172a;
-            font-weight: 950;
-            font-size: 19px;
-        }
+div[data-testid="stMetricValue"] {
+    color: #0f172a;
+    font-weight: 950;
+    font-size: 19px;
+}
 
-        /* =========================
-           Care Pack Tag
-        ========================= */
-        .carepack-pill {
-            display: inline-block;
-            padding: 8px 15px;
-            border-radius: 999px;
-            background: linear-gradient(135deg, #ffedd5, #fed7aa);
-            color: #9a3412;
-            font-size: 13px;
-            font-weight: 900;
-            text-align: center;
-            margin-top: 6px;
-            border: 1px solid #fdba74;
-        }
+/* =========================
+   Care Pack Tag
+========================= */
+.carepack-pill {
+    display: inline-block;
+    padding: 8px 15px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #ffedd5, #fed7aa);
+    color: #9a3412;
+    font-size: 13px;
+    font-weight: 900;
+    text-align: center;
+    margin-top: 6px;
+    border: 1px solid #fdba74;
+}
 
-        /* =========================
-           Progress Card
-        ========================= */
-        .progress-card {
-            background:
-                linear-gradient(135deg, #0f172a 0%, #1e3a8a 55%, #0ea5e9 100%);
-            border-radius: 28px;
-            padding: 28px 30px;
-            margin-top: 28px;
-            margin-bottom: 18px;
-            box-shadow: 0 24px 58px rgba(15,23,42,0.24);
-            color: white;
-            position: relative;
-            overflow: hidden;
-        }
+/* =========================
+   Progress Card
+========================= */
+.progress-card {
+    background:
+        linear-gradient(135deg, #0f172a 0%, #1e3a8a 55%, #0ea5e9 100%);
+    border-radius: 28px;
+    padding: 28px 30px;
+    margin-top: 28px;
+    margin-bottom: 18px;
+    box-shadow: 0 24px 58px rgba(15,23,42,0.24);
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
 
-        .progress-card::after {
-            content: "";
-            position: absolute;
-            width: 240px;
-            height: 240px;
-            border-radius: 50%;
-            background: rgba(251,146,60,0.26);
-            right: -80px;
-            top: -80px;
-        }
+.progress-card::after {
+    content: "";
+    position: absolute;
+    width: 240px;
+    height: 240px;
+    border-radius: 50%;
+    background: rgba(251,146,60,0.26);
+    right: -80px;
+    top: -80px;
+}
 
-        .progress-inner {
-            position: relative;
-            z-index: 1;
-        }
+.progress-inner {
+    position: relative;
+    z-index: 1;
+}
 
-        .progress-top-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 20px;
-            margin-bottom: 18px;
-        }
+.progress-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 18px;
+}
 
-        .progress-title {
-            font-size: 22px;
-            font-weight: 950;
-            color: #ffffff;
-            margin-bottom: 6px;
-        }
+.progress-title {
+    font-size: 22px;
+    font-weight: 950;
+    color: #ffffff;
+    margin-bottom: 6px;
+}
 
-        .progress-subtitle {
-            font-size: 13px;
-            color: #bfdbfe;
-            line-height: 1.6;
-        }
+.progress-subtitle {
+    font-size: 13px;
+    color: #bfdbfe;
+    line-height: 1.6;
+}
 
-        .progress-percent {
-            min-width: 112px;
-            text-align: center;
-            padding: 12px 16px;
-            border-radius: 20px;
-            background: rgba(255,255,255,0.16);
-            border: 1px solid rgba(255,255,255,0.22);
-            backdrop-filter: blur(8px);
-        }
+.progress-percent {
+    min-width: 112px;
+    text-align: center;
+    padding: 12px 16px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.16);
+    border: 1px solid rgba(255,255,255,0.22);
+    backdrop-filter: blur(8px);
+}
 
-        .progress-percent-number {
-            font-size: 30px;
-            font-weight: 950;
-            line-height: 1;
-            color: #ffffff;
-        }
+.progress-percent-number {
+    font-size: 30px;
+    font-weight: 950;
+    line-height: 1;
+    color: #ffffff;
+}
 
-        .progress-percent-label {
-            font-size: 12px;
-            color: #dbeafe;
-            margin-top: 4px;
-            font-weight: 700;
-        }
+.progress-percent-label {
+    font-size: 12px;
+    color: #dbeafe;
+    margin-top: 4px;
+    font-weight: 700;
+}
 
-        .progress-bar-bg {
-            width: 100%;
-            height: 18px;
-            border-radius: 999px;
-            background: rgba(255,255,255,0.18);
-            overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.18);
-            margin: 18px 0 14px 0;
-        }
+.progress-bar-bg {
+    width: 100%;
+    height: 18px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.18);
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.18);
+    margin: 18px 0 14px 0;
+}
 
-        .progress-bar-fill {
-            height: 100%;
-            border-radius: 999px;
-            background: linear-gradient(90deg, #f97316 0%, #facc15 100%);
-            box-shadow: 0 0 22px rgba(250,204,21,0.45);
-        }
+.progress-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #f97316 0%, #facc15 100%);
+    box-shadow: 0 0 22px rgba(250,204,21,0.45);
+}
 
-        .progress-bottom-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
+.progress-bottom-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
 
-        .progress-count {
-            font-size: 20px;
-            font-weight: 950;
-            color: #ffffff;
-        }
+.progress-count {
+    font-size: 20px;
+    font-weight: 950;
+    color: #ffffff;
+}
 
-        .progress-target {
-            font-size: 13px;
-            color: #dbeafe;
-        }
+.progress-target {
+    font-size: 13px;
+    color: #dbeafe;
+}
 
-        .progress-status-good {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            padding: 8px 13px;
-            border-radius: 999px;
-            background: rgba(34,197,94,0.18);
-            color: #dcfce7;
-            border: 1px solid rgba(134,239,172,0.32);
-            font-size: 13px;
-            font-weight: 850;
-        }
+.progress-status-good {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 13px;
+    border-radius: 999px;
+    background: rgba(34,197,94,0.18);
+    color: #dcfce7;
+    border: 1px solid rgba(134,239,172,0.32);
+    font-size: 13px;
+    font-weight: 850;
+}
 
-        .progress-status-warning {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            padding: 8px 13px;
-            border-radius: 999px;
-            background: rgba(251,146,60,0.18);
-            color: #ffedd5;
-            border: 1px solid rgba(253,186,116,0.34);
-            font-size: 13px;
-            font-weight: 850;
-        }
+.progress-status-warning {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 13px;
+    border-radius: 999px;
+    background: rgba(251,146,60,0.18);
+    color: #ffedd5;
+    border: 1px solid rgba(253,186,116,0.34);
+    font-size: 13px;
+    font-weight: 850;
+}
 
-        /* =========================
-           Result Card
-        ========================= */
-        .result-title {
-            font-size: 24px;
-            font-weight: 950;
-            color: #0f172a;
-            margin-bottom: 4px;
-        }
+/* =========================
+   Result Card
+========================= */
+.result-title {
+    font-size: 24px;
+    font-weight: 950;
+    color: #0f172a;
+    margin-bottom: 4px;
+}
 
-        .result-file {
-            color: #64748b;
-            font-size: 13px;
-            font-weight: 700;
-        }
+.result-file {
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 700;
+}
 
-        .result-section-title {
-            font-size: 18px;
-            font-weight: 900;
-            color: #0f172a;
-            margin: 18px 0 10px 0;
-        }
+@media (max-width: 900px) {
+    .carepack-hero {
+        grid-template-columns: 1fr;
+        padding: 30px 28px;
+        min-height: auto;
+    }
 
-        @media (max-width: 900px) {
-            .carepack-hero {
-                grid-template-columns: 1fr;
-                padding: 30px 28px;
-                min-height: auto;
-            }
+    .carepack-hero-image-wrap {
+        width: 100%;
+        height: 240px;
+    }
 
-            .carepack-hero-image-wrap {
-                width: 100%;
-                height: 240px;
-            }
+    .progress-top-row {
+        flex-direction: column;
+    }
 
-            .progress-top-row {
-                flex-direction: column;
-            }
-
-            .progress-percent {
-                width: 100%;
-            }
-        }
-        </style>
+    .progress-percent {
+        width: 100%;
+    }
+}
+</style>
         """,
         unsafe_allow_html=True,
     )
@@ -884,49 +877,46 @@ def render_carepack_hero():
 
     if image_src:
         image_html = f"""
-        <div class="carepack-hero-image-wrap">
-            <img class="carepack-hero-image" src="{image_src}" alt="Care Pack image">
-        </div>
-        """
+<div class="carepack-hero-image-wrap">
+    <img class="carepack-hero-image" src="{image_src}" alt="Care Pack image">
+</div>
+"""
     else:
         image_html = """
-        <div class="carepack-hero-image-wrap">
-            <div class="carepack-hero-fallback">📦</div>
-        </div>
-        """
+<div class="carepack-hero-image-wrap">
+    <div class="carepack-hero-fallback">📦</div>
+</div>
+"""
 
-    st.markdown(
-        f"""
-        <div class="carepack-hero">
-            <div class="carepack-hero-text">
-                <div class="carepack-hero-badge">SERVICE DATA PORTAL · CARE PACK</div>
-                <div class="carepack-hero-title">📦 Care Pack Bulletin Library</div>
-                <div class="carepack-hero-subtitle">
-                    Search, preview, and download Care Pack Information Bulletins.<br>
-                    You can search by Care Pack model, target machine, file name, Bulletin Code, or Date.
-                    New PDFs will be displayed automatically after being uploaded to the carepack_bulletins folder.
-                </div>
-            </div>
-            {image_html}
+    hero_html = f"""
+<div class="carepack-hero">
+    <div class="carepack-hero-text">
+        <div class="carepack-hero-badge">SERVICE DATA PORTAL · CARE PACK</div>
+        <div class="carepack-hero-title">📦 Care Pack Bulletin Library</div>
+        <div class="carepack-hero-subtitle">
+            Search, preview, and download Care Pack Information Bulletins.<br>
+            You can search by Care Pack model, target machine, file name, Bulletin Code, or Date.
+            New PDFs will be displayed automatically after being uploaded to the carepack_bulletins folder.
         </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    </div>
+    {image_html}
+</div>
+"""
+
+    st.markdown(hero_html, unsafe_allow_html=True)
 
 
 def render_table_header(total_count: int):
-    st.markdown(
-        f"""
-        <div class="table-header-card">
-            <div class="table-header-title">📋 Care Pack Bulletin List</div>
-            <div class="table-header-subtitle">
-                Uploaded bulletin overview: <b>{total_count}</b> files.
-                Search by model, machine, Bulletin Code, date, or file name.
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    table_header_html = f"""
+<div class="table-header-card">
+    <div class="table-header-title">📋 Care Pack Bulletin List</div>
+    <div class="table-header-subtitle">
+        Uploaded bulletin overview: <b>{total_count}</b> files.
+        Search by model, machine, Bulletin Code, date, or file name.
+    </div>
+</div>
+"""
+    st.markdown(table_header_html, unsafe_allow_html=True)
 
 
 def render_carepack_progress(data):
@@ -949,43 +939,42 @@ def render_carepack_progress(data):
         status_class = "progress-status-warning"
         status_text = "🟠 In Progress"
 
-    st.markdown(
-        f"""
-        <div class="progress-card">
-            <div class="progress-inner">
-                <div class="progress-top-row">
-                    <div>
-                        <div class="progress-title">Care Pack Progress</div>
-                        <div class="progress-subtitle">
-                            Target: All {TARGET_MODELS} models to be ready by the end of this fiscal year.
-                        </div>
-                    </div>
-
-                    <div class="progress-percent">
-                        <div class="progress-percent-number">{percent}%</div>
-                        <div class="progress-percent-label">Completed</div>
-                    </div>
-                </div>
-
-                <div class="progress-bar-bg">
-                    <div class="progress-bar-fill" style="width: {fill_width}%;"></div>
-                </div>
-
-                <div class="progress-bottom-row">
-                    <div>
-                        <div class="progress-count">{current_count} / {TARGET_MODELS} models completed</div>
-                        <div class="progress-target">{remaining} models remaining</div>
-                    </div>
-
-                    <div class="{status_class}">
-                        {status_text}
-                    </div>
+    progress_html = f"""
+<div class="progress-card">
+    <div class="progress-inner">
+        <div class="progress-top-row">
+            <div>
+                <div class="progress-title">Care Pack Progress</div>
+                <div class="progress-subtitle">
+                    Target: All {TARGET_MODELS} models to be ready by the end of this fiscal year.
                 </div>
             </div>
+
+            <div class="progress-percent">
+                <div class="progress-percent-number">{percent}%</div>
+                <div class="progress-percent-label">Completed</div>
+            </div>
         </div>
-        """,
-        unsafe_allow_html=True,
-    )
+
+        <div class="progress-bar-bg">
+            <div class="progress-bar-fill" style="width: {fill_width}%;"></div>
+        </div>
+
+        <div class="progress-bottom-row">
+            <div>
+                <div class="progress-count">{current_count} / {TARGET_MODELS} models completed</div>
+                <div class="progress-target">{remaining} models remaining</div>
+            </div>
+
+            <div class="{status_class}">
+                {status_text}
+            </div>
+        </div>
+    </div>
+</div>
+"""
+
+    st.markdown(progress_html, unsafe_allow_html=True)
 
     st.link_button(
         "📊 View Progress Sheet / 進捗状況を確認",
@@ -1036,20 +1025,18 @@ def render_result_card(item):
         top_col1, top_col2 = st.columns([5, 1])
 
         with top_col1:
-            st.markdown(
-                f"""
-                <div class="result-title">{item['model']}</div>
-                <div class="result-file">File: {item['file']}</div>
-                """,
-                unsafe_allow_html=True,
-            )
+            result_title_html = f"""
+<div class="result-title">{item['model']}</div>
+<div class="result-file">File: {item['file']}</div>
+"""
+            st.markdown(result_title_html, unsafe_allow_html=True)
 
         with top_col2:
             st.markdown(
                 """
-                <div class="carepack-pill">
-                    Care Pack
-                </div>
+<div class="carepack-pill">
+    Care Pack
+</div>
                 """,
                 unsafe_allow_html=True,
             )
@@ -1173,9 +1160,9 @@ def render_care_pack():
     if not st.session_state["carepack_keyword"] and not st.session_state["carepack_show_all"]:
         st.markdown(
             """
-            <div class="carepack-info-box">
-                🔎 Enter a keyword or click <b>Show All</b> to display Care Pack bulletins.
-            </div>
+<div class="carepack-info-box">
+    🔎 Enter a keyword or click <b>Show All</b> to display Care Pack bulletins.
+</div>
             """,
             unsafe_allow_html=True,
         )
@@ -1187,17 +1174,15 @@ def render_care_pack():
     # Search Result View
     # =========================
     else:
-        st.markdown(
-            f"""
-            <div class="table-header-card">
-                <div class="table-header-title">🔎 Search Results</div>
-                <div class="table-header-subtitle">
-                    Found <b>{len(results)}</b> Care Pack bulletin(s).
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        search_result_html = f"""
+<div class="table-header-card">
+    <div class="table-header-title">🔎 Search Results</div>
+    <div class="table-header-subtitle">
+        Found <b>{len(results)}</b> Care Pack bulletin(s).
+    </div>
+</div>
+"""
+        st.markdown(search_result_html, unsafe_allow_html=True)
 
         if not results:
             st.warning("No Care Pack bulletin found.")
