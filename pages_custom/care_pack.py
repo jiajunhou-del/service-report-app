@@ -26,53 +26,94 @@ def apply_care_pack_css():
     st.markdown(
         """
         <style>
-        .carepack-hero {
-            padding: 34px 42px;
-            border-radius: 30px;
-            background:
-                radial-gradient(circle at right center, rgba(255,255,255,0.18), transparent 28%),
-                linear-gradient(135deg, #1e3a8a 0%, #2563eb 58%, #0ea5e9 100%);
-            color: white;
-            box-shadow: 0 18px 45px rgba(37,99,235,0.24);
-            margin-bottom: 24px;
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) 390px;
-            align-items: center;
-            gap: 34px;
-            min-height: 260px;
+        /* =========================
+           Care Pack Base Theme
+        ========================= */
+        .block-container {
+            padding-top: 2rem;
         }
 
-        .carepack-hero-text {
-            max-width: 1050px;
+        /* =========================
+           Hero Area
+        ========================= */
+        .carepack-hero {
+            padding: 38px 46px;
+            border-radius: 34px;
+            background:
+                radial-gradient(circle at 88% 18%, rgba(255,255,255,0.28), transparent 26%),
+                radial-gradient(circle at 12% 90%, rgba(251,146,60,0.30), transparent 24%),
+                linear-gradient(135deg, #0f172a 0%, #1d4ed8 52%, #06b6d4 100%);
+            color: white;
+            box-shadow: 0 24px 60px rgba(15,23,42,0.28);
+            margin-bottom: 28px;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 380px;
+            align-items: center;
+            gap: 36px;
+            min-height: 270px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .carepack-hero::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
+            background-size: 28px 28px;
+            opacity: 0.35;
+        }
+
+        .carepack-hero-text,
+        .carepack-hero-image-wrap {
+            position: relative;
+            z-index: 1;
+        }
+
+        .carepack-hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.16);
+            border: 1px solid rgba(255,255,255,0.24);
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 800;
+            margin-bottom: 14px;
         }
 
         .carepack-hero-title {
-            font-size: 40px;
-            font-weight: 900;
-            margin-bottom: 16px;
-            letter-spacing: -0.03em;
+            font-size: 42px;
+            font-weight: 950;
+            margin-bottom: 14px;
+            letter-spacing: -0.04em;
         }
 
         .carepack-hero-subtitle {
             font-size: 16px;
             color: #e0f2fe;
-            line-height: 1.8;
-            max-width: 1050px;
+            line-height: 1.85;
+            max-width: 900px;
         }
 
         .carepack-hero-image-wrap {
             width: 360px;
             height: 230px;
-            border-radius: 30px;
-            background: rgba(255,255,255,0.18);
-            border: 1px solid rgba(255,255,255,0.28);
+            border-radius: 32px;
+            background:
+                linear-gradient(145deg, rgba(255,255,255,0.30), rgba(255,255,255,0.10));
+            border: 1px solid rgba(255,255,255,0.34);
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
             box-shadow:
-                inset 0 1px 0 rgba(255,255,255,0.22),
-                0 18px 35px rgba(0,0,0,0.18);
+                inset 0 1px 0 rgba(255,255,255,0.30),
+                0 22px 42px rgba(0,0,0,0.24);
             padding: 16px;
         }
 
@@ -80,8 +121,8 @@ def apply_care_pack_css():
             width: 100%;
             height: 100%;
             object-fit: contain;
-            border-radius: 20px;
-            filter: drop-shadow(0 8px 14px rgba(0,0,0,0.18));
+            border-radius: 22px;
+            filter: drop-shadow(0 10px 16px rgba(0,0,0,0.22));
         }
 
         .carepack-hero-fallback {
@@ -89,79 +130,276 @@ def apply_care_pack_css():
             filter: drop-shadow(0 12px 20px rgba(0,0,0,0.22));
         }
 
-        .carepack-pill {
-            display: inline-block;
-            padding: 7px 14px;
-            border-radius: 999px;
-            background: #e0f2fe;
-            color: #0369a1;
-            font-size: 13px;
-            font-weight: 800;
-            text-align: center;
-            margin-top: 6px;
+        /* =========================
+           Info Message
+        ========================= */
+        .carepack-info-box {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border: 1px solid #bfdbfe;
+            border-left: 7px solid #2563eb;
+            border-radius: 18px;
+            padding: 16px 18px;
+            color: #1e3a8a;
+            font-size: 15px;
+            font-weight: 700;
+            margin: 16px 0 16px 0;
         }
 
+        /* =========================
+           Table Header
+        ========================= */
+        .table-header-card {
+            background:
+                linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%);
+            border: 1px solid #dbeafe;
+            border-left: 7px solid #2563eb;
+            border-radius: 18px;
+            padding: 16px 18px;
+            margin: 18px 0 12px 0;
+        }
+
+        .table-header-title {
+            font-size: 20px;
+            font-weight: 900;
+            color: #0f172a;
+            margin-bottom: 4px;
+        }
+
+        .table-header-subtitle {
+            font-size: 13px;
+            color: #64748b;
+            line-height: 1.5;
+        }
+
+        /* =========================
+           Dataframe Styling
+        ========================= */
+        div[data-testid="stDataFrame"] {
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 14px 34px rgba(15,23,42,0.08);
+            border: 1px solid #e2e8f0;
+        }
+
+        /* =========================
+           Metric Cards
+        ========================= */
         div[data-testid="stMetric"] {
-            background: #f8fafc;
-            border: 1px solid #e5e7eb;
-            padding: 14px 16px;
-            border-radius: 16px;
+            background:
+                linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid #e2e8f0;
+            padding: 16px 18px;
+            border-radius: 18px;
+            box-shadow: 0 8px 20px rgba(15,23,42,0.05);
         }
 
         div[data-testid="stMetricLabel"] {
-            color: #667085;
-            font-weight: 700;
+            color: #64748b;
+            font-weight: 800;
         }
 
         div[data-testid="stMetricValue"] {
-            color: #1f2a44;
-            font-weight: 900;
-            font-size: 18px;
+            color: #0f172a;
+            font-weight: 950;
+            font-size: 19px;
         }
 
+        /* =========================
+           Care Pack Tag
+        ========================= */
+        .carepack-pill {
+            display: inline-block;
+            padding: 8px 15px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #ffedd5, #fed7aa);
+            color: #9a3412;
+            font-size: 13px;
+            font-weight: 900;
+            text-align: center;
+            margin-top: 6px;
+            border: 1px solid #fdba74;
+        }
+
+        /* =========================
+           Progress Card
+        ========================= */
         .progress-card {
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
-            border-radius: 22px;
-            padding: 22px 24px;
-            margin-top: 18px;
+            background:
+                linear-gradient(135deg, #0f172a 0%, #1e3a8a 55%, #0ea5e9 100%);
+            border-radius: 28px;
+            padding: 28px 30px;
+            margin-top: 28px;
             margin-bottom: 18px;
-            box-shadow: 0 10px 28px rgba(15,23,42,0.06);
+            box-shadow: 0 24px 58px rgba(15,23,42,0.24);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-card::after {
+            content: "";
+            position: absolute;
+            width: 240px;
+            height: 240px;
+            border-radius: 50%;
+            background: rgba(251,146,60,0.26);
+            right: -80px;
+            top: -80px;
+        }
+
+        .progress-inner {
+            position: relative;
+            z-index: 1;
+        }
+
+        .progress-top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            margin-bottom: 18px;
         }
 
         .progress-title {
-            font-size: 20px;
-            font-weight: 900;
-            color: #1f2a44;
-            margin-bottom: 10px;
+            font-size: 22px;
+            font-weight: 950;
+            color: #ffffff;
+            margin-bottom: 6px;
         }
 
-        .progress-text {
-            font-size: 22px;
-            font-weight: 900;
-            color: #1f2a44;
-            letter-spacing: 0.5px;
-            margin-bottom: 8px;
-            line-height: 1.5;
-            word-break: break-word;
+        .progress-subtitle {
+            font-size: 13px;
+            color: #bfdbfe;
+            line-height: 1.6;
+        }
+
+        .progress-percent {
+            min-width: 112px;
+            text-align: center;
+            padding: 12px 16px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.16);
+            border: 1px solid rgba(255,255,255,0.22);
+            backdrop-filter: blur(8px);
+        }
+
+        .progress-percent-number {
+            font-size: 30px;
+            font-weight: 950;
+            line-height: 1;
+            color: #ffffff;
+        }
+
+        .progress-percent-label {
+            font-size: 12px;
+            color: #dbeafe;
+            margin-top: 4px;
+            font-weight: 700;
+        }
+
+        .progress-bar-bg {
+            width: 100%;
+            height: 18px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.18);
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.18);
+            margin: 18px 0 14px 0;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #f97316 0%, #facc15 100%);
+            box-shadow: 0 0 22px rgba(250,204,21,0.45);
+        }
+
+        .progress-bottom-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .progress-count {
+            font-size: 20px;
+            font-weight: 950;
+            color: #ffffff;
         }
 
         .progress-target {
-            font-size: 14px;
-            color: #667085;
-            line-height: 1.6;
+            font-size: 13px;
+            color: #dbeafe;
+        }
+
+        .progress-status-good {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 8px 13px;
+            border-radius: 999px;
+            background: rgba(34,197,94,0.18);
+            color: #dcfce7;
+            border: 1px solid rgba(134,239,172,0.32);
+            font-size: 13px;
+            font-weight: 850;
+        }
+
+        .progress-status-warning {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 8px 13px;
+            border-radius: 999px;
+            background: rgba(251,146,60,0.18);
+            color: #ffedd5;
+            border: 1px solid rgba(253,186,116,0.34);
+            font-size: 13px;
+            font-weight: 850;
+        }
+
+        /* =========================
+           Result Card
+        ========================= */
+        .result-title {
+            font-size: 24px;
+            font-weight: 950;
+            color: #0f172a;
+            margin-bottom: 4px;
+        }
+
+        .result-file {
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .result-section-title {
+            font-size: 18px;
+            font-weight: 900;
+            color: #0f172a;
+            margin: 18px 0 10px 0;
         }
 
         @media (max-width: 900px) {
             .carepack-hero {
                 grid-template-columns: 1fr;
-                padding: 28px 26px;
+                padding: 30px 28px;
                 min-height: auto;
             }
 
             .carepack-hero-image-wrap {
                 width: 100%;
                 height: 240px;
+            }
+
+            .progress-top-row {
+                flex-direction: column;
+            }
+
+            .progress-percent {
+                width: 100%;
             }
         }
         </style>
@@ -621,6 +859,26 @@ def show_pdf_preview(pdf_path: Path, max_pages: int = 5):
         st.error(f"PDF preview failed: {e}")
 
 
+def make_overview_dataframe(carepack_data):
+    overview_df = pd.DataFrame(
+        [
+            {
+                "Care Pack Model": item["model"],
+                "Machine": item["machine"],
+                "Bulletin Code": item["bulletin_code"],
+                "Date": item["date"],
+                "File Name": item["file"],
+            }
+            for item in carepack_data
+        ]
+    )
+
+    return overview_df
+
+
+# =========================
+# Render Parts
+# =========================
 def render_carepack_hero():
     image_src = image_to_base64(CAREPACK_IMAGE)
 
@@ -641,14 +899,30 @@ def render_carepack_hero():
         f"""
         <div class="carepack-hero">
             <div class="carepack-hero-text">
-                <div class="carepack-hero-title">📦 Care Pack</div>
+                <div class="carepack-hero-badge">SERVICE DATA PORTAL · CARE PACK</div>
+                <div class="carepack-hero-title">📦 Care Pack Bulletin Library</div>
                 <div class="carepack-hero-subtitle">
-                    Search, preview, and download Care Pack Information Bulletins.
+                    Search, preview, and download Care Pack Information Bulletins.<br>
                     You can search by Care Pack model, target machine, file name, Bulletin Code, or Date.
                     New PDFs will be displayed automatically after being uploaded to the carepack_bulletins folder.
                 </div>
             </div>
             {image_html}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_table_header(total_count: int):
+    st.markdown(
+        f"""
+        <div class="table-header-card">
+            <div class="table-header-title">📋 Care Pack Bulletin List</div>
+            <div class="table-header-subtitle">
+                Uploaded bulletin overview: <b>{total_count}</b> files.
+                Search by model, machine, Bulletin Code, date, or file name.
+            </div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -665,21 +939,48 @@ def render_carepack_progress(data):
         percent = round((current_count / TARGET_MODELS) * 100)
         progress_ratio = min(current_count / TARGET_MODELS, 1.0)
 
-    total_blocks = 20
-    filled_blocks = round(progress_ratio * total_blocks)
-    filled_blocks = max(0, min(filled_blocks, total_blocks))
+    fill_width = round(progress_ratio * 100)
+    remaining = max(TARGET_MODELS - current_count, 0)
 
-    bar_text = "■" * filled_blocks + "□" * (total_blocks - filled_blocks)
+    if percent >= 80:
+        status_class = "progress-status-good"
+        status_text = "🟢 On Track"
+    else:
+        status_class = "progress-status-warning"
+        status_text = "🟠 In Progress"
 
     st.markdown(
         f"""
         <div class="progress-card">
-            <div class="progress-title">Care Pack Progress</div>
-            <div class="progress-text">
-                {bar_text} {current_count}/{TARGET_MODELS} models ({percent}%)
-            </div>
-            <div class="progress-target">
-                (Target: All {TARGET_MODELS} models to be ready by the end of this fiscal year)
+            <div class="progress-inner">
+                <div class="progress-top-row">
+                    <div>
+                        <div class="progress-title">Care Pack Progress</div>
+                        <div class="progress-subtitle">
+                            Target: All {TARGET_MODELS} models to be ready by the end of this fiscal year.
+                        </div>
+                    </div>
+
+                    <div class="progress-percent">
+                        <div class="progress-percent-number">{percent}%</div>
+                        <div class="progress-percent-label">Completed</div>
+                    </div>
+                </div>
+
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" style="width: {fill_width}%;"></div>
+                </div>
+
+                <div class="progress-bottom-row">
+                    <div>
+                        <div class="progress-count">{current_count} / {TARGET_MODELS} models completed</div>
+                        <div class="progress-target">{remaining} models remaining</div>
+                    </div>
+
+                    <div class="{status_class}">
+                        {status_text}
+                    </div>
+                </div>
             </div>
         </div>
         """,
@@ -692,7 +993,108 @@ def render_carepack_progress(data):
         use_container_width=False,
     )
 
-    st.progress(progress_ratio)
+
+def render_overview_table(carepack_data):
+    overview_df = make_overview_dataframe(carepack_data)
+
+    render_table_header(len(carepack_data))
+
+    st.dataframe(
+        overview_df,
+        use_container_width=True,
+        hide_index=True,
+        height=420,
+        column_config={
+            "Care Pack Model": st.column_config.TextColumn(
+                "Care Pack Model",
+                width="medium",
+            ),
+            "Machine": st.column_config.TextColumn(
+                "Machine",
+                width="large",
+            ),
+            "Bulletin Code": st.column_config.TextColumn(
+                "Bulletin Code",
+                width="medium",
+            ),
+            "Date": st.column_config.TextColumn(
+                "Date",
+                width="medium",
+            ),
+            "File Name": st.column_config.TextColumn(
+                "File Name",
+                width="large",
+            ),
+        },
+    )
+
+
+def render_result_card(item):
+    pdf_path = CAREPACK_DIR / item["file"]
+
+    with st.container(border=True):
+        top_col1, top_col2 = st.columns([5, 1])
+
+        with top_col1:
+            st.markdown(
+                f"""
+                <div class="result-title">{item['model']}</div>
+                <div class="result-file">File: {item['file']}</div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+        with top_col2:
+            st.markdown(
+                """
+                <div class="carepack-pill">
+                    Care Pack
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+        st.write("")
+
+        info_col1, info_col2, info_col3 = st.columns(3)
+
+        with info_col1:
+            st.metric("Machine", item["machine"])
+
+        with info_col2:
+            st.metric("Bulletin Code", item["bulletin_code"])
+
+        with info_col3:
+            st.metric("Date", item["date"])
+
+        st.write("")
+
+        if pdf_path.exists():
+            col_a, col_b = st.columns([1.3, 5])
+
+            with col_a:
+                with open(pdf_path, "rb") as f:
+                    pdf_bytes = f.read()
+
+                st.download_button(
+                    label="📥 Download PDF",
+                    data=pdf_bytes,
+                    file_name=item["file"],
+                    mime="application/pdf",
+                    use_container_width=True,
+                )
+
+            with col_b:
+                st.caption("PDF is available. You can download it or preview it below.")
+
+            with st.expander("📄 Preview PDF", expanded=False):
+                show_pdf_preview(pdf_path)
+
+        else:
+            st.error(
+                f"PDF file not found: {pdf_path}. "
+                "Please check whether the PDF is saved in the carepack_bulletins folder."
+            )
 
 
 def set_show_all():
@@ -728,6 +1130,9 @@ def render_care_pack():
         )
         st.stop()
 
+    # =========================
+    # Search Area
+    # =========================
     with st.container(border=True):
         col1, col2, col3 = st.columns([5, 1.25, 1.25])
 
@@ -762,93 +1167,43 @@ def render_care_pack():
         st.session_state["carepack_show_all"],
     )
 
+    # =========================
+    # Default View
+    # =========================
     if not st.session_state["carepack_keyword"] and not st.session_state["carepack_show_all"]:
-        st.info("Enter a keyword or click **Show All** to display Care Pack bulletins.")
-
-        overview_df = pd.DataFrame(
-            [
-                {
-                    "Care Pack Model": item["model"],
-                    "Machine": item["machine"],
-                    "Bulletin Code": item["bulletin_code"],
-                    "Date": item["date"],
-                    "File Name": item["file"],
-                }
-                for item in carepack_data
-            ]
+        st.markdown(
+            """
+            <div class="carepack-info-box">
+                🔎 Enter a keyword or click <b>Show All</b> to display Care Pack bulletins.
+            </div>
+            """,
+            unsafe_allow_html=True,
         )
 
-        st.dataframe(overview_df, use_container_width=True, hide_index=True)
+        render_overview_table(carepack_data)
         render_carepack_progress(carepack_data)
 
+    # =========================
+    # Search Result View
+    # =========================
     else:
-        st.markdown(f"### Search results: {len(results)}")
+        st.markdown(
+            f"""
+            <div class="table-header-card">
+                <div class="table-header-title">🔎 Search Results</div>
+                <div class="table-header-subtitle">
+                    Found <b>{len(results)}</b> Care Pack bulletin(s).
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
         if not results:
             st.warning("No Care Pack bulletin found.")
 
         for item in results:
-            pdf_path = CAREPACK_DIR / item["file"]
-
-            with st.container(border=True):
-                top_col1, top_col2 = st.columns([5, 1])
-
-                with top_col1:
-                    st.markdown(f"### {item['model']}")
-                    st.caption(f"File: {item['file']}")
-
-                with top_col2:
-                    st.markdown(
-                        """
-                        <div class="carepack-pill">
-                            Care Pack
-                        </div>
-                        """,
-                        unsafe_allow_html=True,
-                    )
-
-                st.write("")
-
-                info_col1, info_col2, info_col3 = st.columns(3)
-
-                with info_col1:
-                    st.metric("Machine", item["machine"])
-
-                with info_col2:
-                    st.metric("Bulletin Code", item["bulletin_code"])
-
-                with info_col3:
-                    st.metric("Date", item["date"])
-
-                st.write("")
-
-                if pdf_path.exists():
-                    col_a, col_b = st.columns([1.2, 5])
-
-                    with col_a:
-                        with open(pdf_path, "rb") as f:
-                            pdf_bytes = f.read()
-
-                        st.download_button(
-                            label="📥 Download PDF",
-                            data=pdf_bytes,
-                            file_name=item["file"],
-                            mime="application/pdf",
-                            use_container_width=True,
-                        )
-
-                    with col_b:
-                        st.caption("PDF is available.")
-
-                    with st.expander("📄 Preview PDF", expanded=False):
-                        show_pdf_preview(pdf_path)
-
-                else:
-                    st.error(
-                        f"PDF file not found: {pdf_path}. "
-                        "Please check whether the PDF is saved in the carepack_bulletins folder."
-                    )
-
+            render_result_card(item)
             st.write("")
 
         render_carepack_progress(carepack_data)
