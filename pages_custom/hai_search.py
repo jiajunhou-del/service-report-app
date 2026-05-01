@@ -18,7 +18,7 @@ HAI_LOGO_PATH = ASSETS_DIR / "hai_search_logo.jpg.png"
 
 SLACK_URL = "https://app.slack.com/"
 
-# Editable memo file for HAI Search update notes
+# Editable memo file
 UPDATE_NOTES_FILE = BASE_DIR / "hai_search_update_notes.md"
 
 
@@ -63,9 +63,6 @@ def apply_css():
     html(
         """
         <style>
-        /* =========================
-           Common
-        ========================= */
         .hai-section-header {
             display: flex;
             align-items: center;
@@ -132,9 +129,6 @@ def apply_css():
             background: #7c3aed;
         }
 
-        /* =========================
-           Portal Cards
-        ========================= */
         .portal-card {
             border-radius: 26px;
             padding: 30px 32px;
@@ -208,9 +202,6 @@ def apply_css():
             border: 1px solid #ffd9c7;
         }
 
-        /* =========================
-           Update Notes
-        ========================= */
         .update-box {
             background: #fff8f3;
             border: 1px solid #ffd9c7;
@@ -238,9 +229,6 @@ def apply_css():
             margin-top: 18px;
         }
 
-        /* =========================
-           Report / Dashboard
-        ========================= */
         .report-intro {
             background: linear-gradient(180deg, #f4fbf8 0%, #ffffff 100%);
             border: 1px solid #cfebdd;
@@ -281,9 +269,6 @@ def apply_css():
             line-height: 1.7;
         }
 
-        /* =========================
-           KPI
-        ========================= */
         div[data-testid="stMetric"] {
             border-radius: 18px;
             padding: 18px 18px;
@@ -300,19 +285,6 @@ def apply_css():
         div[data-testid="stMetricValue"] {
             color: #1f2a44;
             font-weight: 900;
-        }
-
-        /* =========================
-           Streamlit Buttons
-        ========================= */
-        div.stLinkButton > a {
-            border-radius: 14px !important;
-            font-weight: 900 !important;
-            font-size: 15px !important;
-            padding: 0.75rem 1.1rem !important;
-            text-decoration: none !important;
-            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.12) !important;
-            border: 1px solid #dbeafe !important;
         }
         </style>
         """
@@ -485,7 +457,6 @@ body {{
 # Monthly Report Loader
 # =========================
 def sheet_has_usage_columns(df: pd.DataFrame) -> bool:
-    """Check whether a sheet looks like the real user-level usage detail sheet."""
     if df.empty:
         return False
 
@@ -581,7 +552,6 @@ def prepare_usage_dataframe(raw_df: pd.DataFrame) -> pd.DataFrame:
         }
     )
 
-    # Remove empty rows
     df = df[
         (df["User ID"].str.lower() != "nan")
         & (df["User ID"].str.strip() != "")
@@ -591,7 +561,6 @@ def prepare_usage_dataframe(raw_df: pd.DataFrame) -> pd.DataFrame:
         & (df["User Name"].str.strip() != "")
     ].copy()
 
-    # Remove summary-like rows
     df = df[
         ~df["Channel Name"].str.lower().isin(["none", "total", "合計", "summary"])
     ].copy()
@@ -703,9 +672,6 @@ def render_portal_entries():
 # Update Notes / Memo
 # =========================
 def load_update_notes() -> str:
-    if UPDATE_NOTES_FILE.exists():
-        return UPDATE_NOTES_FILE.read_text(encoding="utf-8")
-
     default_text = """# HAI Search Update Notes
 
 ## Latest Improvements
@@ -723,12 +689,25 @@ def load_update_notes() -> str:
 ## Memo
 - 
 """
-    UPDATE_NOTES_FILE.write_text(default_text, encoding="utf-8")
-    return default_text
+
+    try:
+        if UPDATE_NOTES_FILE.exists():
+            return UPDATE_NOTES_FILE.read_text(encoding="utf-8")
+
+        UPDATE_NOTES_FILE.write_text(default_text, encoding="utf-8")
+        return default_text
+
+    except Exception:
+        return default_text
 
 
-def save_update_notes(content: str):
-    UPDATE_NOTES_FILE.write_text(content, encoding="utf-8")
+def save_update_notes(content: str) -> bool:
+    try:
+        UPDATE_NOTES_FILE.write_text(content, encoding="utf-8")
+        return True
+    except Exception as e:
+        st.error(f"Could not save notes: {e}")
+        return False
 
 
 def render_update_notes():
@@ -751,7 +730,7 @@ def render_update_notes():
         <div class="update-box">
             <div class="update-title">Editable Update Notes</div>
             <div class="usage-tip">
-                You can use this area like a simple notebook.
+                This area can be used like a simple notebook.
                 Write update history, issues, improvement ideas, or meeting notes, then click <b>Save Notes</b>.
             </div>
         </div>
@@ -766,14 +745,15 @@ def render_update_notes():
         height=420,
         placeholder="Write HAI Search update notes here...",
         label_visibility="collapsed",
+        key="hai_search_update_notes_area",
     )
 
     col1, col2 = st.columns([1, 4])
 
     with col1:
-        if st.button("💾 Save Notes", use_container_width=True):
-            save_update_notes(notes)
-            st.success("Update Notes saved successfully.")
+        if st.button("💾 Save Notes", use_container_width=True, key="save_hai_search_notes"):
+            if save_update_notes(notes):
+                st.success("Update Notes saved successfully.")
 
     with col2:
         st.caption(f"Saved file: `{UPDATE_NOTES_FILE}`")
@@ -853,9 +833,6 @@ def render_monthly_usage_report():
         prev_users = 0
         prev_new = 0
 
-    # =========================
-    # Executive Summary
-    # =========================
     html(
         """
         <div class="hai-section-header section-purple">
@@ -884,9 +861,6 @@ def render_monthly_usage_report():
         """
     )
 
-    # =========================
-    # Monthly Trend
-    # =========================
     html('<div class="data-card-title">Monthly Usage Trend</div>')
 
     trend_df = monthly_summary.rename(
@@ -905,9 +879,6 @@ def render_monthly_usage_report():
         use_container_width=True,
     )
 
-    # =========================
-    # Filter
-    # =========================
     html('<div class="data-card-title">Monthly Detail Filter</div>')
 
     filter_col1, filter_col2 = st.columns([1, 2])
@@ -951,9 +922,6 @@ def render_monthly_usage_report():
     k3.metric("/docs", total_docs)
     k4.metric("Total Commands", total_commands)
 
-    # =========================
-    # Channel Ranking
-    # =========================
     html('<div class="data-card-title">Top Dealer / Channel Ranking</div>')
 
     channel_df = (
@@ -997,9 +965,6 @@ def render_monthly_usage_report():
             hide_index=True,
         )
 
-    # =========================
-    # User Activity Level
-    # =========================
     html('<div class="data-card-title">User Activity Level</div>')
 
     user_activity_df = (
@@ -1049,9 +1014,6 @@ def render_monthly_usage_report():
             """
         )
 
-    # =========================
-    # Top 10 Users
-    # =========================
     html('<div class="data-card-title">Top 10 Users by Total Commands</div>')
 
     top_user_df = (
@@ -1077,9 +1039,6 @@ def render_monthly_usage_report():
             use_container_width=True,
         )
 
-    # =========================
-    # Usage Detail
-    # =========================
     html('<div class="data-card-title">Usage Detail</div>')
 
     display_df = filtered_df[
@@ -1118,16 +1077,14 @@ def render_monthly_usage_report():
 # =========================
 def render_hai_search():
     apply_css()
-
     render_hero()
-
     render_portal_entries()
-
     render_update_notes()
-
     render_monthly_usage_report()
 
 
-# If this file is used as a standalone Streamlit page
+# =========================
+# Standalone Test
+# =========================
 if __name__ == "__main__":
     render_hai_search()
