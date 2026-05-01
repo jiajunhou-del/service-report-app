@@ -164,6 +164,7 @@ def apply_care_pack_css():
     border-radius: 18px;
     padding: 16px 18px;
     margin: 18px 0 10px 0;
+    box-shadow: 0 8px 18px rgba(15,23,42,0.04);
 }
 
 .table-header-title {
@@ -180,30 +181,67 @@ def apply_care_pack_css():
 }
 
 /* =========================
-   Dataframe Styling
+   Dataframe Styling - Premium Dashboard Table
 ========================= */
 div[data-testid="stDataFrame"] {
-    border-radius: 18px;
+    border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 10px 22px rgba(15,23,42,0.06);
-    border: 1px solid #dde6f3;
+    box-shadow:
+        0 18px 38px rgba(15,23,42,0.08),
+        0 1px 0 rgba(255,255,255,0.8) inset;
+    border: 1px solid #d7e1ef;
+    background: #ffffff;
 }
 
-/* 尝试加深表头颜色 */
+/* dataframe 外层圆角 */
+div[data-testid="stDataFrame"] > div {
+    border-radius: 20px !important;
+}
+
+/* 表头区域 */
 div[data-testid="stDataFrame"] [role="columnheader"] {
-    background-color: #dbeafe !important;
+    background: linear-gradient(180deg, #f1f5f9 0%, #e8eef7 100%) !important;
     color: #0f172a !important;
     font-weight: 900 !important;
-    border-bottom: 1px solid #bfdbfe !important;
+    border-bottom: 1px solid #cbd5e1 !important;
+    font-size: 14px !important;
 }
 
+/* 表头文字 */
 div[data-testid="stDataFrame"] [role="columnheader"] * {
     color: #0f172a !important;
     font-weight: 900 !important;
 }
 
-div[data-testid="stDataFrame"] [data-testid="stDataFrameGlideDataEditor"] {
-    border-radius: 18px !important;
+/* 单元格文字 */
+div[data-testid="stDataFrame"] [role="gridcell"] {
+    color: #1f2937 !important;
+    font-size: 14px !important;
+}
+
+/* 行 hover */
+div[data-testid="stDataFrame"] [role="row"]:hover [role="gridcell"] {
+    background-color: #f8fbff !important;
+}
+
+/* 滚动条 */
+div[data-testid="stDataFrame"] ::-webkit-scrollbar {
+    height: 9px;
+    width: 9px;
+}
+
+div[data-testid="stDataFrame"] ::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 999px;
+}
+
+div[data-testid="stDataFrame"] ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 999px;
+}
+
+div[data-testid="stDataFrame"] ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
 }
 
 /* =========================
@@ -985,11 +1023,80 @@ def render_overview_table(carepack_data):
 
     render_table_header(len(carepack_data))
 
+    def style_carepack_table(df):
+        styled = df.style
+
+        styled = styled.set_table_styles(
+            [
+                {
+                    "selector": "thead th",
+                    "props": [
+                        ("background-color", "#e8eef7"),
+                        ("color", "#0f172a"),
+                        ("font-weight", "900"),
+                        ("border-bottom", "1px solid #cbd5e1"),
+                    ],
+                },
+                {
+                    "selector": "tbody td",
+                    "props": [
+                        ("border-bottom", "1px solid #edf2f7"),
+                        ("font-size", "14px"),
+                        ("padding", "10px 12px"),
+                    ],
+                },
+            ]
+        )
+
+        styled = styled.apply(
+            lambda col: [
+                "font-weight: 850; color: #1d4ed8;"
+                for _ in col
+            ],
+            subset=["Care Pack Model"],
+        )
+
+        styled = styled.apply(
+            lambda col: [
+                "font-weight: 700; color: #0f172a;"
+                for _ in col
+            ],
+            subset=["Machine"],
+        )
+
+        styled = styled.apply(
+            lambda col: [
+                "background-color: #eff6ff; color: #1d4ed8; font-weight: 850;"
+                for _ in col
+            ],
+            subset=["Bulletin Code"],
+        )
+
+        styled = styled.apply(
+            lambda col: [
+                "background-color: #f8fafc; color: #475569; font-weight: 750;"
+                for _ in col
+            ],
+            subset=["Date"],
+        )
+
+        styled = styled.apply(
+            lambda col: [
+                "font-family: monospace; color: #334155; font-size: 13px;"
+                for _ in col
+            ],
+            subset=["File Name"],
+        )
+
+        return styled
+
+    styled_df = style_carepack_table(overview_df)
+
     st.dataframe(
-        overview_df,
+        styled_df,
         use_container_width=True,
         hide_index=True,
-        height=420,
+        height=460,
         column_config={
             "Care Pack Model": st.column_config.TextColumn("Care Pack Model", width="medium"),
             "Machine": st.column_config.TextColumn("Machine", width="large"),
