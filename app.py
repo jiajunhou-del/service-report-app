@@ -1,4 +1,5 @@
 import streamlit as st
+import textwrap
 
 from pages_custom.care_pack import render_care_pack
 from pages_custom.ice_link_report_v2 import render_ice_link_report
@@ -49,9 +50,9 @@ def render_goal_progress():
     )
 
     st.markdown(
-        f"""
+        """
         <style>
-        .goal-card {{
+        .goal-card {
             background:
                 linear-gradient(135deg, rgba(255,255,255,0.98), rgba(248,250,252,0.96));
             border: 1px solid #e5e7eb;
@@ -61,9 +62,9 @@ def render_goal_progress():
             margin-top: 12px;
             margin-bottom: 24px;
             max-width: 880px;
-        }}
+        }
 
-        .goal-badge {{
+        .goal-badge {
             display: inline-block;
             padding: 7px 14px;
             border-radius: 999px;
@@ -72,53 +73,53 @@ def render_goal_progress():
             font-size: 13px;
             font-weight: 800;
             margin-bottom: 18px;
-        }}
+        }
 
-        .goal-title {{
+        .goal-title {
             font-size: 30px;
             font-weight: 900;
             color: #1f2a44;
             margin-bottom: 12px;
             letter-spacing: -0.03em;
-        }}
+        }
 
-        .goal-desc {{
+        .goal-desc {
             font-size: 15px;
             color: #667085;
             line-height: 1.8;
             margin-bottom: 26px;
-        }}
+        }
 
-        .goal-info-grid {{
+        .goal-info-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 14px;
             margin-bottom: 28px;
-        }}
+        }
 
-        .goal-info-box {{
+        .goal-info-box {
             background: #f8fafc;
             border: 1px solid #e5e7eb;
             border-radius: 18px;
             padding: 16px 18px;
-        }}
+        }
 
-        .goal-info-label {{
+        .goal-info-label {
             font-size: 12px;
             font-weight: 800;
             color: #94a3b8;
             margin-bottom: 6px;
             text-transform: uppercase;
             letter-spacing: 0.06em;
-        }}
+        }
 
-        .goal-info-value {{
+        .goal-info-value {
             font-size: 16px;
             font-weight: 900;
             color: #1f2a44;
-        }}
+        }
 
-        .goal-button {{
+        .goal-button {
             display: inline-block;
             text-decoration: none !important;
             padding: 14px 24px;
@@ -127,50 +128,58 @@ def render_goal_progress():
             color: white !important;
             font-weight: 900;
             box-shadow: 0 12px 24px rgba(37,99,235,0.22);
-        }}
+        }
 
-        .goal-button:hover {{
+        .goal-button:hover {
             filter: brightness(1.05);
-        }}
+        }
 
-        @media (max-width: 900px) {{
-            .goal-info-grid {{
+        @media (max-width: 900px) {
+            .goal-info-grid {
                 grid-template-columns: 1fr;
-            }}
-        }}
+            }
+        }
         </style>
-
-        <div class="goal-card">
-            <div class="goal-badge">🎯 Goal Management</div>
-            <div class="goal-title">Service Goal Progress Sheet</div>
-            <div class="goal-desc">
-                This page provides quick access to the shared goal progress sheet.
-                Please use the Google Spreadsheet below to check the latest progress,
-                status updates, and remaining action items.
-            </div>
-
-            <div class="goal-info-grid">
-                <div class="goal-info-box">
-                    <div class="goal-info-label">View</div>
-                    <div class="goal-info-value">Goal Progress</div>
-                </div>
-                <div class="goal-info-box">
-                    <div class="goal-info-label">Format</div>
-                    <div class="goal-info-value">Google Sheet</div>
-                </div>
-                <div class="goal-info-box">
-                    <div class="goal-info-label">Purpose</div>
-                    <div class="goal-info-value">Progress Check</div>
-                </div>
-            </div>
-
-            <a class="goal-button" href="{GOAL_SHEET_URL}" target="_blank">
-                Open Goal Progress Sheet →
-            </a>
-        </div>
         """,
         unsafe_allow_html=True,
     )
+
+    html = f"""
+<div class="goal-card">
+    <div class="goal-badge">🎯 Goal Management</div>
+
+    <div class="goal-title">Service Goal Progress Sheet</div>
+
+    <div class="goal-desc">
+        This page provides quick access to the shared goal progress sheet.
+        Please use the Google Spreadsheet below to check the latest progress,
+        status updates, and remaining action items.
+    </div>
+
+    <div class="goal-info-grid">
+        <div class="goal-info-box">
+            <div class="goal-info-label">View</div>
+            <div class="goal-info-value">Goal Progress</div>
+        </div>
+
+        <div class="goal-info-box">
+            <div class="goal-info-label">Format</div>
+            <div class="goal-info-value">Google Sheet</div>
+        </div>
+
+        <div class="goal-info-box">
+            <div class="goal-info-label">Purpose</div>
+            <div class="goal-info-value">Progress Check</div>
+        </div>
+    </div>
+
+    <a class="goal-button" href="{GOAL_SHEET_URL}" target="_blank">
+        Open Goal Progress Sheet →
+    </a>
+</div>
+"""
+
+    st.markdown(textwrap.dedent(html), unsafe_allow_html=True)
 
 
 # =========================
