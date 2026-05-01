@@ -4,6 +4,7 @@ from pathlib import Path
 import pandas as pd
 import re
 import base64
+import html
 
 
 # =========================
@@ -32,17 +33,17 @@ def apply_care_pack_css():
 }
 
 /* =========================
-   Hero Area
+   Hero Area - 活泼项目展示风
 ========================= */
 .carepack-hero {
     padding: 34px 40px;
-    border-radius: 30px;
+    border-radius: 32px;
     background:
-        radial-gradient(circle at 88% 16%, rgba(255,255,255,0.26), transparent 24%),
-        radial-gradient(circle at 10% 92%, rgba(255,255,255,0.16), transparent 28%),
-        linear-gradient(135deg, #2d4fd7 0%, #3182f6 55%, #42c8f5 100%);
+        radial-gradient(circle at 88% 18%, rgba(255,255,255,0.30), transparent 26%),
+        radial-gradient(circle at 10% 88%, rgba(255,183,77,0.28), transparent 30%),
+        linear-gradient(135deg, #2563eb 0%, #3b82f6 48%, #22c55e 100%);
     color: white;
-    box-shadow: 0 18px 40px rgba(33, 85, 188, 0.18);
+    box-shadow: 0 18px 42px rgba(37,99,235,0.20);
     margin-bottom: 24px;
     display: grid;
     grid-template-columns: minmax(0, 1fr) 330px;
@@ -58,8 +59,8 @@ def apply_care_pack_css():
     position: absolute;
     inset: 0;
     background-image:
-        linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+        linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px);
     background-size: 26px 26px;
     opacity: 0.35;
 }
@@ -74,13 +75,13 @@ def apply_care_pack_css():
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 14px;
+    padding: 8px 15px;
     border-radius: 999px;
-    background: rgba(255,255,255,0.18);
-    border: 1px solid rgba(255,255,255,0.22);
+    background: rgba(255,255,255,0.20);
+    border: 1px solid rgba(255,255,255,0.28);
     color: #ffffff;
     font-size: 13px;
-    font-weight: 800;
+    font-weight: 900;
     margin-bottom: 14px;
 }
 
@@ -94,7 +95,7 @@ def apply_care_pack_css():
 
 .carepack-hero-subtitle {
     font-size: 16px;
-    color: #eef7ff;
+    color: #f0f9ff;
     line-height: 1.8;
     max-width: 860px;
 }
@@ -104,14 +105,14 @@ def apply_care_pack_css():
     height: 200px;
     border-radius: 28px;
     background:
-        linear-gradient(145deg, rgba(255,255,255,0.26), rgba(255,255,255,0.12));
-    border: 1px solid rgba(255,255,255,0.26);
+        linear-gradient(145deg, rgba(255,255,255,0.30), rgba(255,255,255,0.12));
+    border: 1px solid rgba(255,255,255,0.30);
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
     box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.28),
+        inset 0 1px 0 rgba(255,255,255,0.30),
         0 16px 30px rgba(0,0,0,0.14);
     padding: 14px;
 }
@@ -143,32 +144,32 @@ def apply_care_pack_css():
    Info Message
 ========================= */
 .carepack-info-box {
-    background: linear-gradient(135deg, #eef5ff 0%, #e8f2ff 100%);
-    border: 1px solid #cfe1ff;
-    border-left: 7px solid #3b82f6;
+    background: linear-gradient(135deg, #ecfdf5 0%, #eff6ff 100%);
+    border: 1px solid #bfdbfe;
+    border-left: 7px solid #22c55e;
     border-radius: 18px;
     padding: 15px 18px;
-    color: #1e40af;
+    color: #14532d;
     font-size: 15px;
-    font-weight: 700;
+    font-weight: 800;
     margin: 14px 0 16px 0;
 }
 
 /* =========================
-   Table Header
+   Table Header Card
 ========================= */
 .table-header-card {
-    background: linear-gradient(135deg, #f8fbff 0%, #edf5ff 100%);
-    border: 1px solid #d7e6ff;
-    border-left: 7px solid #2563eb;
+    background: linear-gradient(135deg, #fff7ed 0%, #eff6ff 100%);
+    border: 1px solid #fed7aa;
+    border-left: 7px solid #f97316;
     border-radius: 18px;
     padding: 16px 18px;
-    margin: 18px 0 10px 0;
+    margin: 18px 0 12px 0;
 }
 
 .table-header-title {
-    font-size: 19px;
-    font-weight: 900;
+    font-size: 20px;
+    font-weight: 950;
     color: #0f172a;
     margin-bottom: 4px;
 }
@@ -180,30 +181,113 @@ def apply_care_pack_css():
 }
 
 /* =========================
-   Dataframe Styling
+   Custom Care Pack Table
 ========================= */
-div[data-testid="stDataFrame"] {
-    border-radius: 18px;
+.carepack-table-wrap {
+    width: 100%;
+    border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 10px 22px rgba(15,23,42,0.06);
-    border: 1px solid #dde6f3;
+    border: 1px solid #dbeafe;
+    box-shadow: 0 12px 28px rgba(37,99,235,0.08);
+    background: white;
+    margin-bottom: 20px;
 }
 
-/* 尝试加深表头颜色 */
-div[data-testid="stDataFrame"] [role="columnheader"] {
-    background-color: #dbeafe !important;
+.carepack-table-scroll {
+    width: 100%;
+    max-height: 460px;
+    overflow: auto;
+}
+
+.carepack-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 14px;
+}
+
+.carepack-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 70%, #0ea5e9 100%);
+    color: #ffffff;
+    text-align: left;
+    padding: 14px 14px;
+    font-weight: 950;
+    letter-spacing: 0.01em;
+    border-right: 1px solid rgba(255,255,255,0.22);
+    white-space: nowrap;
+}
+
+.carepack-table thead th:first-child {
+    border-top-left-radius: 18px;
+}
+
+.carepack-table thead th:last-child {
+    border-top-right-radius: 18px;
+    border-right: none;
+}
+
+.carepack-table tbody td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #e8eef7;
+    border-right: 1px solid #eef2f7;
+    color: #334155;
+    vertical-align: middle;
+    background: #ffffff;
+}
+
+.carepack-table tbody tr:nth-child(even) td {
+    background: #f8fbff;
+}
+
+.carepack-table tbody tr:hover td {
+    background: #fff7ed;
+}
+
+.carepack-table tbody td:last-child {
+    border-right: none;
+}
+
+.carepack-model-cell {
+    font-weight: 900;
+    color: #1d4ed8 !important;
+}
+
+.carepack-machine-cell {
+    font-weight: 700;
     color: #0f172a !important;
-    font-weight: 900 !important;
-    border-bottom: 1px solid #bfdbfe !important;
 }
 
-div[data-testid="stDataFrame"] [role="columnheader"] * {
-    color: #0f172a !important;
-    font-weight: 900 !important;
+.bulletin-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: #e0f2fe;
+    color: #0369a1;
+    font-size: 12px;
+    font-weight: 900;
+    border: 1px solid #bae6fd;
+    white-space: nowrap;
 }
 
-div[data-testid="stDataFrame"] [data-testid="stDataFrameGlideDataEditor"] {
-    border-radius: 18px !important;
+.date-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: #fef3c7;
+    color: #92400e;
+    font-size: 12px;
+    font-weight: 850;
+    border: 1px solid #fde68a;
+    white-space: nowrap;
+}
+
+.file-name-cell {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 13px;
+    color: #475569 !important;
 }
 
 /* =========================
@@ -698,22 +782,6 @@ def show_pdf_preview(pdf_path: Path, max_pages: int = 5):
         st.error(f"PDF preview failed: {e}")
 
 
-def make_overview_dataframe(carepack_data):
-    overview_df = pd.DataFrame(
-        [
-            {
-                "Care Pack Model": item["model"],
-                "Machine": item["machine"],
-                "Bulletin Code": item["bulletin_code"],
-                "Date": item["date"],
-                "File Name": item["file"],
-            }
-            for item in carepack_data
-        ]
-    )
-    return overview_df
-
-
 # =========================
 # Render Parts
 # =========================
@@ -755,11 +823,58 @@ def render_table_header(total_count: int):
 <div class="table-header-card">
     <div class="table-header-title">📋 Care Pack Bulletin List</div>
     <div class="table-header-subtitle">
-        Uploaded bulletin overview: <b>{total_count}</b> files. Search by model, machine, Bulletin Code, date, or file name.
+        Uploaded bulletin overview: <b>{total_count}</b> files. 
+        Search by model, machine, Bulletin Code, date, or file name.
     </div>
 </div>
 """
     st.markdown(table_header_html, unsafe_allow_html=True)
+
+
+def render_carepack_table(carepack_data):
+    render_table_header(len(carepack_data))
+
+    rows_html = ""
+
+    for item in carepack_data:
+        model = html.escape(str(item.get("model", "")))
+        machine = html.escape(str(item.get("machine", "")))
+        bulletin_code = html.escape(str(item.get("bulletin_code", "")))
+        date = html.escape(str(item.get("date", "")))
+        file_name = html.escape(str(item.get("file", "")))
+
+        rows_html += f"""
+<tr>
+    <td class="carepack-model-cell">{model}</td>
+    <td class="carepack-machine-cell">{machine}</td>
+    <td><span class="bulletin-badge">{bulletin_code}</span></td>
+    <td><span class="date-badge">{date}</span></td>
+    <td class="file-name-cell">{file_name}</td>
+</tr>
+"""
+
+    table_html = f"""
+<div class="carepack-table-wrap">
+    <div class="carepack-table-scroll">
+        <table class="carepack-table">
+            <thead>
+                <tr>
+                    <th>Care Pack Model</th>
+                    <th>Machine</th>
+                    <th>Bulletin Code</th>
+                    <th>Date</th>
+                    <th>File Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                {rows_html}
+            </tbody>
+        </table>
+    </div>
+</div>
+"""
+
+    st.markdown(table_html, unsafe_allow_html=True)
 
 
 def render_carepack_progress(data):
@@ -801,14 +916,14 @@ body {{
 .progress-card {{
     box-sizing: border-box;
     width: 100%;
-    background: linear-gradient(135deg, #f5faff 0%, #edf5ff 55%, #e3f2ff 100%);
+    background: linear-gradient(135deg, #fff7ed 0%, #eff6ff 55%, #ecfdf5 100%);
     border-radius: 26px;
     padding: 26px 28px;
     color: #0f172a;
     position: relative;
     overflow: hidden;
-    border: 1px solid #d6e8ff;
-    box-shadow: 0 12px 28px rgba(37, 99, 235, 0.08);
+    border: 1px solid #fed7aa;
+    box-shadow: 0 12px 28px rgba(249, 115, 22, 0.10);
 }}
 
 .progress-card::after {{
@@ -817,9 +932,20 @@ body {{
     width: 220px;
     height: 220px;
     border-radius: 50%;
-    background: rgba(96, 165, 250, 0.18);
+    background: rgba(59, 130, 246, 0.14);
     right: -70px;
     top: -70px;
+}}
+
+.progress-card::before {{
+    content: "";
+    position: absolute;
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    background: rgba(34, 197, 94, 0.14);
+    left: -50px;
+    bottom: -70px;
 }}
 
 .progress-inner {{
@@ -853,8 +979,8 @@ body {{
     text-align: center;
     padding: 12px 16px;
     border-radius: 18px;
-    background: rgba(255,255,255,0.72);
-    border: 1px solid #cfe2ff;
+    background: rgba(255,255,255,0.78);
+    border: 1px solid #fed7aa;
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
 }}
 
@@ -862,7 +988,7 @@ body {{
     font-size: 32px;
     font-weight: 950;
     line-height: 1;
-    color: #2563eb;
+    color: #f97316;
 }}
 
 .progress-percent-label {{
@@ -876,9 +1002,9 @@ body {{
     width: 100%;
     height: 16px;
     border-radius: 999px;
-    background: #d9eaff;
+    background: #dbeafe;
     overflow: hidden;
-    border: 1px solid #c5defe;
+    border: 1px solid #bfdbfe;
     margin: 18px 0 16px 0;
 }}
 
@@ -886,8 +1012,8 @@ body {{
     height: 100%;
     width: {fill_width}%;
     border-radius: 999px;
-    background: linear-gradient(90deg, #60a5fa 0%, #3b82f6 50%, #2563eb 100%);
-    box-shadow: 0 0 10px rgba(59,130,246,0.18);
+    background: linear-gradient(90deg, #f97316 0%, #facc15 45%, #22c55e 100%);
+    box-shadow: 0 0 10px rgba(249,115,22,0.18);
 }}
 
 .progress-bottom-row {{
@@ -971,32 +1097,13 @@ body {{
 </body>
 </html>
 """
+
     components.html(progress_html, height=225, scrolling=False)
 
     st.link_button(
         "📊 View Progress Sheet / 進捗状況を確認",
         PROGRESS_SHEET_URL,
         use_container_width=False,
-    )
-
-
-def render_overview_table(carepack_data):
-    overview_df = make_overview_dataframe(carepack_data)
-
-    render_table_header(len(carepack_data))
-
-    st.dataframe(
-        overview_df,
-        use_container_width=True,
-        hide_index=True,
-        height=420,
-        column_config={
-            "Care Pack Model": st.column_config.TextColumn("Care Pack Model", width="medium"),
-            "Machine": st.column_config.TextColumn("Machine", width="large"),
-            "Bulletin Code": st.column_config.TextColumn("Bulletin Code", width="medium"),
-            "Date": st.column_config.TextColumn("Date", width="medium"),
-            "File Name": st.column_config.TextColumn("File Name", width="large"),
-        },
     )
 
 
@@ -1008,8 +1115,8 @@ def render_result_card(item):
 
         with top_col1:
             result_title_html = f"""
-<div class="result-title">{item['model']}</div>
-<div class="result-file">File: {item['file']}</div>
+<div class="result-title">{html.escape(str(item['model']))}</div>
+<div class="result-file">File: {html.escape(str(item['file']))}</div>
 """
             st.markdown(result_title_html, unsafe_allow_html=True)
 
@@ -1148,7 +1255,7 @@ def render_care_pack():
             unsafe_allow_html=True,
         )
 
-        render_overview_table(carepack_data)
+        render_carepack_table(carepack_data)
         render_carepack_progress(carepack_data)
 
     # Search Result View
