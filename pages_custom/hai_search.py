@@ -18,6 +18,9 @@ HAI_LOGO_PATH = ASSETS_DIR / "hai_search_logo.jpg.png"
 
 SLACK_URL = "https://app.slack.com/"
 
+# Editable memo file for HAI Search update notes
+UPDATE_NOTES_FILE = BASE_DIR / "hai_search_update_notes.md"
+
 
 # =========================
 # Helper
@@ -224,14 +227,6 @@ def apply_css():
             margin-bottom: 16px;
         }
 
-        .update-list {
-            margin: 0;
-            padding-left: 20px;
-            color: #6a4a3a;
-            line-height: 2;
-            font-size: 16px;
-        }
-
         .usage-tip {
             background: #fff9e8;
             border: 1px solid #ffe2a8;
@@ -266,16 +261,6 @@ def apply_css():
             font-size: 15px;
             color: #5b7469;
             line-height: 1.8;
-        }
-
-        .report-tool-note {
-            background: #eefaf5;
-            border: 1px solid #cfebdd;
-            border-radius: 16px;
-            padding: 13px 16px;
-            color: #315f4e;
-            font-size: 14px;
-            margin: 10px 0 18px 0;
         }
 
         .data-card-title {
@@ -701,13 +686,13 @@ def render_portal_entries():
             """
             <div class="portal-card portal-orange">
                 <div class="portal-icon">📝</div>
-                <div class="portal-title">Update Notes</div>
+                <div class="portal-title">Memo / Update Notes</div>
                 <div class="portal-text">
-                    Review version updates, improvement notes, known issues,
-                    and future enhancement items for HAI Search.
+                    Write and save HAI Search update history, known issues,
+                    improvement ideas, and internal notes.
                 </div>
                 <a class="portal-button portal-button-orange" href="#hai-update-notes">
-                    📘 View Update Notes
+                    ✍️ Open Notes
                 </a>
             </div>
             """
@@ -715,8 +700,37 @@ def render_portal_entries():
 
 
 # =========================
-# Update Notes
+# Update Notes / Memo
 # =========================
+def load_update_notes() -> str:
+    if UPDATE_NOTES_FILE.exists():
+        return UPDATE_NOTES_FILE.read_text(encoding="utf-8")
+
+    default_text = """# HAI Search Update Notes
+
+## Latest Improvements
+- Multiple Search function was added to search documents more precisely.
+- Enhanced searching power to give more accurate answers.
+- Error code documents were added to improve response quality for error-related questions.
+- Japanese document handling and guidance can be updated here in the future.
+
+## Known Issues
+- 
+
+## Future Enhancement Ideas
+- 
+
+## Memo
+- 
+"""
+    UPDATE_NOTES_FILE.write_text(default_text, encoding="utf-8")
+    return default_text
+
+
+def save_update_notes(content: str):
+    UPDATE_NOTES_FILE.write_text(content, encoding="utf-8")
+
+
 def render_update_notes():
     html('<div id="hai-update-notes"></div>')
 
@@ -724,7 +738,10 @@ def render_update_notes():
         """
         <div class="hai-section-header section-orange">
             <span class="hai-section-dot"></span>
-            Update Notes
+            Memo / Update Notes
+        </div>
+        <div class="hai-section-desc">
+            Record HAI Search version updates, known issues, future ideas, and internal notes here.
         </div>
         """
     )
@@ -732,22 +749,37 @@ def render_update_notes():
     html(
         """
         <div class="update-box">
-            <div class="update-title">Latest Improvements</div>
-            <ul class="update-list">
-                <li>Multiple Search function was added to search documents more precisely.</li>
-                <li>Enhanced searching power to give more accurate answers.</li>
-                <li>Error code documents were added to improve response quality for error-related questions.</li>
-                <li>Japanese document handling and guidance can be updated here in the future.</li>
-            </ul>
-
+            <div class="update-title">Editable Update Notes</div>
             <div class="usage-tip">
-                <b>Recommended use:</b>
-                Use <b>/new</b> for Q&amp;A and <b>/docs</b> for document search.
-                If the first answer is unclear, try rewriting the question in a simpler way.
+                You can use this area like a simple notebook.
+                Write update history, issues, improvement ideas, or meeting notes, then click <b>Save Notes</b>.
             </div>
         </div>
         """
     )
+
+    current_notes = load_update_notes()
+
+    notes = st.text_area(
+        "Update Notes Memo",
+        value=current_notes,
+        height=420,
+        placeholder="Write HAI Search update notes here...",
+        label_visibility="collapsed",
+    )
+
+    col1, col2 = st.columns([1, 4])
+
+    with col1:
+        if st.button("💾 Save Notes", use_container_width=True):
+            save_update_notes(notes)
+            st.success("Update Notes saved successfully.")
+
+    with col2:
+        st.caption(f"Saved file: `{UPDATE_NOTES_FILE}`")
+
+    with st.expander("Preview Notes"):
+        st.markdown(notes)
 
 
 # =========================
@@ -811,18 +843,15 @@ def render_monthly_usage_report():
     latest_total = int(latest_summary["Total_Commands"])
     latest_users = int(latest_summary["Unique_Users"])
     latest_new = int(latest_summary["New_Commands"])
-    latest_docs = int(latest_summary["Docs_Commands"])
 
     if previous_summary is not None:
         prev_total = int(previous_summary["Total_Commands"])
         prev_users = int(previous_summary["Unique_Users"])
         prev_new = int(previous_summary["New_Commands"])
-        prev_docs = int(previous_summary["Docs_Commands"])
     else:
         prev_total = 0
         prev_users = 0
         prev_new = 0
-        prev_docs = 0
 
     # =========================
     # Executive Summary
@@ -1097,3 +1126,8 @@ def render_hai_search():
     render_update_notes()
 
     render_monthly_usage_report()
+
+
+# If this file is used as a standalone Streamlit page
+if __name__ == "__main__":
+    render_hai_search()
