@@ -4,6 +4,7 @@ import base64
 import mimetypes
 import pandas as pd
 import textwrap
+import re
 import streamlit.components.v1 as components
 
 
@@ -18,7 +19,7 @@ HAI_LOGO_PATH = ASSETS_DIR / "hai_search_logo.jpg.png"
 
 SLACK_URL = "https://app.slack.com/"
 
-# Editable memo file for HAI Search update notes
+# Editable memo file
 UPDATE_NOTES_FILE = BASE_DIR / "hai_search_update_notes.md"
 
 
@@ -56,44 +57,18 @@ def find_column(df: pd.DataFrame, candidates: list[str]) -> str | None:
     return None
 
 
-def format_number(value: int) -> str:
-    return f"{int(value):,}"
+def extract_report_month(file_stem: str) -> str:
+    """
+    Extract YYYY-MM from file name.
+    Example:
+    monthly_report_2026-04.xlsx -> 2026-04
+    monthly_report_2026-04(2).xlsx -> 2026-04
+    """
+    match = re.search(r"(20\d{2}-\d{2})", file_stem)
+    if match:
+        return match.group(1)
 
-
-def get_delta_text(current_value: int, previous_value: int) -> str:
-    if previous_value == 0:
-        if current_value == 0:
-            return "0%"
-        return "New"
-
-    growth = ((current_value - previous_value) / previous_value) * 100
-    return f"{growth:+.1f}%"
-
-
-def render_metric_card(title: str, value: str, delta: str | None = None, icon: str = "📊"):
-    delta_html = ""
-    if delta is not None:
-        delta_class = "metric-delta-neutral"
-
-        if delta.startswith("+") or delta == "New":
-            delta_class = "metric-delta-up"
-        elif delta.startswith("-"):
-            delta_class = "metric-delta-down"
-
-        delta_html = f'<div class="metric-delta {delta_class}">{delta}</div>'
-
-    html(
-        f"""
-        <div class="custom-metric-card">
-            <div class="metric-top">
-                <div class="metric-title">{title}</div>
-                <div class="metric-icon">{icon}</div>
-            </div>
-            <div class="metric-value">{value}</div>
-            {delta_html}
-        </div>
-        """
-    )
+    return file_stem.replace("monthly_report_", "")
 
 
 # =========================
@@ -104,19 +79,7 @@ def apply_css():
         """
         <style>
         /* =========================
-           Global
-        ========================= */
-        .block-container {
-            padding-top: 2rem;
-            padding-bottom: 3rem;
-        }
-
-        html, body, [class*="css"] {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        }
-
-        /* =========================
-           Section Header
+           Common
         ========================= */
         .hai-section-header {
             display: flex;
@@ -188,37 +151,27 @@ def apply_css():
            Portal Cards
         ========================= */
         .portal-card {
-            border-radius: 28px;
+            border-radius: 26px;
             padding: 30px 32px;
-            min-height: 250px;
-            box-shadow: 0 16px 36px rgba(30, 50, 100, 0.08);
+            min-height: 245px;
+            box-shadow: 0 10px 26px rgba(30, 50, 100, 0.06);
             margin-bottom: 14px;
-            transition: all 0.25s ease;
-        }
-
-        .portal-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 20px 42px rgba(30, 50, 100, 0.12);
         }
 
         .portal-blue {
-            background:
-                radial-gradient(circle at top left, rgba(59, 130, 246, 0.10), transparent 32%),
-                linear-gradient(180deg, #f7faff 0%, #ffffff 100%);
+            background: linear-gradient(180deg, #f7faff 0%, #ffffff 100%);
             border: 1px solid #d7e7ff;
         }
 
         .portal-orange {
-            background:
-                radial-gradient(circle at top left, rgba(249, 115, 22, 0.10), transparent 32%),
-                linear-gradient(180deg, #fff8f3 0%, #ffffff 100%);
+            background: linear-gradient(180deg, #fff8f3 0%, #ffffff 100%);
             border: 1px solid #ffd9c7;
         }
 
         .portal-icon {
             width: 66px;
             height: 66px;
-            border-radius: 20px;
+            border-radius: 18px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -271,24 +224,22 @@ def apply_css():
         }
 
         /* =========================
-           Update Notes / Memo
+           Update Notes
         ========================= */
         .update-box {
-            background:
-                radial-gradient(circle at top left, rgba(249, 115, 22, 0.08), transparent 30%),
-                linear-gradient(180deg, #fff8f3 0%, #ffffff 100%);
+            background: #fff8f3;
             border: 1px solid #ffd9c7;
-            border-radius: 28px;
+            border-radius: 26px;
             padding: 28px 30px;
-            box-shadow: 0 14px 32px rgba(122, 62, 29, 0.06);
-            margin-bottom: 22px;
+            box-shadow: 0 10px 26px rgba(122, 62, 29, 0.05);
+            margin-bottom: 26px;
         }
 
         .update-title {
             font-size: 24px;
             font-weight: 900;
             color: #7a3e1d;
-            margin-bottom: 14px;
+            margin-bottom: 16px;
         }
 
         .usage-tip {
@@ -299,25 +250,23 @@ def apply_css():
             color: #6b5a2b;
             font-size: 15px;
             line-height: 1.8;
-            margin-top: 12px;
+            margin-top: 18px;
         }
 
         /* =========================
-           Dashboard
+           Report / Dashboard
         ========================= */
         .report-intro {
-            background:
-                radial-gradient(circle at top left, rgba(44, 182, 125, 0.10), transparent 30%),
-                linear-gradient(180deg, #f4fbf8 0%, #ffffff 100%);
+            background: linear-gradient(180deg, #f4fbf8 0%, #ffffff 100%);
             border: 1px solid #cfebdd;
-            border-radius: 28px;
-            padding: 30px 32px;
-            box-shadow: 0 14px 32px rgba(31, 92, 70, 0.06);
+            border-radius: 26px;
+            padding: 28px 30px;
+            box-shadow: 0 10px 26px rgba(31, 92, 70, 0.05);
             margin-bottom: 22px;
         }
 
         .report-intro-title {
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 900;
             color: #1f5c46;
             margin-bottom: 10px;
@@ -327,6 +276,13 @@ def apply_css():
             font-size: 15px;
             color: #5b7469;
             line-height: 1.8;
+        }
+
+        .data-card-title {
+            font-size: 22px;
+            font-weight: 900;
+            color: #1f2a44;
+            margin: 24px 0 12px 0;
         }
 
         .dashboard-caption {
@@ -340,124 +296,30 @@ def apply_css():
             line-height: 1.7;
         }
 
-        .data-card-title {
-            font-size: 24px;
-            font-weight: 900;
-            color: #1f2a44;
-            margin: 32px 0 14px 0;
-            letter-spacing: -0.02em;
-        }
-
-        .data-card-subtitle {
-            color: #667085;
-            font-size: 15px;
-            margin: -8px 0 16px 0;
-            line-height: 1.7;
-        }
-
         /* =========================
-           Custom Metric Cards
+           KPI
         ========================= */
-        .custom-metric-card {
-            background:
-                radial-gradient(circle at top right, rgba(59, 130, 246, 0.08), transparent 34%),
-                linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
-            border: 1px solid #e4ebf5;
-            border-radius: 26px;
-            padding: 24px 26px;
-            box-shadow: 0 14px 30px rgba(31, 42, 68, 0.08);
-            min-height: 150px;
-            margin-bottom: 12px;
+        div[data-testid="stMetric"] {
+            border-radius: 18px;
+            padding: 18px 18px;
+            border: 1px solid #e6edf7;
+            box-shadow: 0 8px 18px rgba(30, 50, 100, 0.04);
+            background: #ffffff;
         }
 
-        .metric-top {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-        }
-
-        .metric-title {
+        div[data-testid="stMetricLabel"] {
             color: #667085;
-            font-size: 15px;
             font-weight: 800;
         }
 
-        .metric-icon {
-            width: 42px;
-            height: 42px;
-            border-radius: 14px;
-            background: #f2f6ff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-        }
-
-        .metric-value {
-            font-size: 44px;
-            font-weight: 950;
+        div[data-testid="stMetricValue"] {
             color: #1f2a44;
-            letter-spacing: -0.04em;
-            margin-top: 12px;
-            line-height: 1.05;
-        }
-
-        .metric-delta {
-            display: inline-block;
-            margin-top: 12px;
-            padding: 5px 10px;
-            border-radius: 999px;
-            font-size: 13px;
-            font-weight: 850;
-        }
-
-        .metric-delta-up {
-            color: #047857;
-            background: #ecfdf5;
-            border: 1px solid #a7f3d0;
-        }
-
-        .metric-delta-down {
-            color: #b42318;
-            background: #fff1f2;
-            border: 1px solid #fecdd3;
-        }
-
-        .metric-delta-neutral {
-            color: #475569;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
+            font-weight: 900;
         }
 
         /* =========================
-           Streamlit Widgets
+           Streamlit Buttons
         ========================= */
-        div[data-testid="stTextInput"] input {
-            border-radius: 18px;
-            border: 1px solid #e5eaf3;
-            background: #f8fafc;
-        }
-
-        div[data-baseweb="select"] > div {
-            border-radius: 18px;
-            border-color: #e5eaf3;
-            background: #f8fafc;
-        }
-
-        textarea {
-            border-radius: 20px !important;
-            border: 1px solid #e5eaf3 !important;
-            background: #fbfdff !important;
-        }
-
-        div.stButton > button {
-            border-radius: 14px;
-            font-weight: 900;
-            border: 1px solid #dbeafe;
-            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.12);
-        }
-
         div.stLinkButton > a {
             border-radius: 14px !important;
             font-weight: 900 !important;
@@ -466,15 +328,6 @@ def apply_css():
             text-decoration: none !important;
             box-shadow: 0 8px 18px rgba(37, 99, 235, 0.12) !important;
             border: 1px solid #dbeafe !important;
-        }
-
-        /* =========================
-           Dataframe Area
-        ========================= */
-        div[data-testid="stDataFrame"] {
-            border-radius: 18px;
-            overflow: hidden;
-            box-shadow: 0 10px 26px rgba(31, 42, 68, 0.05);
         }
         </style>
         """
@@ -512,14 +365,13 @@ body {{
 .hero {{
     box-sizing: border-box;
     width: 100%;
-    min-height: 285px;
+    min-height: 280px;
     background:
-        radial-gradient(circle at right center, rgba(239, 68, 68, 0.30), transparent 34%),
-        radial-gradient(circle at left top, rgba(59, 130, 246, 0.16), transparent 28%),
-        linear-gradient(135deg, #0f172a 0%, #26313f 58%, #ef4444 100%);
-    border-radius: 34px;
+        radial-gradient(circle at right center, rgba(239, 68, 68, 0.24), transparent 34%),
+        linear-gradient(135deg, #111827 0%, #26313f 58%, #ef4444 100%);
+    border-radius: 32px;
     padding: 40px 46px;
-    box-shadow: 0 20px 46px rgba(17, 24, 39, 0.26);
+    box-shadow: 0 16px 36px rgba(17, 24, 39, 0.24);
 }}
 
 .hero-grid {{
@@ -532,7 +384,7 @@ body {{
 .logo-panel {{
     background: rgba(255, 255, 255, 0.12);
     border: 1px solid rgba(255, 255, 255, 0.20);
-    border-radius: 30px;
+    border-radius: 28px;
     padding: 22px;
     min-height: 210px;
     display: flex;
@@ -546,7 +398,7 @@ body {{
 .logo-box {{
     width: 100%;
     min-height: 170px;
-    border-radius: 24px;
+    border-radius: 22px;
     background: rgba(255, 255, 255, 0.96);
     display: flex;
     align-items: center;
@@ -568,22 +420,14 @@ body {{
     background: rgba(239, 68, 68, 0.26);
     border: 1px solid rgba(255, 255, 255, 0.22);
     color: #ffffff;
-    font-weight: 850;
+    font-weight: 800;
     font-size: 14px;
     margin-bottom: 22px;
 }}
 
-.hero-title {{
-    color: #ffffff;
-    font-size: 26px;
-    font-weight: 950;
-    letter-spacing: -0.03em;
-    margin-bottom: 12px;
-}}
-
 .hero-text {{
     color: #ffffff;
-    font-size: 18px;
+    font-size: 19px;
     line-height: 1.9;
     font-weight: 650;
     max-width: 1080px;
@@ -632,8 +476,6 @@ body {{
         <div>
             <div class="badge">Internal AI Search Assistant</div>
 
-            <div class="hero-title">HAI Search Service Portal</div>
-
             <div class="hero-text">
                 HAI Search is an AI-powered search and Q&amp;A tool for service support.
                 It helps users find troubleshooting information, service manuals, bulletins,
@@ -641,7 +483,7 @@ body {{
             </div>
 
             <div class="hero-subtext">
-                Use this portal as the starting point for HAI Search access, update memo, and usage review.
+                Use this portal as the starting point for HAI Search access and update information.
             </div>
         </div>
 
@@ -651,7 +493,7 @@ body {{
 </html>
 """
 
-    components.html(hero_html, height=325, scrolling=False)
+    components.html(hero_html, height=310, scrolling=False)
 
 
 # =========================
@@ -688,6 +530,7 @@ def load_hai_search_reports() -> pd.DataFrame:
     for file in files:
         try:
             excel_file = pd.ExcelFile(file)
+            report_month = extract_report_month(file.stem)
 
             for sheet_name in excel_file.sheet_names:
                 try:
@@ -698,7 +541,7 @@ def load_hai_search_reports() -> pd.DataFrame:
                         continue
 
                     df["Report File"] = file.name
-                    df["Report Month"] = file.stem.replace("monthly_report_", "")
+                    df["Report Month"] = report_month
                     df["Report Sheet"] = sheet_name
 
                     all_frames.append(df)
@@ -746,31 +589,51 @@ def prepare_usage_dataframe(raw_df: pd.DataFrame) -> pd.DataFrame:
             "Report Month": raw_df["Report Month"],
             "Report File": raw_df["Report File"],
             "Report Sheet": raw_df.get("Report Sheet", ""),
-            "User ID": raw_df[user_id_col].astype(str),
-            "Channel Name": raw_df[channel_col].astype(str),
-            "User Name": raw_df[user_name_col].astype(str),
+            "User ID": raw_df[user_id_col].astype(str).str.strip(),
+            "Channel Name": raw_df[channel_col].astype(str).str.strip(),
+            "User Name": raw_df[user_name_col].astype(str).str.strip(),
             "/new": pd.to_numeric(raw_df[new_col], errors="coerce").fillna(0).astype(int),
             "/docs": pd.to_numeric(raw_df[docs_col], errors="coerce").fillna(0).astype(int),
         }
     )
 
-    # Remove empty rows
-    df = df[
-        (df["User ID"].str.lower() != "nan")
-        & (df["User ID"].str.strip() != "")
-        & (df["Channel Name"].str.lower() != "nan")
-        & (df["Channel Name"].str.strip() != "")
-        & (df["User Name"].str.lower() != "nan")
-        & (df["User Name"].str.strip() != "")
-    ].copy()
+    # =========================
+    # Important Fix:
+    # Remove summary / total rows from Excel.
+    # This prevents April data from being counted twice when the Excel file has a 合計 row.
+    # =========================
+    summary_words = [
+        "",
+        "none",
+        "nan",
+        "total",
+        "grand total",
+        "summary",
+        "subtotal",
+        "sum",
+        "合計",
+        "総計",
+        "小計",
+        "サマリー",
+    ]
 
-    # Remove summary-like rows
-    df = df[
-        ~df["Channel Name"].str.lower().isin(["none", "total", "合計", "summary"])
-    ].copy()
+    for col in ["User ID", "Channel Name", "User Name"]:
+        df = df[
+            ~df[col].str.strip().str.lower().isin(summary_words)
+        ].copy()
 
+        df = df[
+            ~df[col].str.contains(
+                r"合計|総計|小計|total|grand total|summary|subtotal|sum",
+                case=False,
+                na=False,
+                regex=True,
+            )
+        ].copy()
+
+    # Remove rows where both command counts are 0
     df = df[
-        ~df["User Name"].str.lower().isin(["none", "total", "合計", "summary"])
+        ~((df["/new"] == 0) & (df["/docs"] == 0))
     ].copy()
 
     df["Total Commands"] = df["/new"] + df["/docs"]
@@ -788,6 +651,7 @@ def get_monthly_summary(df: pd.DataFrame) -> pd.DataFrame:
     summary = (
         df.groupby("Report Month", as_index=False)
         .agg(
+            Unique_Users=("User ID", "nunique"),
             New_Commands=("/new", "sum"),
             Docs_Commands=("/docs", "sum"),
             Total_Commands=("Total Commands", "sum"),
@@ -796,6 +660,26 @@ def get_monthly_summary(df: pd.DataFrame) -> pd.DataFrame:
     )
 
     return summary
+
+
+def get_delta_text(current_value: int, previous_value: int) -> str:
+    if previous_value == 0:
+        if current_value == 0:
+            return "0%"
+        return "New"
+
+    growth = ((current_value - previous_value) / previous_value) * 100
+    return f"{growth:+.1f}%"
+
+
+def classify_user_activity(total_commands: int) -> str:
+    if total_commands >= 10:
+        return "Heavy Users"
+    if total_commands >= 3:
+        return "Regular Users"
+    if total_commands >= 1:
+        return "Light Users"
+    return "No Activity"
 
 
 # =========================
@@ -855,9 +739,6 @@ def render_portal_entries():
 # Update Notes / Memo
 # =========================
 def load_update_notes() -> str:
-    if UPDATE_NOTES_FILE.exists():
-        return UPDATE_NOTES_FILE.read_text(encoding="utf-8")
-
     default_text = """# HAI Search Update Notes
 
 ## Latest Improvements
@@ -875,12 +756,25 @@ def load_update_notes() -> str:
 ## Memo
 - 
 """
-    UPDATE_NOTES_FILE.write_text(default_text, encoding="utf-8")
-    return default_text
+
+    try:
+        if UPDATE_NOTES_FILE.exists():
+            return UPDATE_NOTES_FILE.read_text(encoding="utf-8")
+
+        UPDATE_NOTES_FILE.write_text(default_text, encoding="utf-8")
+        return default_text
+
+    except Exception:
+        return default_text
 
 
-def save_update_notes(content: str):
-    UPDATE_NOTES_FILE.write_text(content, encoding="utf-8")
+def save_update_notes(content: str) -> bool:
+    try:
+        UPDATE_NOTES_FILE.write_text(content, encoding="utf-8")
+        return True
+    except Exception as e:
+        st.error(f"Could not save notes: {e}")
+        return False
 
 
 def render_update_notes():
@@ -903,7 +797,7 @@ def render_update_notes():
         <div class="update-box">
             <div class="update-title">Editable Update Notes</div>
             <div class="usage-tip">
-                Use this area like a simple notebook.
+                This area can be used like a simple notebook.
                 Write update history, issues, improvement ideas, or meeting notes, then click <b>Save Notes</b>.
             </div>
         </div>
@@ -918,14 +812,15 @@ def render_update_notes():
         height=420,
         placeholder="Write HAI Search update notes here...",
         label_visibility="collapsed",
+        key="hai_search_update_notes_area",
     )
 
     col1, col2 = st.columns([1, 4])
 
     with col1:
-        if st.button("💾 Save Notes", use_container_width=True):
-            save_update_notes(notes)
-            st.success("Update Notes saved successfully.")
+        if st.button("💾 Save Notes", use_container_width=True, key="save_hai_search_notes"):
+            if save_update_notes(notes):
+                st.success("Update Notes saved successfully.")
 
     with col2:
         st.caption(f"Saved file: `{UPDATE_NOTES_FILE}`")
@@ -950,9 +845,9 @@ def render_monthly_usage_report():
     html(
         """
         <div class="report-intro">
-            <div class="report-intro-title">Command Usage Dashboard</div>
+            <div class="report-intro-title">Executive Usage Dashboard</div>
             <div class="report-intro-text">
-                Review HAI Search command usage trends, dealer channel activity,
+                Review HAI Search usage trends, active users, dealer channel activity,
                 and monthly command volume. Monthly Excel files are read from
                 <b>hai_search_reports/</b>.
             </div>
@@ -972,6 +867,7 @@ def render_monthly_usage_report():
     df = prepare_usage_dataframe(raw_df)
 
     if df.empty:
+        st.info("No valid usage data found after removing summary rows.")
         return
 
     months = sorted(df["Report Month"].dropna().unique())
@@ -993,15 +889,18 @@ def render_monthly_usage_report():
         previous_summary = None
 
     latest_total = int(latest_summary["Total_Commands"])
+    latest_users = int(latest_summary["Unique_Users"])
     latest_new = int(latest_summary["New_Commands"])
     latest_docs = int(latest_summary["Docs_Commands"])
 
     if previous_summary is not None:
         prev_total = int(previous_summary["Total_Commands"])
+        prev_users = int(previous_summary["Unique_Users"])
         prev_new = int(previous_summary["New_Commands"])
         prev_docs = int(previous_summary["Docs_Commands"])
     else:
         prev_total = 0
+        prev_users = 0
         prev_new = 0
         prev_docs = 0
 
@@ -1017,39 +916,12 @@ def render_monthly_usage_report():
         """
     )
 
-    c1, c2, c3, c4 = st.columns(4, gap="large")
+    kpi1, kpi2, kpi3, kpi4 = st.columns(4)
 
-    with c1:
-        render_metric_card(
-            title="Latest Month",
-            value=latest_month,
-            delta=None,
-            icon="📅",
-        )
-
-    with c2:
-        render_metric_card(
-            title="Total Commands",
-            value=format_number(latest_total),
-            delta=get_delta_text(latest_total, prev_total),
-            icon="📈",
-        )
-
-    with c3:
-        render_metric_card(
-            title="/new Commands",
-            value=format_number(latest_new),
-            delta=get_delta_text(latest_new, prev_new),
-            icon="💬",
-        )
-
-    with c4:
-        render_metric_card(
-            title="/docs Commands",
-            value=format_number(latest_docs),
-            delta=get_delta_text(latest_docs, prev_docs),
-            icon="📘",
-        )
+    kpi1.metric("Latest Month", latest_month)
+    kpi2.metric("Total Commands", latest_total, delta=get_delta_text(latest_total, prev_total))
+    kpi3.metric("Unique Users", latest_users, delta=get_delta_text(latest_users, prev_users))
+    kpi4.metric("/new Commands", latest_new, delta=get_delta_text(latest_new, prev_new))
 
     st.caption(
         f"Comparison target: {previous_month if previous_month else 'No previous month available'}"
@@ -1058,8 +930,7 @@ def render_monthly_usage_report():
     html(
         """
         <div class="dashboard-caption">
-            Management view: monitor monthly command trends and top active dealer channels.
-            User-count based indicators have been removed to keep the dashboard focused on command usage.
+            Management view: monitor monthly usage trend, top active channels, and user engagement level.
         </div>
         """
     )
@@ -1068,13 +939,6 @@ def render_monthly_usage_report():
     # Monthly Trend
     # =========================
     html('<div class="data-card-title">Monthly Usage Trend</div>')
-    html(
-        """
-        <div class="data-card-subtitle">
-            Monthly trend of /new, /docs, and total command volume.
-        </div>
-        """
-    )
 
     trend_df = monthly_summary.rename(
         columns={
@@ -1096,21 +960,16 @@ def render_monthly_usage_report():
     # Filter
     # =========================
     html('<div class="data-card-title">Monthly Detail Filter</div>')
-    html(
-        """
-        <div class="data-card-subtitle">
-            Select a month or search by dealer channel / user name to review command usage.
-        </div>
-        """
-    )
 
-    filter_col1, filter_col2 = st.columns([1, 2], gap="large")
+    filter_col1, filter_col2 = st.columns([1, 2])
+
+    default_index = 1 if months else 0
 
     with filter_col1:
         selected_month = st.selectbox(
             "Select Month",
             options=["All"] + sorted(months, reverse=True),
-            index=1 if months else 0,
+            index=default_index,
         )
 
     with filter_col2:
@@ -1133,48 +992,27 @@ def render_monthly_usage_report():
             | filtered_df["User ID"].str.lower().str.contains(key, na=False)
         ]
 
+    total_users = filtered_df["User ID"].nunique()
     total_new = int(filtered_df["/new"].sum())
     total_docs = int(filtered_df["/docs"].sum())
     total_commands = int(filtered_df["Total Commands"].sum())
 
-    fc1, fc2, fc3 = st.columns(3, gap="large")
+    k1, k2, k3, k4 = st.columns(4)
 
-    with fc1:
-        render_metric_card(
-            title="/new",
-            value=format_number(total_new),
-            icon="💬",
-        )
-
-    with fc2:
-        render_metric_card(
-            title="/docs",
-            value=format_number(total_docs),
-            icon="📘",
-        )
-
-    with fc3:
-        render_metric_card(
-            title="Total Commands",
-            value=format_number(total_commands),
-            icon="📊",
-        )
+    k1.metric("Unique Users", total_users)
+    k2.metric("/new", total_new)
+    k3.metric("/docs", total_docs)
+    k4.metric("Total Commands", total_commands)
 
     # =========================
     # Channel Ranking
     # =========================
     html('<div class="data-card-title">Top Dealer / Channel Ranking</div>')
-    html(
-        """
-        <div class="data-card-subtitle">
-            Ranking by total command count. This view focuses on channel activity, not user count.
-        </div>
-        """
-    )
 
     channel_df = (
         filtered_df.groupby("Channel Name", as_index=False)
         .agg(
+            Unique_Users=("User ID", "nunique"),
             New_Commands=("/new", "sum"),
             Docs_Commands=("/docs", "sum"),
             Total_Commands=("Total Commands", "sum"),
@@ -1202,6 +1040,7 @@ def render_monthly_usage_report():
         st.dataframe(
             channel_df.rename(
                 columns={
+                    "Unique_Users": "Unique Users",
                     "New_Commands": "/new",
                     "Docs_Commands": "/docs",
                     "Total_Commands": "Total Commands",
@@ -1212,16 +1051,61 @@ def render_monthly_usage_report():
         )
 
     # =========================
+    # User Activity Level
+    # =========================
+    html('<div class="data-card-title">User Activity Level</div>')
+
+    user_activity_df = (
+        filtered_df.groupby(["User ID", "User Name", "Channel Name"], as_index=False)
+        .agg(
+            New_Commands=("/new", "sum"),
+            Docs_Commands=("/docs", "sum"),
+            Total_Commands=("Total Commands", "sum"),
+        )
+    )
+
+    user_activity_df["Activity Level"] = user_activity_df["Total_Commands"].apply(
+        classify_user_activity
+    )
+
+    activity_summary = (
+        user_activity_df.groupby("Activity Level", as_index=False)
+        .agg(Users=("User ID", "nunique"))
+    )
+
+    level_order = ["Heavy Users", "Regular Users", "Light Users", "No Activity"]
+    activity_summary["Activity Level"] = pd.Categorical(
+        activity_summary["Activity Level"],
+        categories=level_order,
+        ordered=True,
+    )
+
+    activity_summary = activity_summary.sort_values("Activity Level")
+
+    if activity_summary.empty:
+        st.info("No activity data to display.")
+    else:
+        st.bar_chart(
+            activity_summary,
+            x="Activity Level",
+            y="Users",
+            use_container_width=True,
+        )
+
+    with st.expander("Activity level definition"):
+        st.markdown(
+            """
+            - **Heavy Users**: 10 or more commands
+            - **Regular Users**: 3 to 9 commands
+            - **Light Users**: 1 to 2 commands
+            - **No Activity**: 0 command
+            """
+        )
+
+    # =========================
     # Top 10 Users
     # =========================
     html('<div class="data-card-title">Top 10 Users by Total Commands</div>')
-    html(
-        """
-        <div class="data-card-subtitle">
-            This section shows who used HAI Search most actively based on total command count.
-        </div>
-        """
-    )
 
     top_user_df = (
         filtered_df.groupby(["Channel Name", "User Name"], as_index=False)["Total Commands"]
@@ -1250,13 +1134,6 @@ def render_monthly_usage_report():
     # Usage Detail
     # =========================
     html('<div class="data-card-title">Usage Detail</div>')
-    html(
-        """
-        <div class="data-card-subtitle">
-            Detailed usage rows by month, channel, and user.
-        </div>
-        """
-    )
 
     display_df = filtered_df[
         [
@@ -1279,9 +1156,23 @@ def render_monthly_usage_report():
         if "Report Sheet" in raw_df.columns:
             st.write("Loaded sheets:", raw_df["Report Sheet"].dropna().unique().tolist())
 
-        st.write("Raw rows:", len(raw_df))
-        st.write("Prepared rows:", len(df))
-        st.dataframe(df.head(30), use_container_width=True)
+        st.write("Raw rows before cleaning:", len(raw_df))
+        st.write("Prepared rows after cleaning:", len(df))
+
+        debug_summary = get_monthly_summary(df).rename(
+            columns={
+                "Unique_Users": "Unique Users",
+                "New_Commands": "/new",
+                "Docs_Commands": "/docs",
+                "Total_Commands": "Total Commands",
+            }
+        )
+
+        st.write("Monthly summary after removing total rows:")
+        st.dataframe(debug_summary, use_container_width=True, hide_index=True)
+
+        st.write("Prepared data preview:")
+        st.dataframe(df.head(50), use_container_width=True)
 
     st.caption(
         "To update this dashboard, upload a new Excel file to `hai_search_reports/`, "
@@ -1304,6 +1195,8 @@ def render_hai_search():
     render_monthly_usage_report()
 
 
-# If this file is used as a standalone Streamlit page
+# =========================
+# Standalone Test
+# =========================
 if __name__ == "__main__":
     render_hai_search()
