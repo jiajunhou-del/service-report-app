@@ -82,6 +82,17 @@ def apply_ice_link_css():
             margin-bottom: 16px;
         }
 
+        .ice-success {
+            background: #ecfdf5;
+            border: 1px solid #bbf7d0;
+            border-radius: 14px;
+            padding: 11px 14px;
+            color: #166534;
+            font-size: 14px;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+
         div[data-testid="stMetric"] {
             background: #ffffff;
             border: 1px solid #e5edf6;
@@ -686,6 +697,14 @@ def render_ice_link_report():
 
     html(
         """
+        <div class="ice-success">
+            New ice_link_report.py is running. Source path setting is icelink_reports.
+        </div>
+        """
+    )
+
+    html(
+        """
         <div class="ice-hero">
             <div class="ice-hero-title">📊 iCE LiNK Report Dashboard</div>
             <div class="ice-hero-subtitle">
@@ -708,6 +727,7 @@ def render_ice_link_report():
         return
 
     st.caption(f"Current source: {file_name}")
+    st.caption(f"Expected path: {REPORT_EXCEL_PATH}")
 
     try:
         user_total_df, user_long_df = parse_summary_sheet(
