@@ -155,7 +155,7 @@ def apply_care_pack_css():
 }
 
 /* =========================
-   Table Header
+   Table Header Card
 ========================= */
 .table-header-card {
     background: linear-gradient(135deg, #f8fbff 0%, #edf5ff 100%);
@@ -181,42 +181,37 @@ def apply_care_pack_css():
 }
 
 /* =========================
-   Dataframe Styling - Premium Dashboard Table
+   Dataframe Styling - Clean Management Table
 ========================= */
 div[data-testid="stDataFrame"] {
-    border-radius: 20px;
+    border-radius: 18px;
     overflow: hidden;
-    box-shadow:
-        0 18px 38px rgba(15,23,42,0.08),
-        0 1px 0 rgba(255,255,255,0.8) inset;
+    box-shadow: 0 12px 28px rgba(15,23,42,0.06);
     border: 1px solid #d7e1ef;
     background: #ffffff;
 }
 
-/* dataframe 外层圆角 */
-div[data-testid="stDataFrame"] > div {
-    border-radius: 20px !important;
-}
-
-/* 表头区域 */
+/* 表头强调 */
 div[data-testid="stDataFrame"] [role="columnheader"] {
-    background: linear-gradient(180deg, #f1f5f9 0%, #e8eef7 100%) !important;
-    color: #0f172a !important;
+    background: #1e3a8a !important;
+    color: #ffffff !important;
     font-weight: 900 !important;
-    border-bottom: 1px solid #cbd5e1 !important;
     font-size: 14px !important;
+    border-right: 1px solid rgba(255,255,255,0.18) !important;
+    border-bottom: 1px solid #1e3a8a !important;
 }
 
-/* 表头文字 */
+/* 表头文字强制白色 */
 div[data-testid="stDataFrame"] [role="columnheader"] * {
-    color: #0f172a !important;
+    color: #ffffff !important;
     font-weight: 900 !important;
 }
 
-/* 单元格文字 */
+/* 表格内容：黑色为主 */
 div[data-testid="stDataFrame"] [role="gridcell"] {
-    color: #1f2937 !important;
+    color: #111827 !important;
     font-size: 14px !important;
+    font-weight: 400 !important;
 }
 
 /* 行 hover */
@@ -226,8 +221,8 @@ div[data-testid="stDataFrame"] [role="row"]:hover [role="gridcell"] {
 
 /* 滚动条 */
 div[data-testid="stDataFrame"] ::-webkit-scrollbar {
-    height: 9px;
-    width: 9px;
+    height: 8px;
+    width: 8px;
 }
 
 div[data-testid="stDataFrame"] ::-webkit-scrollbar-track {
@@ -1031,17 +1026,20 @@ def render_overview_table(carepack_data):
                 {
                     "selector": "thead th",
                     "props": [
-                        ("background-color", "#e8eef7"),
-                        ("color", "#0f172a"),
+                        ("background-color", "#1e3a8a"),
+                        ("color", "#ffffff"),
                         ("font-weight", "900"),
-                        ("border-bottom", "1px solid #cbd5e1"),
+                        ("font-size", "14px"),
+                        ("border-bottom", "1px solid #1e3a8a"),
                     ],
                 },
                 {
                     "selector": "tbody td",
                     "props": [
-                        ("border-bottom", "1px solid #edf2f7"),
+                        ("color", "#111827"),
+                        ("font-weight", "400"),
                         ("font-size", "14px"),
+                        ("border-bottom", "1px solid #edf2f7"),
                         ("padding", "10px 12px"),
                     ],
                 },
@@ -1050,39 +1048,7 @@ def render_overview_table(carepack_data):
 
         styled = styled.apply(
             lambda col: [
-                "font-weight: 850; color: #1d4ed8;"
-                for _ in col
-            ],
-            subset=["Care Pack Model"],
-        )
-
-        styled = styled.apply(
-            lambda col: [
-                "font-weight: 700; color: #0f172a;"
-                for _ in col
-            ],
-            subset=["Machine"],
-        )
-
-        styled = styled.apply(
-            lambda col: [
-                "background-color: #eff6ff; color: #1d4ed8; font-weight: 850;"
-                for _ in col
-            ],
-            subset=["Bulletin Code"],
-        )
-
-        styled = styled.apply(
-            lambda col: [
-                "background-color: #f8fafc; color: #475569; font-weight: 750;"
-                for _ in col
-            ],
-            subset=["Date"],
-        )
-
-        styled = styled.apply(
-            lambda col: [
-                "font-family: monospace; color: #334155; font-size: 13px;"
+                "font-family: monospace; color: #1f2937; font-weight: 400;"
                 for _ in col
             ],
             subset=["File Name"],
