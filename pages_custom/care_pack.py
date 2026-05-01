@@ -191,7 +191,6 @@ div[data-testid="stDataFrame"] {
     background: #ffffff;
 }
 
-/* 表头强调 */
 div[data-testid="stDataFrame"] [role="columnheader"] {
     background: #1e3a8a !important;
     color: #ffffff !important;
@@ -201,25 +200,21 @@ div[data-testid="stDataFrame"] [role="columnheader"] {
     border-bottom: 1px solid #1e3a8a !important;
 }
 
-/* 表头文字强制白色 */
 div[data-testid="stDataFrame"] [role="columnheader"] * {
     color: #ffffff !important;
     font-weight: 900 !important;
 }
 
-/* 表格内容：黑色为主 */
 div[data-testid="stDataFrame"] [role="gridcell"] {
     color: #111827 !important;
     font-size: 14px !important;
     font-weight: 400 !important;
 }
 
-/* 行 hover */
 div[data-testid="stDataFrame"] [role="row"]:hover [role="gridcell"] {
     background-color: #f8fbff !important;
 }
 
-/* 滚动条 */
 div[data-testid="stDataFrame"] ::-webkit-scrollbar {
     height: 8px;
     width: 8px;
@@ -451,10 +446,10 @@ def looks_like_machine_value(value: str) -> bool:
     if is_bulletin_code_like(value):
         return False
 
-    if re.fullmatch(r"[A-Z0-9][A-Z0-9\-\/\s\.]+", value, flags=re.IGNORECASE):
+    if re.fullmatch(r"[A-Z0-9][A-Z0-9\\-/\\s\\.]+", value, flags=re.IGNORECASE):
         return True
 
-    if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9\s\-\/\.]+", value):
+    if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9\\s\\-/\\.]+", value):
         return True
 
     return False
@@ -834,14 +829,14 @@ body {{
 .progress-card {{
     box-sizing: border-box;
     width: 100%;
-    background: linear-gradient(135deg, #f5faff 0%, #edf5ff 55%, #e3f2ff 100%);
+    background: linear-gradient(135deg, #f8fbff 0%, #f3f6fd 55%, #eef3fb 100%);
     border-radius: 26px;
     padding: 26px 28px;
     color: #0f172a;
     position: relative;
     overflow: hidden;
-    border: 1px solid #d6e8ff;
-    box-shadow: 0 12px 28px rgba(37, 99, 235, 0.08);
+    border: 1px solid #dbe4f1;
+    box-shadow: 0 12px 24px rgba(120, 144, 180, 0.08);
 }}
 
 .progress-card::after {{
@@ -850,7 +845,7 @@ body {{
     width: 220px;
     height: 220px;
     border-radius: 50%;
-    background: rgba(96, 165, 250, 0.18);
+    background: rgba(167, 190, 230, 0.20);
     right: -70px;
     top: -70px;
 }}
@@ -877,7 +872,7 @@ body {{
 
 .progress-subtitle {{
     font-size: 13px;
-    color: #53657d;
+    color: #64748b;
     line-height: 1.6;
 }}
 
@@ -886,8 +881,8 @@ body {{
     text-align: center;
     padding: 12px 16px;
     border-radius: 18px;
-    background: rgba(255,255,255,0.72);
-    border: 1px solid #cfe2ff;
+    background: rgba(255,255,255,0.78);
+    border: 1px solid #dbe4f1;
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
 }}
 
@@ -895,7 +890,7 @@ body {{
     font-size: 32px;
     font-weight: 950;
     line-height: 1;
-    color: #2563eb;
+    color: #6b8fd6;
 }}
 
 .progress-percent-label {{
@@ -909,9 +904,9 @@ body {{
     width: 100%;
     height: 16px;
     border-radius: 999px;
-    background: #d9eaff;
+    background: #e8eef8;
     overflow: hidden;
-    border: 1px solid #c5defe;
+    border: 1px solid #d7e2f2;
     margin: 18px 0 16px 0;
 }}
 
@@ -919,8 +914,8 @@ body {{
     height: 100%;
     width: {fill_width}%;
     border-radius: 999px;
-    background: linear-gradient(90deg, #60a5fa 0%, #3b82f6 50%, #2563eb 100%);
-    box-shadow: 0 0 10px rgba(59,130,246,0.18);
+    background: linear-gradient(90deg, #a7bfe8 0%, #9bb7e8 45%, #8faedf 100%);
+    box-shadow: 0 0 8px rgba(143,174,223,0.20);
 }}
 
 .progress-bottom-row {{
