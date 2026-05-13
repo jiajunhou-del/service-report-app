@@ -1,6 +1,5 @@
 import streamlit as st
 from pathlib import Path
-import os
 import base64
 import mimetypes
 import pandas as pd
@@ -19,8 +18,9 @@ REPORT_DIR = BASE_DIR / "hai_search_reports"
 HAI_LOGO_PATH = ASSETS_DIR / "hai_search_logo.jpg.png"
 SLACK_URL = "https://app.slack.com/"
 
-# Accuracy Test Excel
-ACCURACY_TEST_EXCEL_PATH = r"G:\共有ドライブ\ホリゾンインターTS部\03_プロモーション課\AI検索\HAI_Search_Accuracy_Test_\HAI_Search_Accuracy_Test_.xlsx"
+# Accuracy Test Google Sheet
+# ↓↓↓ ここにGoogle SheetのURLを入れてください
+ACCURACY_TEST_SHEET_URL = "ここにGoogle SheetのURLを入れてください"
 
 UPDATE_NOTES_FILE = BASE_DIR / "hai_search_update_notes.md"
 
@@ -745,9 +745,9 @@ def render_portal_entries():
 
 
 # =========================
-# Accuracy Test Excel
+# Accuracy Test Sheet
 # =========================
-def render_accuracy_test_excel():
+def render_accuracy_test_sheet():
     html(
         """
         <div class="hai-section-header section-purple">
@@ -755,7 +755,7 @@ def render_accuracy_test_excel():
             HAI Search Accuracy Test
         </div>
         <div class="hai-section-desc">
-            Open the Excel file for HAI Search accuracy test, including test questions, result records, and issue tracking.
+            Open the Google Sheet for HAI Search accuracy test, including test questions, result records, and issue tracking.
         </div>
         """
     )
@@ -763,34 +763,26 @@ def render_accuracy_test_excel():
     html(
         """
         <div class="accuracy-box">
-            <div class="accuracy-title">✅ Accuracy Test Excel</div>
+            <div class="accuracy-title">✅ Accuracy Test Sheet</div>
             <div class="accuracy-text">
-                Open the Excel file used for HAI Search accuracy testing.
-                This file can be used to manage test questions, answer results, issue types, and accuracy rate.
+                Open the Google Sheet used for HAI Search accuracy testing.
+                This sheet can be used to manage test questions, answer results, issue types, and accuracy rate.
             </div>
         </div>
         """
     )
 
-    col1, col2 = st.columns([1, 3])
-
-    with col1:
-        if st.button("📊 Open Accuracy Test Excel", use_container_width=True):
-            try:
-                if os.path.exists(ACCURACY_TEST_EXCEL_PATH):
-                    os.startfile(ACCURACY_TEST_EXCEL_PATH)
-                    st.success("Excel file opened.")
-                else:
-                    st.error("Excel file was not found. Please check the path below.")
-            except Exception as e:
-                st.error(f"Could not open the Excel file: {e}")
-
-    with col2:
-        st.caption(
-            "If the button does not open the file, copy the path below and paste it into File Explorer."
+    if ACCURACY_TEST_SHEET_URL.startswith("http"):
+        st.link_button(
+            "📊 Open Accuracy Test Sheet",
+            ACCURACY_TEST_SHEET_URL,
+            use_container_width=False,
         )
-
-    st.code(ACCURACY_TEST_EXCEL_PATH, language="text")
+        st.caption("This button opens the shared Google Sheet in your browser.")
+        st.code(ACCURACY_TEST_SHEET_URL, language="text")
+    else:
+        st.warning("Google Sheet URL is not set yet. Please update ACCURACY_TEST_SHEET_URL in the script.")
+        st.code('ACCURACY_TEST_SHEET_URL = "https://docs.google.com/spreadsheets/d/xxxxx/edit?usp=sharing"', language="python")
 
 
 # =========================
@@ -1218,14 +1210,14 @@ def render_hai_search():
     html(
         """
         <div class="debug-version-box">
-            HAI Search page loaded: Accuracy Test Excel Open Version
+            HAI Search page loaded: Google Sheet Accuracy Test Version
         </div>
         """
     )
 
     render_hero()
     render_portal_entries()
-    render_accuracy_test_excel()
+    render_accuracy_test_sheet()
     render_update_notes()
     render_monthly_usage_report()
 
