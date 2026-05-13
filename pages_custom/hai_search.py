@@ -19,7 +19,7 @@ HAI_LOGO_PATH = ASSETS_DIR / "hai_search_logo.jpg.png"
 SLACK_URL = "https://app.slack.com/"
 
 # Accuracy Test Google Sheet
-ACCURACY_TEST_SHEET_URL = "https://docs.google.com/spreadsheets/d/1ywfzw1XHvFxBw_qxMyt5kDwYel7cj-YP/edit?gid=1924015338#gid=1924015338"
+ACCURACY_TEST_SHEET_URL = "https://docs.google.com/spreadsheets/d/1ywfzw1XHvFxBw_qxMyt5kDwYel7cj-YP/edit#gid=1924015338"
 
 UPDATE_NOTES_FILE = BASE_DIR / "hai_search_update_notes.md"
 
@@ -1281,7 +1281,7 @@ def render_hai_search():
     html(
         """
         <div class="debug-version-box">
-            HAI Search page loaded: Accuracy Test Sheet Updated URL Version
+            HAI Search page loaded: Accuracy Test Sheet New URL Version
         </div>
         """
     )
