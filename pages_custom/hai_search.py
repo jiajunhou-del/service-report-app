@@ -1,5 +1,6 @@
 import streamlit as st
 from pathlib import Path
+import os
 import base64
 import mimetypes
 import pandas as pd
@@ -18,9 +19,8 @@ REPORT_DIR = BASE_DIR / "hai_search_reports"
 HAI_LOGO_PATH = ASSETS_DIR / "hai_search_logo.jpg.png"
 SLACK_URL = "https://app.slack.com/"
 
-# Accuracy Test Folder
-ACCURACY_TEST_FOLDER_PATH = r"G:\共有ドライブ\ホリゾンインターTS部\03_プロモーション課\AI検索\HAI_Search_Accuracy_Test_"
-ACCURACY_TEST_FOLDER_URL = "file:///G:/共有ドライブ/ホリゾンインターTS部/03_プロモーション課/AI検索/HAI_Search_Accuracy_Test_/"
+# Accuracy Test Excel
+ACCURACY_TEST_EXCEL_PATH = r"G:\共有ドライブ\ホリゾンインターTS部\03_プロモーション課\AI検索\HAI_Search_Accuracy_Test_\HAI_Search_Accuracy_Test_.xlsx"
 
 UPDATE_NOTES_FILE = BASE_DIR / "hai_search_update_notes.md"
 
@@ -169,11 +169,6 @@ def apply_css():
             border: 1px solid #ffd9c7;
         }
 
-        .portal-purple {
-            background: linear-gradient(180deg, #f6f5ff 0%, #ffffff 100%);
-            border: 1px solid #ddd6fe;
-        }
-
         .portal-icon {
             width: 66px;
             height: 66px;
@@ -191,10 +186,6 @@ def apply_css():
 
         .portal-orange .portal-icon {
             background: #fff0e8;
-        }
-
-        .portal-purple .portal-icon {
-            background: #ede9fe;
         }
 
         .portal-title {
@@ -233,15 +224,32 @@ def apply_css():
             border: 1px solid #ffd9c7;
         }
 
-        .portal-button-purple {
-            background: linear-gradient(135deg, #6d28d9 0%, #8b5cf6 100%);
-            color: #ffffff !important;
-            box-shadow: 0 8px 18px rgba(109, 40, 217, 0.18);
+        .accuracy-box {
+            background: linear-gradient(180deg, #f6f5ff 0%, #ffffff 100%);
+            border: 1px solid #ddd6fe;
+            border-radius: 26px;
+            padding: 28px 30px;
+            box-shadow: 0 10px 26px rgba(109, 40, 217, 0.06);
+            margin-bottom: 28px;
         }
 
-        .folder-path-box {
+        .accuracy-title {
+            font-size: 26px;
+            font-weight: 900;
+            color: #3730a3;
+            margin-bottom: 12px;
+        }
+
+        .accuracy-text {
+            font-size: 15px;
+            color: #5b5f75;
+            line-height: 1.8;
+            margin-bottom: 16px;
+        }
+
+        .path-box {
             margin-top: 14px;
-            padding: 11px 13px;
+            padding: 12px 14px;
             border-radius: 12px;
             background: #f8fafc;
             border: 1px solid #e5e7eb;
@@ -737,9 +745,9 @@ def render_portal_entries():
 
 
 # =========================
-# Accuracy Test Folder
+# Accuracy Test Excel
 # =========================
-def render_accuracy_test_folder():
+def render_accuracy_test_excel():
     html(
         """
         <div class="hai-section-header section-purple">
@@ -747,45 +755,42 @@ def render_accuracy_test_folder():
             HAI Search Accuracy Test
         </div>
         <div class="hai-section-desc">
-            Open the shared folder for accuracy test files, test questions, result records, and issue tracking.
+            Open the Excel file for HAI Search accuracy test, including test questions, result records, and issue tracking.
         </div>
         """
     )
 
-    # Native Streamlit display area.
-    # This part should be visible even if HTML link is blocked by browser security.
-    with st.container(border=True):
-        st.subheader("✅ Accuracy Test Folder")
+    html(
+        """
+        <div class="accuracy-box">
+            <div class="accuracy-title">✅ Accuracy Test Excel</div>
+            <div class="accuracy-text">
+                Open the Excel file used for HAI Search accuracy testing.
+                This file can be used to manage test questions, answer results, issue types, and accuracy rate.
+            </div>
+        </div>
+        """
+    )
 
-        st.write(
-            "Open the shared folder for HAI Search accuracy test files, "
-            "including test questions, result records, and issue tracking data."
+    col1, col2 = st.columns([1, 3])
+
+    with col1:
+        if st.button("📊 Open Accuracy Test Excel", use_container_width=True):
+            try:
+                if os.path.exists(ACCURACY_TEST_EXCEL_PATH):
+                    os.startfile(ACCURACY_TEST_EXCEL_PATH)
+                    st.success("Excel file opened.")
+                else:
+                    st.error("Excel file was not found. Please check the path below.")
+            except Exception as e:
+                st.error(f"Could not open the Excel file: {e}")
+
+    with col2:
+        st.caption(
+            "If the button does not open the file, copy the path below and paste it into File Explorer."
         )
 
-        st.markdown(
-            f"""
-            <a href="{ACCURACY_TEST_FOLDER_URL}" target="_blank">
-                <button style="
-                    background: linear-gradient(135deg, #6d28d9 0%, #8b5cf6 100%);
-                    color: white;
-                    border: none;
-                    padding: 12px 22px;
-                    border-radius: 14px;
-                    font-weight: 900;
-                    font-size: 15px;
-                    cursor: pointer;
-                    box-shadow: 0 8px 18px rgba(109, 40, 217, 0.18);
-                ">
-                    📂 Open Accuracy Test Folder
-                </button>
-            </a>
-            """,
-            unsafe_allow_html=True,
-        )
-
-        st.caption("If the button does not open the folder, copy the path below and paste it into File Explorer.")
-
-        st.code(ACCURACY_TEST_FOLDER_PATH, language="text")
+    st.code(ACCURACY_TEST_EXCEL_PATH, language="text")
 
 
 # =========================
@@ -1213,17 +1218,14 @@ def render_hai_search():
     html(
         """
         <div class="debug-version-box">
-            HAI Search page loaded: TEST Accuracy Folder Visible Version
+            HAI Search page loaded: Accuracy Test Excel Open Version
         </div>
         """
     )
 
     render_hero()
     render_portal_entries()
-
-    # This section is added here to make sure it is visible.
-    render_accuracy_test_folder()
-
+    render_accuracy_test_excel()
     render_update_notes()
     render_monthly_usage_report()
 
