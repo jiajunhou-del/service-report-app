@@ -735,24 +735,57 @@ def render_portal_entries():
             """
         )
 
+
+# =========================
+# Accuracy Test Folder
+# =========================
+def render_accuracy_test_folder():
     html(
-        f"""
-        <div class="portal-card portal-purple">
-            <div class="portal-icon">✅</div>
-            <div class="portal-title">Accuracy Test Folder</div>
-            <div class="portal-text">
-                Open the shared folder for HAI Search accuracy test files,
-                including test questions, result records, and issue tracking data.
-            </div>
-            <a class="portal-button portal-button-purple" href="{ACCURACY_TEST_FOLDER_URL}" target="_blank">
-                📂 Open Accuracy Test Folder
-            </a>
-            <div class="folder-path-box">
-                {ACCURACY_TEST_FOLDER_PATH}
-            </div>
+        """
+        <div class="hai-section-header section-purple">
+            <span class="hai-section-dot"></span>
+            HAI Search Accuracy Test
+        </div>
+        <div class="hai-section-desc">
+            Open the shared folder for accuracy test files, test questions, result records, and issue tracking.
         </div>
         """
     )
+
+    # Native Streamlit display area.
+    # This part should be visible even if HTML link is blocked by browser security.
+    with st.container(border=True):
+        st.subheader("✅ Accuracy Test Folder")
+
+        st.write(
+            "Open the shared folder for HAI Search accuracy test files, "
+            "including test questions, result records, and issue tracking data."
+        )
+
+        st.markdown(
+            f"""
+            <a href="{ACCURACY_TEST_FOLDER_URL}" target="_blank">
+                <button style="
+                    background: linear-gradient(135deg, #6d28d9 0%, #8b5cf6 100%);
+                    color: white;
+                    border: none;
+                    padding: 12px 22px;
+                    border-radius: 14px;
+                    font-weight: 900;
+                    font-size: 15px;
+                    cursor: pointer;
+                    box-shadow: 0 8px 18px rgba(109, 40, 217, 0.18);
+                ">
+                    📂 Open Accuracy Test Folder
+                </button>
+            </a>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        st.caption("If the button does not open the folder, copy the path below and paste it into File Explorer.")
+
+        st.code(ACCURACY_TEST_FOLDER_PATH, language="text")
 
 
 # =========================
@@ -1180,13 +1213,17 @@ def render_hai_search():
     html(
         """
         <div class="debug-version-box">
-            HAI Search page loaded: 2026 soft color version
+            HAI Search page loaded: TEST Accuracy Folder Visible Version
         </div>
         """
     )
 
     render_hero()
     render_portal_entries()
+
+    # This section is added here to make sure it is visible.
+    render_accuracy_test_folder()
+
     render_update_notes()
     render_monthly_usage_report()
 
