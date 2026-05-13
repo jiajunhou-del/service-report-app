@@ -19,8 +19,7 @@ HAI_LOGO_PATH = ASSETS_DIR / "hai_search_logo.jpg.png"
 SLACK_URL = "https://app.slack.com/"
 
 # Accuracy Test Google Sheet
-# ↓↓↓ ここにGoogle SheetのURLを入れてください
-ACCURACY_TEST_SHEET_URL = "ここにGoogle SheetのURLを入れてください"
+ACCURACY_TEST_SHEET_URL = "https://docs.google.com/spreadsheets/d/1hsohcSibaZikvnicXok71QKnUmjY5B-S/edit?gid=883322012#gid=883322012"
 
 UPDATE_NOTES_FILE = BASE_DIR / "hai_search_update_notes.md"
 
@@ -224,39 +223,91 @@ def apply_css():
             border: 1px solid #ffd9c7;
         }
 
-        .accuracy-box {
-            background: linear-gradient(180deg, #f6f5ff 0%, #ffffff 100%);
+        .accuracy-center-card {
+            background:
+                radial-gradient(circle at top right, rgba(124, 58, 237, 0.12), transparent 34%),
+                linear-gradient(180deg, #ffffff 0%, #fbfaff 100%);
             border: 1px solid #ddd6fe;
-            border-radius: 26px;
-            padding: 28px 30px;
-            box-shadow: 0 10px 26px rgba(109, 40, 217, 0.06);
-            margin-bottom: 28px;
+            border-radius: 30px;
+            padding: 34px 38px;
+            box-shadow: 0 16px 38px rgba(79, 70, 229, 0.10);
+            margin: 12px 0 18px 0;
         }
 
-        .accuracy-title {
-            font-size: 26px;
+        .accuracy-center-top {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .accuracy-center-icon {
+            width: 68px;
+            height: 68px;
+            border-radius: 22px;
+            background: linear-gradient(135deg, #6d28d9 0%, #8b5cf6 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 34px;
+            box-shadow: 0 12px 24px rgba(109, 40, 217, 0.24);
+        }
+
+        .accuracy-center-title {
+            font-size: 30px;
             font-weight: 900;
-            color: #3730a3;
-            margin-bottom: 12px;
+            color: #2f2a7c;
+            margin-bottom: 6px;
+            letter-spacing: -0.02em;
         }
 
-        .accuracy-text {
+        .accuracy-center-subtitle {
             font-size: 15px;
-            color: #5b5f75;
+            color: #667085;
             line-height: 1.8;
-            margin-bottom: 16px;
         }
 
-        .path-box {
-            margin-top: 14px;
-            padding: 12px 14px;
-            border-radius: 12px;
+        .accuracy-center-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            margin: 24px 0 26px 0;
+        }
+
+        .accuracy-center-mini {
+            background: #ffffff;
+            border: 1px solid #ece9ff;
+            border-radius: 18px;
+            padding: 16px 18px;
+        }
+
+        .accuracy-center-mini-label {
+            font-size: 13px;
+            color: #6b7280;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .accuracy-center-mini-value {
+            font-size: 17px;
+            color: #2f2a7c;
+            font-weight: 900;
+        }
+
+        .accuracy-center-note {
             background: #f8fafc;
             border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 13px 16px;
             color: #475569;
-            font-size: 13px;
-            line-height: 1.6;
-            word-break: break-all;
+            font-size: 14px;
+            line-height: 1.7;
+            margin-top: 18px;
+        }
+
+        .sheet-button-wrap {
+            margin: 0 0 34px 0;
         }
 
         .update-box {
@@ -752,37 +803,71 @@ def render_accuracy_test_sheet():
         """
         <div class="hai-section-header section-purple">
             <span class="hai-section-dot"></span>
-            HAI Search Accuracy Test
+            Accuracy Test Center
         </div>
         <div class="hai-section-desc">
-            Open the Google Sheet for HAI Search accuracy test, including test questions, result records, and issue tracking.
+            Manage HAI Search answer quality, test questions, issue types, and accuracy rate from one shared sheet.
         </div>
         """
     )
 
     html(
         """
-        <div class="accuracy-box">
-            <div class="accuracy-title">✅ Accuracy Test Sheet</div>
-            <div class="accuracy-text">
-                Open the Google Sheet used for HAI Search accuracy testing.
-                This sheet can be used to manage test questions, answer results, issue types, and accuracy rate.
+        <div class="accuracy-center-card">
+            <div class="accuracy-center-top">
+                <div class="accuracy-center-icon">📊</div>
+                <div>
+                    <div class="accuracy-center-title">HAI Search Accuracy Test Sheet</div>
+                    <div class="accuracy-center-subtitle">
+                        Central place for checking HAI Search answer quality.
+                        Use this sheet to record test questions, expected answers, actual answers,
+                        issue types, and final accuracy results.
+                    </div>
+                </div>
+            </div>
+
+            <div class="accuracy-center-grid">
+                <div class="accuracy-center-mini">
+                    <div class="accuracy-center-mini-label">Purpose</div>
+                    <div class="accuracy-center-mini-value">Accuracy Check</div>
+                </div>
+                <div class="accuracy-center-mini">
+                    <div class="accuracy-center-mini-label">Main Use</div>
+                    <div class="accuracy-center-mini-value">Issue Tracking</div>
+                </div>
+                <div class="accuracy-center-mini">
+                    <div class="accuracy-center-mini-label">Target</div>
+                    <div class="accuracy-center-mini-value">80%+</div>
+                </div>
+            </div>
+
+            <div class="accuracy-center-note">
+                Click the button below to open the shared Google Sheet.
+                Please make sure the Google Sheet sharing permission is enabled for the users who need access.
             </div>
         </div>
         """
     )
 
-    if ACCURACY_TEST_SHEET_URL.startswith("http"):
+    st.markdown('<div class="sheet-button-wrap">', unsafe_allow_html=True)
+
+    if ACCURACY_TEST_SHEET_URL.startswith("https://docs.google.com/spreadsheets/"):
         st.link_button(
-            "📊 Open Accuracy Test Sheet",
+            "🚀 Open Accuracy Test Sheet",
             ACCURACY_TEST_SHEET_URL,
-            use_container_width=False,
+            use_container_width=True,
         )
-        st.caption("This button opens the shared Google Sheet in your browser.")
-        st.code(ACCURACY_TEST_SHEET_URL, language="text")
+
+        with st.expander("Show Google Sheet URL"):
+            st.code(ACCURACY_TEST_SHEET_URL, language="text")
     else:
-        st.warning("Google Sheet URL is not set yet. Please update ACCURACY_TEST_SHEET_URL in the script.")
-        st.code('ACCURACY_TEST_SHEET_URL = "https://docs.google.com/spreadsheets/d/xxxxx/edit?usp=sharing"', language="python")
+        st.error("Google Sheet URL is not set correctly.")
+        st.code(
+            'ACCURACY_TEST_SHEET_URL = "https://docs.google.com/spreadsheets/d/xxxxx/edit?usp=sharing"',
+            language="python",
+        )
+
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
 # =========================
@@ -1210,7 +1295,7 @@ def render_hai_search():
     html(
         """
         <div class="debug-version-box">
-            HAI Search page loaded: Google Sheet Accuracy Test Version
+            HAI Search page loaded: Accuracy Test Sheet Design Version
         </div>
         """
     )
