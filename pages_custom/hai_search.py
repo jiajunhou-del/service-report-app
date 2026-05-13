@@ -18,6 +18,10 @@ REPORT_DIR = BASE_DIR / "hai_search_reports"
 HAI_LOGO_PATH = ASSETS_DIR / "hai_search_logo.jpg.png"
 SLACK_URL = "https://app.slack.com/"
 
+# Accuracy Test Folder
+ACCURACY_TEST_FOLDER_PATH = r"G:\共有ドライブ\ホリゾンインターTS部\03_プロモーション課\AI検索\HAI_Search_Accuracy_Test_"
+ACCURACY_TEST_FOLDER_URL = "file:///G:/共有ドライブ/ホリゾンインターTS部/03_プロモーション課/AI検索/HAI_Search_Accuracy_Test_/"
+
 UPDATE_NOTES_FILE = BASE_DIR / "hai_search_update_notes.md"
 
 
@@ -165,6 +169,11 @@ def apply_css():
             border: 1px solid #ffd9c7;
         }
 
+        .portal-purple {
+            background: linear-gradient(180deg, #f6f5ff 0%, #ffffff 100%);
+            border: 1px solid #ddd6fe;
+        }
+
         .portal-icon {
             width: 66px;
             height: 66px;
@@ -182,6 +191,10 @@ def apply_css():
 
         .portal-orange .portal-icon {
             background: #fff0e8;
+        }
+
+        .portal-purple .portal-icon {
+            background: #ede9fe;
         }
 
         .portal-title {
@@ -218,6 +231,24 @@ def apply_css():
             background: #fff0e8;
             color: #a24618 !important;
             border: 1px solid #ffd9c7;
+        }
+
+        .portal-button-purple {
+            background: linear-gradient(135deg, #6d28d9 0%, #8b5cf6 100%);
+            color: #ffffff !important;
+            box-shadow: 0 8px 18px rgba(109, 40, 217, 0.18);
+        }
+
+        .folder-path-box {
+            margin-top: 14px;
+            padding: 11px 13px;
+            border-radius: 12px;
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            color: #475569;
+            font-size: 13px;
+            line-height: 1.6;
+            word-break: break-all;
         }
 
         .update-box {
@@ -703,6 +734,25 @@ def render_portal_entries():
             </div>
             """
         )
+
+    html(
+        f"""
+        <div class="portal-card portal-purple">
+            <div class="portal-icon">✅</div>
+            <div class="portal-title">Accuracy Test Folder</div>
+            <div class="portal-text">
+                Open the shared folder for HAI Search accuracy test files,
+                including test questions, result records, and issue tracking data.
+            </div>
+            <a class="portal-button portal-button-purple" href="{ACCURACY_TEST_FOLDER_URL}" target="_blank">
+                📂 Open Accuracy Test Folder
+            </a>
+            <div class="folder-path-box">
+                {ACCURACY_TEST_FOLDER_PATH}
+            </div>
+        </div>
+        """
+    )
 
 
 # =========================
