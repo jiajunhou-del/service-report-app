@@ -18,7 +18,6 @@ REPORT_DIR = BASE_DIR / "hai_search_reports"
 HAI_LOGO_PATH = ASSETS_DIR / "hai_search_logo.jpg.png"
 SLACK_URL = "https://app.slack.com/"
 
-# Accuracy Test Google Sheet
 ACCURACY_TEST_SHEET_URL = "https://docs.google.com/spreadsheets/d/1hsohcSibaZikvnicXok71QKnUmjY5B-S/edit?gid=883322012#gid=883322012"
 
 UPDATE_NOTES_FILE = BASE_DIR / "hai_search_update_notes.md"
@@ -223,7 +222,7 @@ def apply_css():
             border: 1px solid #ffd9c7;
         }
 
-        .accuracy-center-card {
+        .accuracy-native-box {
             background:
                 radial-gradient(circle at top right, rgba(124, 58, 237, 0.12), transparent 34%),
                 linear-gradient(180deg, #ffffff 0%, #fbfaff 100%);
@@ -231,17 +230,10 @@ def apply_css():
             border-radius: 30px;
             padding: 34px 38px;
             box-shadow: 0 16px 38px rgba(79, 70, 229, 0.10);
-            margin: 12px 0 18px 0;
+            margin: 12px 0 26px 0;
         }
 
-        .accuracy-center-top {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            margin-bottom: 24px;
-        }
-
-        .accuracy-center-icon {
+        .accuracy-icon-box {
             width: 68px;
             height: 68px;
             border-radius: 22px;
@@ -254,7 +246,7 @@ def apply_css():
             box-shadow: 0 12px 24px rgba(109, 40, 217, 0.24);
         }
 
-        .accuracy-center-title {
+        .accuracy-main-title {
             font-size: 30px;
             font-weight: 900;
             color: #2f2a7c;
@@ -262,52 +254,31 @@ def apply_css():
             letter-spacing: -0.02em;
         }
 
-        .accuracy-center-subtitle {
+        .accuracy-main-text {
             font-size: 15px;
             color: #667085;
             line-height: 1.8;
         }
 
-        .accuracy-center-grid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 14px;
-            margin: 24px 0 26px 0;
-        }
-
-        .accuracy-center-mini {
+        .accuracy-mini-card {
             background: #ffffff;
             border: 1px solid #ece9ff;
             border-radius: 18px;
             padding: 16px 18px;
+            min-height: 86px;
         }
 
-        .accuracy-center-mini-label {
+        .accuracy-mini-label {
             font-size: 13px;
             color: #6b7280;
             font-weight: 800;
             margin-bottom: 8px;
         }
 
-        .accuracy-center-mini-value {
+        .accuracy-mini-value {
             font-size: 17px;
             color: #2f2a7c;
             font-weight: 900;
-        }
-
-        .accuracy-center-note {
-            background: #f8fafc;
-            border: 1px solid #e5e7eb;
-            border-radius: 16px;
-            padding: 13px 16px;
-            color: #475569;
-            font-size: 14px;
-            line-height: 1.7;
-            margin-top: 18px;
-        }
-
-        .sheet-button-wrap {
-            margin: 0 0 34px 0;
         }
 
         .update-box {
@@ -811,45 +782,73 @@ def render_accuracy_test_sheet():
         """
     )
 
-    html(
-        """
-        <div class="accuracy-center-card">
-            <div class="accuracy-center-top">
-                <div class="accuracy-center-icon">📊</div>
-                <div>
-                    <div class="accuracy-center-title">HAI Search Accuracy Test Sheet</div>
-                    <div class="accuracy-center-subtitle">
-                        Central place for checking HAI Search answer quality.
-                        Use this sheet to record test questions, expected answers, actual answers,
-                        issue types, and final accuracy results.
-                    </div>
-                </div>
-            </div>
+    html('<div class="accuracy-native-box">')
 
-            <div class="accuracy-center-grid">
-                <div class="accuracy-center-mini">
-                    <div class="accuracy-center-mini-label">Purpose</div>
-                    <div class="accuracy-center-mini-value">Accuracy Check</div>
-                </div>
-                <div class="accuracy-center-mini">
-                    <div class="accuracy-center-mini-label">Main Use</div>
-                    <div class="accuracy-center-mini-value">Issue Tracking</div>
-                </div>
-                <div class="accuracy-center-mini">
-                    <div class="accuracy-center-mini-label">Target</div>
-                    <div class="accuracy-center-mini-value">80%+</div>
-                </div>
-            </div>
+    top_col1, top_col2 = st.columns([1, 8])
 
-            <div class="accuracy-center-note">
-                Click the button below to open the shared Google Sheet.
-                Please make sure the Google Sheet sharing permission is enabled for the users who need access.
+    with top_col1:
+        html(
+            """
+            <div class="accuracy-icon-box">
+                📊
             </div>
-        </div>
-        """
+            """
+        )
+
+    with top_col2:
+        html(
+            """
+            <div class="accuracy-main-title">
+                HAI Search Accuracy Test Sheet
+            </div>
+            <div class="accuracy-main-text">
+                Central place for checking HAI Search answer quality.
+                Use this sheet to record test questions, expected answers, actual answers,
+                issue types, and final accuracy results.
+            </div>
+            """
+        )
+
+    st.markdown("")
+
+    kpi1, kpi2, kpi3 = st.columns(3)
+
+    with kpi1:
+        html(
+            """
+            <div class="accuracy-mini-card">
+                <div class="accuracy-mini-label">Purpose</div>
+                <div class="accuracy-mini-value">Accuracy Check</div>
+            </div>
+            """
+        )
+
+    with kpi2:
+        html(
+            """
+            <div class="accuracy-mini-card">
+                <div class="accuracy-mini-label">Main Use</div>
+                <div class="accuracy-mini-value">Issue Tracking</div>
+            </div>
+            """
+        )
+
+    with kpi3:
+        html(
+            """
+            <div class="accuracy-mini-card">
+                <div class="accuracy-mini-label">Target</div>
+                <div class="accuracy-mini-value">80%+</div>
+            </div>
+            """
+        )
+
+    st.markdown("")
+
+    st.info(
+        "Click the button below to open the shared Google Sheet. "
+        "Please make sure the Google Sheet sharing permission is enabled for the users who need access."
     )
-
-    st.markdown('<div class="sheet-button-wrap">', unsafe_allow_html=True)
 
     if ACCURACY_TEST_SHEET_URL.startswith("https://docs.google.com/spreadsheets/"):
         st.link_button(
@@ -867,7 +866,7 @@ def render_accuracy_test_sheet():
             language="python",
         )
 
-    st.markdown("</div>", unsafe_allow_html=True)
+    html("</div>")
 
 
 # =========================
@@ -1295,7 +1294,7 @@ def render_hai_search():
     html(
         """
         <div class="debug-version-box">
-            HAI Search page loaded: Accuracy Test Sheet Design Version
+            HAI Search page loaded: Accuracy Test Sheet Native Layout Version
         </div>
         """
     )
