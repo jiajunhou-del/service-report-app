@@ -18,7 +18,8 @@ REPORT_DIR = BASE_DIR / "hai_search_reports"
 HAI_LOGO_PATH = ASSETS_DIR / "hai_search_logo.jpg.png"
 SLACK_URL = "https://app.slack.com/"
 
-ACCURACY_TEST_SHEET_URL = "https://docs.google.com/spreadsheets/d/1hsohcSibaZikvnicXok71QKnUmjY5B-S/edit?gid=883322012#gid=883322012"
+# Accuracy Test Google Sheet
+ACCURACY_TEST_SHEET_URL = "https://docs.google.com/spreadsheets/d/1ywfzw1XHvFxBw_qxMyt5kDwYel7cj-YP/edit?gid=1924015338#gid=1924015338"
 
 UPDATE_NOTES_FILE = BASE_DIR / "hai_search_update_notes.md"
 
@@ -220,17 +221,6 @@ def apply_css():
             background: #fff0e8;
             color: #a24618 !important;
             border: 1px solid #ffd9c7;
-        }
-
-        .accuracy-native-box {
-            background:
-                radial-gradient(circle at top right, rgba(124, 58, 237, 0.12), transparent 34%),
-                linear-gradient(180deg, #ffffff 0%, #fbfaff 100%);
-            border: 1px solid #ddd6fe;
-            border-radius: 30px;
-            padding: 34px 38px;
-            box-shadow: 0 16px 38px rgba(79, 70, 229, 0.10);
-            margin: 12px 0 26px 0;
         }
 
         .accuracy-icon-box {
@@ -782,91 +772,88 @@ def render_accuracy_test_sheet():
         """
     )
 
-    html('<div class="accuracy-native-box">')
+    with st.container(border=True):
+        top_col1, top_col2 = st.columns([1, 8])
 
-    top_col1, top_col2 = st.columns([1, 8])
+        with top_col1:
+            html(
+                """
+                <div class="accuracy-icon-box">
+                    📊
+                </div>
+                """
+            )
 
-    with top_col1:
-        html(
-            """
-            <div class="accuracy-icon-box">
-                📊
-            </div>
-            """
+        with top_col2:
+            html(
+                """
+                <div class="accuracy-main-title">
+                    HAI Search Accuracy Test Sheet
+                </div>
+                <div class="accuracy-main-text">
+                    Central place for checking HAI Search answer quality.
+                    Use this sheet to record test questions, expected answers, actual answers,
+                    issue types, and final accuracy results.
+                </div>
+                """
+            )
+
+        st.markdown("")
+
+        kpi1, kpi2, kpi3 = st.columns(3)
+
+        with kpi1:
+            html(
+                """
+                <div class="accuracy-mini-card">
+                    <div class="accuracy-mini-label">Purpose</div>
+                    <div class="accuracy-mini-value">Accuracy Check</div>
+                </div>
+                """
+            )
+
+        with kpi2:
+            html(
+                """
+                <div class="accuracy-mini-card">
+                    <div class="accuracy-mini-label">Main Use</div>
+                    <div class="accuracy-mini-value">Issue Tracking</div>
+                </div>
+                """
+            )
+
+        with kpi3:
+            html(
+                """
+                <div class="accuracy-mini-card">
+                    <div class="accuracy-mini-label">Target</div>
+                    <div class="accuracy-mini-value">80%+</div>
+                </div>
+                """
+            )
+
+        st.markdown("")
+
+        st.info(
+            "Click the button below to open the shared Google Sheet. "
+            "Please make sure the Google Sheet sharing permission is enabled for the users who need access."
         )
 
-    with top_col2:
-        html(
-            """
-            <div class="accuracy-main-title">
-                HAI Search Accuracy Test Sheet
-            </div>
-            <div class="accuracy-main-text">
-                Central place for checking HAI Search answer quality.
-                Use this sheet to record test questions, expected answers, actual answers,
-                issue types, and final accuracy results.
-            </div>
-            """
-        )
+        if ACCURACY_TEST_SHEET_URL.startswith("https://docs.google.com/spreadsheets/"):
+            st.link_button(
+                "🚀 Open Accuracy Test Sheet",
+                ACCURACY_TEST_SHEET_URL,
+                use_container_width=True,
+            )
 
-    st.markdown("")
-
-    kpi1, kpi2, kpi3 = st.columns(3)
-
-    with kpi1:
-        html(
-            """
-            <div class="accuracy-mini-card">
-                <div class="accuracy-mini-label">Purpose</div>
-                <div class="accuracy-mini-value">Accuracy Check</div>
-            </div>
-            """
-        )
-
-    with kpi2:
-        html(
-            """
-            <div class="accuracy-mini-card">
-                <div class="accuracy-mini-label">Main Use</div>
-                <div class="accuracy-mini-value">Issue Tracking</div>
-            </div>
-            """
-        )
-
-    with kpi3:
-        html(
-            """
-            <div class="accuracy-mini-card">
-                <div class="accuracy-mini-label">Target</div>
-                <div class="accuracy-mini-value">80%+</div>
-            </div>
-            """
-        )
-
-    st.markdown("")
-
-    st.info(
-        "Click the button below to open the shared Google Sheet. "
-        "Please make sure the Google Sheet sharing permission is enabled for the users who need access."
-    )
-
-    if ACCURACY_TEST_SHEET_URL.startswith("https://docs.google.com/spreadsheets/"):
-        st.link_button(
-            "🚀 Open Accuracy Test Sheet",
-            ACCURACY_TEST_SHEET_URL,
-            use_container_width=True,
-        )
-
-        with st.expander("Show Google Sheet URL"):
-            st.code(ACCURACY_TEST_SHEET_URL, language="text")
-    else:
-        st.error("Google Sheet URL is not set correctly.")
-        st.code(
-            'ACCURACY_TEST_SHEET_URL = "https://docs.google.com/spreadsheets/d/xxxxx/edit?usp=sharing"',
-            language="python",
-        )
-
-    html("</div>")
+            with st.expander("Show Google Sheet URL"):
+                st.code(ACCURACY_TEST_SHEET_URL, language="text")
+        else:
+            st.error("Google Sheet URL is not set correctly.")
+            st.code(
+                'ACCURACY_TEST_SHEET_URL = "https://docs.google.com/spreadsheets/d/xxxxx/edit?usp=sharing"',
+                language="python",
+            )
 
 
 # =========================
@@ -1294,7 +1281,7 @@ def render_hai_search():
     html(
         """
         <div class="debug-version-box">
-            HAI Search page loaded: Accuracy Test Sheet Native Layout Version
+            HAI Search page loaded: Accuracy Test Sheet Updated URL Version
         </div>
         """
     )
